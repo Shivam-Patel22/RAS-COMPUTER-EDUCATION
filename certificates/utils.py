@@ -57,11 +57,155 @@ def generate_certificate_id(first_name="", last_name=""):
             return cert_id
 
 
+def is_ccc_certificate(cert):
+    """
+    Checks whether a certificate is for the CCC (Course on Computer Concepts) program.
+    """
+    if hasattr(cert, 'is_ccc'):
+        return bool(cert.is_ccc)
+    if not cert or not getattr(cert, 'course', None):
+        return False
+    course_name = (cert.course.name or '').strip().lower()
+    return (
+        course_name == 'ccc' or
+        'course on computer concepts' in course_name or
+        course_name.startswith('ccc ') or
+        course_name.endswith(' ccc') or
+        '(ccc)' in course_name
+    )
+
+
+def generate_ccc_certificate_pdf(cert):
+    """
+    Generates high-resolution PDF for CCC (Course on Computer Concepts)
+    using the official uploaded template image as background.
+    """
+    import io
+    import os
+    from django.conf import settings
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+    from reportlab.lib import colors
+    from reportlab.graphics.barcode import qr
+    from reportlab.graphics.shapes import Drawing
+    from reportlab.graphics import renderPDF
+
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf, pagesize=A4)
+    width, height = A4  # 595.27 x 841.89
+
+    # Locate template image in static/images
+    template_candidates = [
+        os.path.join(settings.BASE_DIR, 'static', 'images', 'CCCCerty copy.jpg.jpeg'),
+        os.path.join(settings.BASE_DIR, 'static', 'images', 'ccc_certificate_template.jpg'),
+        os.path.join(settings.BASE_DIR, 'static', 'images', 'CCCCerty copy.jpg'),
+    ]
+    template_path = None
+    for cand in template_candidates:
+        if os.path.exists(cand):
+            template_path = cand
+            break
+
+    if template_path:
+        c.drawImage(template_path, 0, 0, width=width, height=height)
+
+    # 1. Top-Left Box QR Code
+    qr_data = cert.certificate_id
+    if hasattr(cert, 'verification_token') and cert.verification_token:
+        qr_data = f"{cert.certificate_id}|{cert.verification_token}"
+
+    try:
+        qr_widget = qr.QrCodeWidget(qr_data)
+        qr_bounds = qr_widget.getBounds()
+        qr_w = qr_bounds[2] - qr_bounds[0]
+        qr_h = qr_bounds[3] - qr_bounds[1]
+
+        box_qr_size = 76
+        d = Drawing(box_qr_size, box_qr_size, transform=[box_qr_size / qr_w, 0, 0, box_qr_size / qr_h, 0, 0])
+        d.add(qr_widget)
+        renderPDF.draw(d, c, 58, 680)
+    except Exception:
+        pass
+
+    # 2. Certificate ID and Issue Date in Top Right Area
+    c.setFillColor(colors.HexColor('#1E293B'))
+    c.setFont('Helvetica-Bold', 9)
+    c.drawRightString(width - 55, 715, f"Cert. No: {cert.certificate_id}")
+    issue_date_str = cert.issue_date.strftime('%B %d, %Y') if cert.issue_date else 'N/A'
+    c.setFont('Helvetica', 8.5)
+    c.setFillColor(colors.HexColor('#475569'))
+    c.drawRightString(width - 55, 700, f"Date: {issue_date_str}")
+
+    # 3. Middle Content Area (Certificate Text)
+    # Lead-in
+    c.setFillColor(colors.HexColor('#475569'))
+    c.setFont('Helvetica-Oblique', 12.5)
+    c.drawCentredString(width / 2, 475, 'This is to certify that')
+
+    # Student Name
+    student_name = (cert.student_name or 'Student').upper()
+    c.setFillColor(colors.HexColor('#1E3A8A'))
+    c.setFont('Helvetica-Bold', 22)
+    c.drawCentredString(width / 2, 442, student_name)
+
+    # Subtle Underline below Student Name
+    name_w = c.stringWidth(student_name, 'Helvetica-Bold', 22)
+    line_start_x = max(90, width / 2 - (name_w / 2) - 25)
+    line_end_x = min(width - 90, width / 2 + (name_w / 2) + 25)
+    c.setStrokeColor(colors.HexColor('#CBD5E1'))
+    c.setLineWidth(1)
+    c.line(line_start_x, 435, line_end_x, 435)
+
+    # Course Text
+    c.setFillColor(colors.HexColor('#334155'))
+    c.setFont('Helvetica', 11)
+    c.drawCentredString(width / 2, 402, 'has successfully completed the course requirements and practical assessment for')
+
+    c.setFillColor(colors.HexColor('#0F172A'))
+    c.setFont('Helvetica-Bold', 18)
+    c.drawCentredString(width / 2, 372, 'Course on Computer Concepts (CCC)')
+
+    # Course Duration & Dates
+    duration_str = cert.course.duration if (cert.course and cert.course.duration) else '3 Months (80 Hours)'
+    c.setFillColor(colors.HexColor('#2563EB'))
+    c.setFont('Helvetica-Bold', 10.5)
+    c.drawCentredString(width / 2, 345, f'Course Duration: {duration_str}')
+
+    if cert.course_start_date and cert.course_end_date:
+        period_str = f"Course Period: {cert.course_start_date.strftime('%B %d, %Y')} – {cert.course_end_date.strftime('%B %d, %Y')}"
+        c.setFillColor(colors.HexColor('#475569'))
+        c.setFont('Helvetica', 9.5)
+        c.drawCentredString(width / 2, 326, period_str)
+
+    # Grade Awarded Badge/Text
+    if cert.grade:
+        grade_text = f"GRADE SECURED: {cert.grade.upper()}"
+        c.setFillColor(colors.HexColor('#15803D'))
+        c.setFont('Helvetica-Bold', 12)
+        c.drawCentredString(width / 2, 288, grade_text)
+
+    # 4. Signatory (Bottom Right Area, above 'AUTHORITY SIGNATORY' label)
+    c.setFillColor(colors.HexColor('#0F172A'))
+    c.setFont('Helvetica-Bold', 10.5)
+    c.drawCentredString(width * 0.76, 128, 'Dr. P. K. Sharma')
+    c.setFillColor(colors.HexColor('#64748B'))
+    c.setFont('Helvetica', 8)
+    c.drawCentredString(width * 0.76, 116, 'Director of Academic Affairs')
+
+    c.save()
+    buf.seek(0)
+    return buf.getvalue()
+
+
 def generate_certificate_pdf(cert):
     """
-    Generates a high-quality PDF in memory for a given Certificate instance
-    matching the official C-DAC certificate layout.
+    Generates a high-quality PDF in memory for a given Certificate instance.
+    For CCC courses, it uses the official CCC certificate template.
+    For all other courses, it retains the standard C-DAC certificate layout.
     """
+    if is_ccc_certificate(cert):
+        return generate_ccc_certificate_pdf(cert)
+
     import io
     from reportlab.lib.pagesizes import A4
     from reportlab.pdfgen import canvas

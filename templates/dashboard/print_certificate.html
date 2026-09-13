@@ -244,6 +244,187 @@
             color: #211f1c;
         }
 
+        /* CCC Certificate Template Styling */
+        .ccc-mode-container {
+            max-width: 820px;
+            margin: 0 auto;
+            background: transparent;
+            padding: 0;
+        }
+
+        .ccc-certificate-card {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 2469 / 3520;
+            max-width: 820px;
+            margin: 0 auto;
+            background: #ffffff;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .ccc-bg-template {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .ccc-qr-box {
+            position: absolute;
+            top: 8.6%;
+            left: 9.1%;
+            width: 14.2%;
+            height: 11.4%;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ccc-qr-canvas {
+            width: 78%;
+            height: 78%;
+            object-fit: contain;
+            background: #ffffff;
+        }
+
+        .ccc-qr-label {
+            font-size: 0.62rem;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        .ccc-top-meta {
+            position: absolute;
+            top: 19.5%;
+            right: 8.5%;
+            z-index: 2;
+            text-align: right;
+            font-size: 0.85rem;
+            color: #1e293b;
+        }
+
+        .ccc-top-meta .ccc-meta-id {
+            font-weight: 700;
+            margin-bottom: 2px;
+            font-family: monospace;
+            font-size: 0.95rem;
+        }
+
+        .ccc-top-meta .ccc-meta-date {
+            font-size: 0.8rem;
+            color: #475569;
+        }
+
+        .ccc-body-content {
+            position: absolute;
+            top: 42%;
+            left: 8%;
+            right: 8%;
+            width: 84%;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .ccc-leadin {
+            color: #475569;
+            font-size: 1.05rem;
+            font-style: italic;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .ccc-student-name {
+            font-size: 2.1rem;
+            color: #1e3a8a;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-family: var(--font-heading, 'Outfit', sans-serif);
+            border-bottom: 1.5px dashed #94a3b8;
+            display: inline-block;
+            padding: 0 2rem 0.25rem;
+            margin: 0.25rem auto 0.9rem;
+        }
+
+        .ccc-course-text {
+            color: #334155;
+            font-size: 1.02rem;
+            max-width: 580px;
+            margin: 0 auto 0.65rem;
+            line-height: 1.5;
+        }
+
+        .ccc-course-title {
+            font-size: 1.7rem;
+            color: #0f172a;
+            font-weight: 800;
+            font-family: var(--font-heading, 'Outfit', sans-serif);
+            margin-bottom: 0.5rem;
+        }
+
+        .ccc-course-duration {
+            color: #2563eb;
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 0.9rem;
+        }
+
+        .ccc-course-period {
+            font-size: 0.88rem;
+            color: #475569;
+            font-weight: 500;
+            margin-top: 0.2rem;
+        }
+
+        .ccc-grade-box {
+            margin-top: 0.8rem;
+        }
+
+        .ccc-grade-badge {
+            display: inline-block;
+            background: #ecfdf5;
+            color: #15803d;
+            border: 1.5px solid #86efac;
+            padding: 0.35rem 1.25rem;
+            border-radius: 9999px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+        }
+
+        .ccc-sig-overlay {
+            position: absolute;
+            bottom: 11.8%;
+            right: 8.5%;
+            width: 32%;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .ccc-sig-line {
+            font-family: 'Brush Script MT', cursive, sans-serif;
+            font-size: 1.3rem;
+            color: #1e293b;
+            margin-bottom: 2px;
+        }
+
+        .ccc-sig-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #475569;
+        }
+
         /* Print Media Queries */
         @page {
             size: A4 portrait;
@@ -276,6 +457,19 @@
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
+
+            .ccc-certificate-card {
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                height: 100vh !important;
+                margin: 0 !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
         }
     </style>
 </head>
@@ -293,7 +487,56 @@
         </div>
     </div>
 
-    <!-- Printable Certificate Frame -->
+    {% if certificate.is_ccc %}
+    <!-- CCC Dedicated Certificate Frame with Uploaded Background Template -->
+    <div class="printable-certificate-container ccc-mode-container">
+        <div class="ccc-certificate-card">
+            <!-- Uploaded Background Template -->
+            <img src="{% static 'images/CCCCerty copy.jpg.jpeg' %}" alt="CCC Certificate Background Template" class="ccc-bg-template">
+
+            <!-- 1. Top-Left Box: Dynamic QR Code -->
+            <div class="ccc-qr-box">
+                <canvas id="qrCanvas" class="ccc-qr-canvas"></canvas>
+                <span class="ccc-qr-label">Scan to Verify</span>
+            </div>
+
+            <!-- 2. Top-Right: Certificate ID & Issue Date -->
+            <div class="ccc-top-meta">
+                <div class="ccc-meta-id">Cert. No: {{ certificate.certificate_id }}</div>
+                <div class="ccc-meta-date">Date: {{ certificate.issue_date|date:"F j, Y" }}</div>
+            </div>
+
+            <!-- 3. Middle Body Content -->
+            <div class="ccc-body-content">
+                <p class="ccc-leadin">This is to certify that</p>
+                <div class="ccc-student-name">{{ certificate.student_name }}</div>
+                <p class="ccc-course-text">
+                    has successfully completed the course requirements and practical assessment for
+                </p>
+                <div class="ccc-course-title">Course on Computer Concepts (CCC)</div>
+                <div class="ccc-course-duration">
+                    Course Duration: {{ certificate.course.duration|default:"3 Months (80 Hours)" }}
+                    {% if certificate.course_start_date and certificate.course_end_date %}
+                    <div class="ccc-course-period">Course Period: {{ certificate.course_start_date|date:"F j, Y" }} – {{ certificate.course_end_date|date:"F j, Y" }}</div>
+                    {% endif %}
+                </div>
+
+                {% if certificate.grade %}
+                <div class="ccc-grade-box">
+                    <span class="ccc-grade-badge">GRADE SECURED: {{ certificate.grade|upper }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 4. Signatory Area (above 'AUTHORITY SIGNATORY') -->
+            <div class="ccc-sig-overlay">
+                <div class="ccc-sig-line">Dr. P. K. Sharma</div>
+                <div class="ccc-sig-title">Director of Academic Affairs</div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Printable Certificate Frame (Standard C-DAC layout for all other courses) -->
     <div class="printable-certificate-container">
         <div class="certificate-card-printable">
             <!-- Decorative Corners -->
@@ -366,6 +609,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
     <!-- QR Code Generator & Auto Print Script -->
     <script>

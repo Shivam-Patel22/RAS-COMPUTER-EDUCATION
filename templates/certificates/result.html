@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Certificate Verification Result | Centre for Development of Advanced Computing (C-DAC){% endblock %}
+{% block title %}Certificate Verification Result | {% if certificate.is_ccc %}CCC Certificate{% else %}Centre for Development of Advanced Computing (C-DAC){% endif %}{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -12,25 +12,31 @@
         <h1 style="font-size: 2rem; color: var(--gray-900);">Official Certificate Record</h1>
     </div>
 
-    <!-- Official Certificate Render Box -->
-    <div class="certificate-card">
-        <div class="certificate-header">
-            <img src="{% static 'images/Ras computer Education.png' %}" alt="RAS Computer Education Logo" style="height: 58px; max-width: 100%; margin: 0 auto 1rem; display: block; border-radius: 4px;">
-            <h2 class="certificate-title">Certificate of Completion</h2>
-            <p class="certificate-subtitle">CENTRE FOR DEVELOPMENT OF ADVANCED COMPUTING (C-DAC)</p>
+    {% if certificate.is_ccc %}
+    <!-- Official CCC Certificate Render Box -->
+    <div class="certificate-card" style="border: 2px solid #2563eb; background: linear-gradient(to bottom, #ffffff, #f8fafc);">
+        <div class="certificate-header" style="border-bottom: 2px solid #2563eb; padding-bottom: 1.25rem;">
+            <div style="display: inline-block; padding: 0.25rem 1rem; background: #eff6ff; border-radius: 9999px; color: #1e40af; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.75rem; letter-spacing: 1px;">
+                COMPUTER &amp; INDUSTRIAL TRAINING INSTITUTION
+            </div>
+            <h2 class="certificate-title" style="color: #0f172a; font-size: 1.8rem;">Certificate Course on Computer Concepts</h2>
+            <p class="certificate-subtitle" style="color: #2563eb; font-weight: 600;">OFFICIAL GOVERNMENT RECOGNIZED PROGRAM (CCC)</p>
         </div>
 
         <div class="certificate-body">
             <p style="color: var(--gray-600); font-size: 1.05rem;">This certifies that</p>
-            <h3 class="certificate-student">{{ certificate.student_name }}</h3>
-            <p style="color: var(--gray-600); font-size: 1.05rem; max-width: 500px; margin: 0 auto 1.5rem;">
-                has successfully completed the comprehensive training program and fulfilled all curriculum requirements for
+            <h3 class="certificate-student" style="color: #1e3a8a;">{{ certificate.student_name }}</h3>
+            <p style="color: var(--gray-600); font-size: 1.05rem; max-width: 520px; margin: 0 auto 1.5rem;">
+                has successfully completed the comprehensive curriculum and practical examination for
             </p>
 
             <h4 style="font-size: 1.6rem; color: var(--gray-900); font-family: var(--font-heading); margin-bottom: 0.5rem;">
-                {{ certificate.course.name }}
+                Course on Computer Concepts (CCC)
             </h4>
-            <p style="color: var(--primary); font-weight: 600;">Duration: {{ certificate.course.duration }}</p>
+            <p style="color: var(--primary); font-weight: 600;">Duration: {{ certificate.course.duration|default:"3 Months (80 Hours)" }}</p>
+            {% if certificate.course_start_date and certificate.course_end_date %}
+            <p style="color: var(--gray-600); font-size: 0.95rem; margin-top: 0.25rem;">Period: {{ certificate.course_start_date|date:"F j, Y" }} – {{ certificate.course_end_date|date:"F j, Y" }}</p>
+            {% endif %}
         </div>
 
         <div class="certificate-meta-grid">
@@ -54,6 +60,53 @@
             </div>
         </div>
     </div>
+    {% else %}
+    <!-- Official Certificate Render Box (Standard C-DAC layout for other courses) -->
+    <div class="certificate-card">
+        <div class="certificate-header">
+            <img src="{% static 'images/Ras computer Education.png' %}" alt="RAS Computer Education Logo" style="height: 58px; max-width: 100%; margin: 0 auto 1rem; display: block; border-radius: 4px;">
+            <h2 class="certificate-title">Certificate of Completion</h2>
+            <p class="certificate-subtitle">CENTRE FOR DEVELOPMENT OF ADVANCED COMPUTING (C-DAC)</p>
+        </div>
+
+        <div class="certificate-body">
+            <p style="color: var(--gray-600); font-size: 1.05rem;">This certifies that</p>
+            <h3 class="certificate-student">{{ certificate.student_name }}</h3>
+            <p style="color: var(--gray-600); font-size: 1.05rem; max-width: 500px; margin: 0 auto 1.5rem;">
+                has successfully completed the comprehensive training program and fulfilled all curriculum requirements for
+            </p>
+
+            <h4 style="font-size: 1.6rem; color: var(--gray-900); font-family: var(--font-heading); margin-bottom: 0.5rem;">
+                {{ certificate.course.name }}
+            </h4>
+            <p style="color: var(--primary); font-weight: 600;">Duration: {{ certificate.course.duration }}</p>
+            {% if certificate.course_start_date and certificate.course_end_date %}
+            <p style="color: var(--gray-600); font-size: 0.95rem; margin-top: 0.25rem;">Period: {{ certificate.course_start_date|date:"F j, Y" }} – {{ certificate.course_end_date|date:"F j, Y" }}</p>
+            {% endif %}
+        </div>
+
+        <div class="certificate-meta-grid">
+            <div>
+                <span style="font-size: 0.8rem; color: var(--gray-500); display: block; text-transform: uppercase;">Certificate ID</span>
+                <strong style="font-family: monospace; font-size: 1.1rem; color: var(--gray-900);">{{ certificate.certificate_id }}</strong>
+            </div>
+            <div>
+                <span style="font-size: 0.8rem; color: var(--gray-500); display: block; text-transform: uppercase;">Issue Date</span>
+                <strong style="font-size: 1.05rem; color: var(--gray-900);">{{ certificate.issue_date|date:"F j, Y" }}</strong>
+            </div>
+            {% if certificate.grade %}
+            <div>
+                <span style="font-size: 0.8rem; color: var(--gray-500); display: block; text-transform: uppercase;">Grade Awarded</span>
+                <strong style="font-size: 1.05rem; color: var(--success);">{{ certificate.grade }}</strong>
+            </div>
+            {% endif %}
+            <div>
+                <span style="font-size: 0.8rem; color: var(--gray-500); display: block; text-transform: uppercase;">Status</span>
+                <strong style="font-size: 1.05rem; color: var(--success);">Valid & Active</strong>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <div class="no-print" style="text-align: center; margin-top: 2.5rem; display: flex; gap: 1rem; justify-content: center;">
         <a href="{% url 'certificates:verify' %}" class="btn btn-outline-dark">&larr; Verify Another Certificate</a>
@@ -61,3 +114,4 @@
     </div>
 </div>
 {% endblock %}
+

@@ -42,6 +42,21 @@ class Certificate(models.Model):
             self.verification_token = self.verification_hash[:16].upper()
         super().save(*args, **kwargs)
 
+    @property
+    def is_ccc(self):
+        """Returns True if the certificate belongs to Course on Computer Concepts (CCC)."""
+        if not self.course:
+            return False
+        course_name = (self.course.name or '').strip().lower()
+        return (
+            course_name == 'ccc' or
+            'course on computer concepts' in course_name or
+            course_name.startswith('ccc ') or
+            course_name.endswith(' ccc') or
+            '(ccc)' in course_name
+        )
+
     def __str__(self):
         return f"{self.certificate_id} - {self.student_name} ({self.course.name})"
+
 

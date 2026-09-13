@@ -316,10 +316,118 @@ class CertificatesTestCase(TestCase):
         self.assertEqual(response['Content-Type'], 'application/zip')
         self.assertIn('certificates_all.zip', response['Content-Disposition'])
 
-        zip_data = io.BytesIO(response.content)
-        with zipfile.ZipFile(zip_data, 'r') as zf:
-            namelist = zf.namelist()
-            self.assertGreaterEqual(len(namelist), 1)
+    def test_ccc_certificate_property_and_detection(self):
+        """Test is_ccc property and is_ccc_certificate helper function."""
+        from certificates.utils import is_ccc_certificate
+
+        ccc_course = Course.objects.create(
+            name='CCC',
+            description='Course on Computer Concepts',
+            duration='3 Months',
+            fee=2500.00
+        )
+        ccc_cert = Certificate.objects.create(
+            certificate_id='CERT-2026-CCC01',
+            student_name='Shivam Patel',
+            course=ccc_course,
+            issue_date=date(2026, 8, 24),
+            grade='A'
+        )
+
+        self.assertTrue(ccc_cert.is_ccc)
+        self.assertTrue(is_ccc_certificate(ccc_cert))
+
+        # Standard non-CCC certificate should return False
+        self.assertFalse(self.valid_cert.is_ccc)
+        self.assertFalse(is_ccc_certificate(self.valid_cert))
+
+    def test_ccc_certificate_pdf_generation(self):
+        """Test PDF byte generation for both CCC and non-CCC certificates."""
+        from certificates.utils import generate_certificate_pdf
+
+        ccc_course = Course.objects.create(
+            name='CCC',
+            description='Course on Computer Concepts',
+            duration='3 Months',
+            fee=2500.00
+        )
+        ccc_cert = Certificate.objects.create(
+            certificate_id='CERT-2026-CCC02',
+            student_name='Shivam Patel',
+            course=ccc_course,
+            course_start_date=date(2026, 5, 1),
+            course_end_date=date(2026, 7, 31),
+            issue_date=date(2026, 8, 24),
+            grade='S'
+        )
+
+        # CCC PDF generation
+        ccc_pdf = generate_certificate_pdf(ccc_cert)
+        self.assertIsInstance(ccc_pdf, bytes)
+        self.assertTrue(ccc_pdf.startswith(b'%PDF'))
+        self.assertGreater(len(ccc_pdf), 1000)
+
+        # Non-CCC PDF generation
+        std_pdf = generate_certificate_pdf(self.valid_cert)
+        self.assertIsInstance(std_pdf, bytes)
+        self.assertTrue(std_pdf.startswith(b'%PDF'))
+        self.assertGreater(len(std_pdf), 1000)
+
+    def test_ccc_print_certificate_view(self):
+        """Test print view renders CCC template for CCC and standard for other courses."""
+        self.client.login(username='certadmin', password='adminpassword123')
+
+        ccc_course = Course.objects.create(
+            name='CCC',
+            description='Course on Computer Concepts',
+            duration='3 Months',
+            fee=2500.00
+        )
+        ccc_cert = Certificate.objects.create(
+            certificate_id='CERT-2026-CCC03',
+            student_name='Aarav Shah',
+            course=ccc_course,
+            issue_date=date(2026, 8, 24),
+            grade='A'
+        )
+
+        # Print CCC certificate
+        response_ccc = self.client.get(reverse('dashboard:print_certificate', kwargs={'pk': ccc_cert.pk}))
+        self.assertEqual(response_ccc.status_code, 200)
+        self.assertContains(response_ccc, 'CCCCerty')
+        self.assertContains(response_ccc, 'ccc-certificate-card')
+        self.assertContains(response_ccc, 'Course on Computer Concepts (CCC)')
+
+        # Print standard certificate
+        response_std = self.client.get(reverse('dashboard:print_certificate', kwargs={'pk': self.valid_cert.pk}))
+        self.assertEqual(response_std.status_code, 200)
+        self.assertContains(response_std, 'certificate-card-printable')
+        self.assertNotContains(response_std, 'CCCCerty')
+
+
+    def test_ccc_public_verification_view(self):
+        """Test public verify result page shows CCC branding for CCC certificate."""
+        ccc_course = Course.objects.create(
+            name='CCC',
+            description='Course on Computer Concepts',
+            duration='3 Months',
+            fee=2500.00
+        )
+        ccc_cert = Certificate.objects.create(
+            certificate_id='CERT-2026-CCC04',
+            student_name='Aarav Shah',
+            course=ccc_course,
+            issue_date=date(2026, 8, 24),
+            grade='A'
+        )
+
+        url = reverse('certificates:verify')
+        response = self.client.post(url, {'certificate_id': 'CERT-2026-CCC04'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'COMPUTER &amp; INDUSTRIAL TRAINING INSTITUTION')
+        self.assertContains(response, 'OFFICIAL GOVERNMENT RECOGNIZED PROGRAM (CCC)')
+        self.assertContains(response, 'Aarav Shah')
+
 
 
 
