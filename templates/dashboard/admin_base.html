@@ -118,9 +118,32 @@
         </div>
     </div>
 
+    <!-- Hidden POST action form with CSRF token for secure state-changing actions -->
+    <form id="globalAdminPostForm" method="post" action="" style="display: none;">
+        {% csrf_token %}
+    </form>
+
     <script src="{% static 'js/main.js' %}"></script>
     <script>
         let pendingConfirmAction = null;
+
+        function submitPostAction(url, extraParams = {}) {
+            const form = document.getElementById('globalAdminPostForm');
+            if (!form) return;
+            form.action = url;
+            // Clear any previously injected inputs except csrfmiddlewaretoken
+            const inputs = form.querySelectorAll('input:not([name="csrfmiddlewaretoken"])');
+            inputs.forEach(input => input.remove());
+
+            for (const [key, val] of Object.entries(extraParams)) {
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = key;
+                hiddenInput.value = val;
+                form.appendChild(hiddenInput);
+            }
+            form.submit();
+        }
 
         function showConfirmModal(message, onConfirm, options = {}) {
             const modal = document.getElementById('customConfirmModal');
@@ -171,17 +194,20 @@
             pendingConfirmAction = null;
         }
 
-
         function confirmAction(event, message, options = {}) {
             if (event) {
                 event.preventDefault();
                 event.stopPropagation();
             }
-            const targetUrl = event.currentTarget ? event.currentTarget.href : null;
-            const form = event.currentTarget ? event.currentTarget.closest('form') : null;
+            const current = event ? event.currentTarget : null;
+            const targetUrl = current ? (current.getAttribute('data-action-url') || current.href) : null;
+            const usePost = current && (current.getAttribute('data-method') === 'post' || current.hasAttribute('data-action-url'));
+            const form = current ? current.closest('form') : null;
 
             showConfirmModal(message, () => {
-                if (targetUrl) {
+                if (usePost && targetUrl) {
+                    submitPostAction(targetUrl);
+                } else if (targetUrl) {
                     window.location.href = targetUrl;
                 } else if (form) {
                     form.submit();
@@ -204,15 +230,18 @@
             const loginTimestamp = parseInt(sessionStorage.getItem('admin_login_timestamp') || '0', 10);
             const elapsed = Date.now() - loginTimestamp;
 
-            // If 1 hour has elapsed, log out and redirect to login page
-            if (elapsed >= ONE_HOUR_MS) {
+            function triggerLogout() {
                 sessionStorage.removeItem('admin_login_timestamp');
-                window.location.replace("{% url 'dashboard:logout' %}");
+                submitPostAction("{% url 'dashboard:logout' %}");
+            }
+
+            // If 1 hour has elapsed, log out
+            if (elapsed >= ONE_HOUR_MS) {
+                triggerLogout();
             } else {
                 // Auto-logout after remaining time of 1 hour
                 setTimeout(() => {
-                    sessionStorage.removeItem('admin_login_timestamp');
-                    window.location.replace("{% url 'dashboard:logout' %}");
+                    triggerLogout();
                 }, ONE_HOUR_MS - elapsed);
             }
         })();

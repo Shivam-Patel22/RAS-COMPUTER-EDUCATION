@@ -8,6 +8,7 @@ urlpatterns = [
     path('', include('core.urls')),
     path('courses/', include('courses.urls')),
     path('', include('certificates.urls')),
+    path('accounts/', include('accounts.urls')),
     path('cdac-admin/', include('dashboard.urls')),
 ]
 

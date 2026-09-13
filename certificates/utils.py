@@ -9,8 +9,9 @@ def get_next_certificate_sequence():
     """
     from .models import Certificate
     max_seq = 0
-    for cert in Certificate.objects.all():
-        match = re.search(r'-(\d{2})$', cert.certificate_id)
+    # Query only the certificate_id column to avoid loading entire model instances into memory
+    for cert_id in Certificate.objects.values_list('certificate_id', flat=True):
+        match = re.search(r'-(\d{2})$', cert_id)
         if match:
             try:
                 seq_num = int(match.group(1))

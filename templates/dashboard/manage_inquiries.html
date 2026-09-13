@@ -101,12 +101,12 @@
                                     style="white-space: nowrap; padding: 0.25rem 0.45rem; font-size: 0.78rem;">
                                 💬 Follow Up
                             </button>
-                            <a href="{% url 'dashboard:toggle_inquiry_read' item.id %}" class="btn btn-outline-dark btn-sm" style="white-space: nowrap; padding: 0.25rem 0.45rem; font-size: 0.78rem;">
+                            <button type="button" onclick="submitPostAction('{% url 'dashboard:toggle_inquiry_read' item.id %}')" class="btn btn-outline-dark btn-sm" style="white-space: nowrap; padding: 0.25rem 0.45rem; font-size: 0.78rem; cursor: pointer;">
                                 {% if item.is_read %}Mark Unread{% else %}Mark Read{% endif %}
-                            </a>
-                            <a href="{% url 'dashboard:delete_inquiry' item.id %}" class="btn btn-danger btn-sm" style="white-space: nowrap; padding: 0.25rem 0.45rem; font-size: 0.78rem;" onclick="return confirmAction(event, 'Are you sure you want to delete this inquiry?');">
+                            </button>
+                            <button type="button" data-action-url="{% url 'dashboard:delete_inquiry' item.id %}" data-method="post" class="btn btn-danger btn-sm" style="white-space: nowrap; padding: 0.25rem 0.45rem; font-size: 0.78rem; cursor: pointer;" onclick="return confirmAction(event, 'Are you sure you want to delete this inquiry?');">
                                 Delete
-                            </a>
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -138,73 +138,93 @@
         <!-- Read-Only Customer Info -->
         <div style="background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: var(--radius-md, 8px); padding: 1rem; margin-bottom: 1.5rem; font-size: 0.9rem;">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem;">
-                <div><span style="color: var(--gray-600);">Customer:</span> <strong id="modal-customer-name"></strong></div>
-                <div><span style="color: var(--gray-600);">Contact:</span> <strong id="modal-customer-contact"></strong></div>
+                <div>
+                    <span style="color: var(--gray-500); font-size: 0.8rem; display: block; font-weight: 600;">CUSTOMER NAME</span>
+                    <strong id="modal-customer-name" style="color: var(--gray-900);"></strong>
+                </div>
+                <div>
+                    <span style="color: var(--gray-500); font-size: 0.8rem; display: block; font-weight: 600;">CONTACT</span>
+                    <span id="modal-customer-contact" style="color: var(--gray-800); font-weight: 500;"></span>
+                </div>
             </div>
-            <div style="margin-bottom: 0.5rem;"><span style="color: var(--gray-600);">Subject / Course:</span> <span id="modal-customer-subject" class="badge badge-primary"></span></div>
             <div>
-                <span style="color: var(--gray-600); display: block; margin-bottom: 0.25rem;">Original Inquiry Message:</span>
-                <div id="modal-original-message" style="background: var(--gray-50); padding: 0.65rem 0.85rem; border-radius: 6px; border: 1px solid var(--gray-200); font-size: 0.88rem; white-space: pre-wrap;"></div>
+                <span style="color: var(--gray-500); font-size: 0.8rem; display: block; font-weight: 600;">COURSE / SUBJECT</span>
+                <span id="modal-customer-subject" style="color: var(--primary); font-weight: 600;"></span>
+            </div>
+            <div style="margin-top: 0.5rem; border-top: 1px dashed var(--gray-300); padding-top: 0.5rem;">
+                <span style="color: var(--gray-500); font-size: 0.8rem; display: block; font-weight: 600;">ORIGINAL MESSAGE</span>
+                <p id="modal-customer-message" style="margin: 0.25rem 0 0; color: var(--gray-700); font-style: italic; font-size: 0.85rem; line-height: 1.4;"></p>
             </div>
         </div>
 
-        <!-- Follow-Up Form -->
-        <form id="followup-form" method="post" action="">
+        <!-- Previous Follow-Up History -->
+        <div style="margin-bottom: 1.5rem;">
+            <h4 style="font-size: 1rem; margin: 0 0 0.75rem; color: var(--gray-900); display: flex; align-items: center; gap: 0.4rem;">
+                📜 Follow-Up History
+            </h4>
+            <div id="followup-history-list" style="max-height: 200px; overflow-y: auto; padding-right: 0.25rem;">
+                <p style="color: var(--gray-500); font-size: 0.85rem; font-style: italic;">No previous follow-ups recorded.</p>
+            </div>
+        </div>
+
+        <!-- Add New Follow-Up Form -->
+        <form method="post" id="add-followup-form" action="">
             {% csrf_token %}
-            
-            <div style="margin-bottom: 1.25rem;">
-                <label for="followup-status" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.4rem; color: var(--gray-900);">Follow-up Status *</label>
-                <select id="followup-status" name="status" class="form-control" required style="width: 100%; padding: 0.6rem; border-radius: 6px; font-size: 0.9rem;">
-                    <option value="pending">Pending</option>
-                    <option value="contacted" selected>Contacted</option>
-                    <option value="interested">Interested</option>
-                    <option value="not_interested">Not Interested</option>
-                    <option value="callback_later">Callback Later</option>
-                    <option value="converted">Converted</option>
-                </select>
+            <h4 style="font-size: 1rem; margin: 0 0 0.75rem; color: var(--gray-900); display: flex; align-items: center; gap: 0.4rem;">
+                ✍️ Record New Interaction
+            </h4>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem; display: block;">Status Update *</label>
+                    <select name="status" id="followup-status-select" required style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--gray-300); border-radius: var(--radius-md, 6px); font-size: 0.9rem;">
+                        {% for val, label in followup_status_choices %}
+                            <option value="{{ val }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group" id="callback-date-group" style="margin-bottom: 0; display: none;">
+                    <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem; display: block;">Callback Date & Time</label>
+                    <input type="datetime-local" name="callback_at" style="width: 100%; padding: 0.45rem 0.75rem; border: 1px solid var(--gray-300); border-radius: var(--radius-md, 6px); font-size: 0.88rem;">
+                </div>
             </div>
 
-            <div id="callback-reminder-box" style="display: none; margin-bottom: 1.25rem; background: var(--gray-100); border: 1px solid var(--primary); padding: 0.85rem; border-radius: 6px;">
-                <label for="callback-at" style="display: block; font-weight: 600; font-size: 0.88rem; margin-bottom: 0.35rem; color: var(--primary);">📅 Callback Reminder Date & Time (Optional)</label>
-                <input type="datetime-local" id="callback-at" name="callback_at" class="form-control" style="width: 100%; padding: 0.5rem; border-radius: 6px; font-size: 0.88rem;">
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.35rem; display: block;">Notes / Remarks *</label>
+                <textarea name="message" rows="3" required placeholder="Enter notes from call, discussion outcome, course interest level..." style="width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--gray-300); border-radius: var(--radius-md, 6px); font-size: 0.88rem; font-family: inherit; line-height: 1.4; resize: vertical;"></textarea>
             </div>
 
-            <div style="margin-bottom: 1.25rem;">
-                <label for="followup-message" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.4rem; color: var(--gray-900);">Follow-up Notes / Message *</label>
-                <textarea id="followup-message" name="message" rows="3" class="form-control" required placeholder="Enter notes from call/email conversation..." style="width: 100%; padding: 0.65rem; border-radius: 6px; font-size: 0.9rem;"></textarea>
-            </div>
-
-            <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-bottom: 1.5rem;">
-                <button type="button" class="btn btn-outline-dark close-followup-modal">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save Follow Up</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--gray-200); padding-top: 1rem;">
+                <a id="whatsapp-quick-btn" href="#" target="_blank" class="btn btn-outline-dark btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem; border-color: #25D366; color: #128C7E;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                    WhatsApp Chat
+                </a>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button type="button" class="btn btn-outline-dark btn-sm close-followup-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">💾 Save Follow-Up</button>
+                </div>
             </div>
         </form>
 
-        <!-- Follow-up History Section -->
-        <div style="border-top: 1px solid var(--gray-200); padding-top: 1.25rem; margin-top: 1.25rem;">
-            <h4 style="font-size: 1.05rem; margin-bottom: 0.85rem; color: var(--gray-900); display: flex; align-items: center; gap: 0.4rem;">
-                <span>📜</span> Previous Follow-Up History
-            </h4>
-            <div id="followup-history-list" style="max-height: 200px; overflow-y: auto;">
-                <p style="color: var(--gray-600); font-size: 0.88rem;">Loading history...</p>
-            </div>
-        </div>
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var modal = document.getElementById('followup-modal');
-    var statusSelect = document.getElementById('followup-status');
-    var callbackBox = document.getElementById('callback-reminder-box');
+    var statusSelect = document.getElementById('followup-status-select');
+    var callbackGroup = document.getElementById('callback-date-group');
 
-    statusSelect.addEventListener('change', function() {
-        if (this.value === 'callback_later') {
-            callbackBox.style.display = 'block';
-        } else {
-            callbackBox.style.display = 'none';
-        }
-    });
+    if (statusSelect) {
+        statusSelect.addEventListener('change', function() {
+            if (this.value === 'callback_later') {
+                callbackGroup.style.display = 'block';
+            } else {
+                callbackGroup.style.display = 'none';
+            }
+        });
+    }
 
     document.querySelectorAll('.open-followup-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
@@ -217,14 +237,21 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('modal-customer-name').textContent = name;
             document.getElementById('modal-customer-contact').textContent = contact;
             document.getElementById('modal-customer-subject').textContent = subject;
-            document.getElementById('modal-original-message').textContent = message;
+            document.getElementById('modal-customer-message').textContent = message;
 
-            var form = document.getElementById('followup-form');
-            form.action = '/cdac-admin/inquiries/' + inquiryId + '/followup/';
-            document.getElementById('followup-message').value = '';
-            statusSelect.value = 'contacted';
-            callbackBox.style.display = 'none';
-            document.getElementById('callback-at').value = '';
+            var form = document.getElementById('add-followup-form');
+            form.action = '/cdac-admin/inquiries/' + inquiryId + '/followups/add/';
+
+            var rawPhone = contact.split('|')[0].trim().replace(/\D/g, '');
+            var waBtn = document.getElementById('whatsapp-quick-btn');
+            if (rawPhone.length >= 10) {
+                if (rawPhone.length === 10) rawPhone = '91' + rawPhone;
+                var waMsg = encodeURIComponent("Hello " + name + ", regarding your inquiry for " + subject + " at C-DAC:");
+                waBtn.href = 'https://api.whatsapp.com/send?phone=' + rawPhone + '&text=' + waMsg;
+                waBtn.style.display = 'inline-flex';
+            } else {
+                waBtn.style.display = 'none';
+            }
 
             var historyList = document.getElementById('followup-history-list');
             historyList.innerHTML = '<p style="color: var(--gray-500); font-size: 0.88rem;">Loading history...</p>';
@@ -232,30 +259,59 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch('/cdac-admin/inquiries/' + inquiryId + '/followups/')
                 .then(function(res) { return res.json(); })
                 .then(function(data) {
+                    historyList.innerHTML = '';
                     if (!data.followups || data.followups.length === 0) {
-                        historyList.innerHTML = '<p style="color: var(--gray-500); font-size: 0.85rem; font-style: italic;">No previous follow-ups recorded.</p>';
+                        var emptyP = document.createElement('p');
+                        emptyP.style.cssText = 'color: var(--gray-500); font-size: 0.85rem; font-style: italic;';
+                        emptyP.textContent = 'No previous follow-ups recorded.';
+                        historyList.appendChild(emptyP);
                         return;
                     }
-                    var html = '';
                     data.followups.forEach(function(item) {
                         var statusBadgeClass = 'badge-primary';
                         if (item.status === 'converted') statusBadgeClass = 'badge-success';
                         else if (item.status === 'not_interested') statusBadgeClass = 'badge-danger';
                         else if (item.status === 'callback_later') statusBadgeClass = 'badge-warning';
 
-                        html += '<div style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 6px; padding: 0.75rem; margin-bottom: 0.6rem; font-size: 0.88rem;">';
-                        html += '  <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">';
-                        html += '    <strong style="color: var(--gray-900);">' + item.admin_name + '</strong>';
-                        html += '    <span class="badge ' + statusBadgeClass + '" style="font-size: 0.75rem;">' + item.status_display + '</span>';
-                        html += '  </div>';
-                        html += '  <div style="color: var(--gray-900); margin-bottom: 0.35rem; white-space: pre-wrap;">' + item.message + '</div>';
+                        var card = document.createElement('div');
+                        card.style.cssText = 'background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 6px; padding: 0.75rem; margin-bottom: 0.6rem; font-size: 0.88rem;';
+
+                        var header = document.createElement('div');
+                        header.style.cssText = 'display: flex; justify-content: space-between; margin-bottom: 0.35rem;';
+
+                        var adminEl = document.createElement('strong');
+                        adminEl.style.color = 'var(--gray-900)';
+                        adminEl.textContent = item.admin_name;
+
+                        var badge = document.createElement('span');
+                        badge.className = 'badge ' + statusBadgeClass;
+                        badge.style.fontSize = '0.75rem';
+                        badge.textContent = item.status_display;
+
+                        header.appendChild(adminEl);
+                        header.appendChild(badge);
+
+                        var msgEl = document.createElement('div');
+                        msgEl.style.cssText = 'color: var(--gray-900); margin-bottom: 0.35rem; white-space: pre-wrap;';
+                        msgEl.textContent = item.message;
+
+                        card.appendChild(header);
+                        card.appendChild(msgEl);
+
                         if (item.callback_at) {
-                            html += '  <div style="font-size: 0.8rem; color: var(--primary); font-weight: 600;">📅 Callback set for: ' + item.callback_at + '</div>';
+                            var callbackEl = document.createElement('div');
+                            callbackEl.style.cssText = 'font-size: 0.8rem; color: var(--primary); font-weight: 600;';
+                            callbackEl.textContent = '📅 Callback set for: ' + item.callback_at;
+                            card.appendChild(callbackEl);
                         }
-                        html += '  <div style="font-size: 0.78rem; color: var(--gray-600); text-align: right; margin-top: 0.25rem;">' + item.created_at + '</div>';
-                        html += '</div>';
+
+                        var dateEl = document.createElement('div');
+                        dateEl.style.cssText = 'font-size: 0.78rem; color: var(--gray-600); text-align: right; margin-top: 0.25rem;';
+                        dateEl.textContent = item.created_at;
+                        card.appendChild(dateEl);
+
+                        historyList.appendChild(card);
                     });
-                    historyList.innerHTML = html;
                 })
                 .catch(function() {
                     historyList.innerHTML = '<p style="color: var(--danger); font-size: 0.85rem;">Failed to load follow-up history.</p>';

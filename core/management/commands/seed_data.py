@@ -50,8 +50,8 @@ class Command(BaseCommand):
         # 2. Seed Courses
         from django.core.management import call_command
         call_command('sync_courses')
-        created_courses = list(Course.objects.all())
 
+        courses_data = [
             {
                 'name': 'Python Web Development (Django & FastAPI)',
                 'description': 'Master backend web development using Python, Django, REST APIs, and PostgreSQL. Build scalable real-world applications with modern deployment patterns.',

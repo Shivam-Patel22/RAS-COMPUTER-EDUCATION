@@ -136,32 +136,62 @@ const modalTopicsContainer = document.getElementById('modal-topics');
 
 let currentActiveCategoryId = null;
 
+// Helper to safely set up category cards
+function createCategoryCard(cat, onClick) {
+    const subCount = cat.subCourses ? cat.subCourses.length : 0;
+    const countLabel = subCount > 0 ? `${subCount} ${subCount === 1 ? 'Sub-Course' : 'Sub-Courses'}` : 'Direct Course';
+
+    const card = document.createElement('div');
+    card.className = 'course-category-card';
+    card.onclick = onClick;
+
+    const header = document.createElement('div');
+    header.className = 'category-card-header';
+
+    const iconBox = document.createElement('div');
+    iconBox.className = 'category-icon-box';
+    iconBox.textContent = cat.icon || '💻';
+
+    const countBadge = document.createElement('span');
+    countBadge.className = 'category-count-badge';
+    countBadge.textContent = countLabel;
+
+    header.appendChild(iconBox);
+    header.appendChild(countBadge);
+
+    const body = document.createElement('div');
+    const title = document.createElement('h2');
+    title.className = 'category-title';
+    title.textContent = cat.name;
+
+    const desc = document.createElement('p');
+    desc.className = 'category-desc';
+    desc.textContent = cat.description;
+
+    body.appendChild(title);
+    body.appendChild(desc);
+
+    const footer = document.createElement('div');
+    footer.className = 'category-footer';
+    const btnSpan = document.createElement('span');
+    btnSpan.className = 'btn-view-category';
+    btnSpan.textContent = `Explore ${cat.name} `;
+    const arrow = document.createElement('span');
+    arrow.innerHTML = '&rarr;';
+    btnSpan.appendChild(arrow);
+    footer.appendChild(btnSpan);
+
+    card.appendChild(header);
+    card.appendChild(body);
+    card.appendChild(footer);
+    return card;
+}
+
 // Render Level 1 Main Course Categories
 function renderCategories() {
     categoriesGrid.innerHTML = '';
     COURSES_DATA.forEach(cat => {
-        const subCount = cat.subCourses ? cat.subCourses.length : 0;
-        const countLabel = subCount > 0 ? `${subCount} ${subCount === 1 ? 'Sub-Course' : 'Sub-Courses'}` : 'Direct Course';
-
-        const card = document.createElement('div');
-        card.className = 'course-category-card';
-        card.onclick = () => openCategory(cat.id);
-
-        card.innerHTML = `
-            <div class="category-card-header">
-                <div class="category-icon-box">${cat.icon}</div>
-                <span class="category-count-badge">${countLabel}</span>
-            </div>
-            <div>
-                <h2 class="category-title">${cat.name}</h2>
-                <p class="category-desc">${cat.description}</p>
-            </div>
-            <div class="category-footer">
-                <span class="btn-view-category">
-                    Explore ${cat.name} <span>&rarr;</span>
-                </span>
-            </div>
-        `;
+        const card = createCategoryCard(cat, () => openCategory(cat.id));
         categoriesGrid.appendChild(card);
     });
 }
@@ -174,23 +204,50 @@ function openCategory(catId) {
     currentActiveCategoryId = catId;
     window.location.hash = `cat-${catId}`;
 
-    // Render Banner
+    // Render Banner using DOM methods
+    categoryBanner.innerHTML = '';
     const subCount = category.subCourses ? category.subCourses.length : 0;
-    categoryBanner.innerHTML = `
-        <div class="category-banner-top">
-            <button type="button" class="btn-back-courses" onclick="showCategoriesView()">
-                <span>&larr;</span> Back to Course Categories
-            </button>
-            <span class="category-count-badge">${subCount} Total Sub-Courses</span>
-        </div>
-        <div class="category-banner-title-group">
-            <div class="category-banner-icon">${category.icon}</div>
-            <div>
-                <h2 class="category-banner-title">${category.name}</h2>
-                <p class="category-banner-meta">${category.description}</p>
-            </div>
-        </div>
-    `;
+
+    const bannerTop = document.createElement('div');
+    bannerTop.className = 'category-banner-top';
+
+    const backBtn = document.createElement('button');
+    backBtn.type = 'button';
+    backBtn.className = 'btn-back-courses';
+    backBtn.onclick = showCategoriesView;
+    backBtn.innerHTML = '<span>&larr;</span> Back to Course Categories';
+
+    const countBadge = document.createElement('span');
+    countBadge.className = 'category-count-badge';
+    countBadge.textContent = `${subCount} Total Sub-Courses`;
+
+    bannerTop.appendChild(backBtn);
+    bannerTop.appendChild(countBadge);
+
+    const bannerTitleGroup = document.createElement('div');
+    bannerTitleGroup.className = 'category-banner-title-group';
+
+    const bannerIcon = document.createElement('div');
+    bannerIcon.className = 'category-banner-icon';
+    bannerIcon.textContent = category.icon || '💻';
+
+    const bannerTextDiv = document.createElement('div');
+    const bannerTitle = document.createElement('h2');
+    bannerTitle.className = 'category-banner-title';
+    bannerTitle.textContent = category.name;
+
+    const bannerMeta = document.createElement('p');
+    bannerMeta.className = 'category-banner-meta';
+    bannerMeta.textContent = category.description;
+
+    bannerTextDiv.appendChild(bannerTitle);
+    bannerTextDiv.appendChild(bannerMeta);
+
+    bannerTitleGroup.appendChild(bannerIcon);
+    bannerTitleGroup.appendChild(bannerTextDiv);
+
+    categoryBanner.appendChild(bannerTop);
+    categoryBanner.appendChild(bannerTitleGroup);
 
     // Render Sub-Courses
     subcoursesGrid.innerHTML = '';
@@ -202,29 +259,66 @@ function openCategory(catId) {
             const defaultDesc = `Professional ${sub.name} course program tailored with practical lab training and certification.`;
             const desc = sub.description || defaultDesc;
 
-            subCard.innerHTML = `
-                <div>
-                    <span class="subcourse-badge">${category.name}</span>
-                    <h3 class="subcourse-title">${sub.name}</h3>
-                    <p class="subcourse-desc">${desc}</p>
-                </div>
-                <div class="subcourse-footer">
-                    <button type="button" class="btn-subcourse-action" style="background:none; border:none; cursor:pointer;" onclick="openCourseDetailModal('${escapeJsString(sub.name)}', '${escapeJsString(category.name)}', '${escapeJsString(category.duration)}', '${escapeJsString(desc)}')">
-                        View Details <span>&rarr;</span>
-                    </button>
-                </div>
-            `;
+            const contentDiv = document.createElement('div');
+            const badge = document.createElement('span');
+            badge.className = 'subcourse-badge';
+            badge.textContent = category.name;
+
+            const subTitle = document.createElement('h3');
+            subTitle.className = 'subcourse-title';
+            subTitle.textContent = sub.name;
+
+            const subDesc = document.createElement('p');
+            subDesc.className = 'subcourse-desc';
+            subDesc.textContent = desc;
+
+            contentDiv.appendChild(badge);
+            contentDiv.appendChild(subTitle);
+            contentDiv.appendChild(subDesc);
+
+            const footer = document.createElement('div');
+            footer.className = 'subcourse-footer';
+
+            const actionBtn = document.createElement('button');
+            actionBtn.type = 'button';
+            actionBtn.className = 'btn-subcourse-action';
+            actionBtn.style.cssText = 'background:none; border:none; cursor:pointer;';
+            actionBtn.innerHTML = 'View Details <span>&rarr;</span>';
+            actionBtn.addEventListener('click', () => {
+                openCourseDetailModal(sub.name, category.name, category.duration, desc);
+            });
+
+            footer.appendChild(actionBtn);
+            subCard.appendChild(contentDiv);
+            subCard.appendChild(footer);
+
             subcoursesGrid.appendChild(subCard);
         });
     } else {
         // Fallback for category with no sub-courses
-        subcoursesGrid.innerHTML = `
-            <div style="grid-column: 1 / -1; background: var(--card-bg); border: 1px solid var(--gray-200); padding: 3rem; text-align: center; border-radius: var(--radius-lg);">
-                <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 0.75rem;">${category.name}</h3>
-                <p style="color: var(--gray-600); margin-bottom: 1.5rem; max-width: 600px; margin-left: auto; margin-right: auto;">${category.description}</p>
-                <button type="button" class="btn btn-primary" onclick="openCourseDetailModal('${escapeJsString(category.name)}', '${escapeJsString(category.name)}', '${escapeJsString(category.duration)}', '${escapeJsString(category.description)}')">View Details &rarr;</button>
-            </div>
-        `;
+        const fallbackBox = document.createElement('div');
+        fallbackBox.style.cssText = 'grid-column: 1 / -1; background: var(--card-bg); border: 1px solid var(--gray-200); padding: 3rem; text-align: center; border-radius: var(--radius-lg);';
+
+        const fbTitle = document.createElement('h3');
+        fbTitle.style.cssText = 'font-size: 1.4rem; font-weight: 700; margin-bottom: 0.75rem;';
+        fbTitle.textContent = category.name;
+
+        const fbDesc = document.createElement('p');
+        fbDesc.style.cssText = 'color: var(--gray-600); margin-bottom: 1.5rem; max-width: 600px; margin-left: auto; margin-right: auto;';
+        fbDesc.textContent = category.description;
+
+        const fbBtn = document.createElement('button');
+        fbBtn.type = 'button';
+        fbBtn.className = 'btn btn-primary';
+        fbBtn.innerHTML = 'View Details &rarr;';
+        fbBtn.addEventListener('click', () => {
+            openCourseDetailModal(category.name, category.name, category.duration, category.description);
+        });
+
+        fallbackBox.appendChild(fbTitle);
+        fallbackBox.appendChild(fbDesc);
+        fallbackBox.appendChild(fbBtn);
+        subcoursesGrid.appendChild(fallbackBox);
     }
 
     // Toggle Views
@@ -248,12 +342,6 @@ function showCategoriesView() {
     categoriesView.style.display = 'block';
 
     if (searchInput) searchInput.value = '';
-}
-
-// Helper to escape strings safely for inline onclick handlers
-function escapeJsString(str) {
-    if (!str) return '';
-    return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }
 
 // Open Course Details Modal
@@ -344,42 +432,57 @@ function handleSearch(query) {
     searchResultsGrid.innerHTML = '';
     if (results.length > 0) {
         results.forEach(res => {
-            const card = document.createElement('div');
-            card.className = res.type === 'category' ? 'course-category-card' : 'subcourse-card';
-
             if (res.type === 'category') {
-                card.onclick = () => {
+                const card = createCategoryCard({
+                    id: res.catId,
+                    name: res.title,
+                    description: res.desc,
+                    icon: res.icon,
+                    subCourses: []
+                }, () => {
                     if (searchInput) searchInput.value = '';
                     openCategory(res.catId);
-                };
-                card.innerHTML = `
-                    <div class="category-card-header">
-                        <div class="category-icon-box">${res.icon}</div>
-                        <span class="category-count-badge">Category</span>
-                    </div>
-                    <div>
-                        <h3 class="category-title">${res.title}</h3>
-                        <p class="category-desc">${res.desc}</p>
-                    </div>
-                    <div class="category-footer">
-                        <span class="btn-view-category">View Category <span>&rarr;</span></span>
-                    </div>
-                `;
+                });
+                searchResultsGrid.appendChild(card);
             } else {
-                card.innerHTML = `
-                    <div>
-                        <span class="subcourse-badge">${res.categoryName}</span>
-                        <h3 class="subcourse-title">${res.title}</h3>
-                        <p class="subcourse-desc">${res.desc}</p>
-                    </div>
-                    <div class="subcourse-footer">
-                        <button type="button" class="btn-subcourse-action" style="background:none; border:none; cursor:pointer;" onclick="openCourseDetailModal('${escapeJsString(res.title)}', '${escapeJsString(res.categoryName)}', '${escapeJsString(res.duration)}', '${escapeJsString(res.desc)}')">
-                            View Details <span>&rarr;</span>
-                        </button>
-                    </div>
-                `;
+                const card = document.createElement('div');
+                card.className = 'subcourse-card';
+
+                const contentDiv = document.createElement('div');
+                const badge = document.createElement('span');
+                badge.className = 'subcourse-badge';
+                badge.textContent = res.categoryName;
+
+                const subTitle = document.createElement('h3');
+                subTitle.className = 'subcourse-title';
+                subTitle.textContent = res.title;
+
+                const subDesc = document.createElement('p');
+                subDesc.className = 'subcourse-desc';
+                subDesc.textContent = res.desc;
+
+                contentDiv.appendChild(badge);
+                contentDiv.appendChild(subTitle);
+                contentDiv.appendChild(subDesc);
+
+                const footer = document.createElement('div');
+                footer.className = 'subcourse-footer';
+
+                const actionBtn = document.createElement('button');
+                actionBtn.type = 'button';
+                actionBtn.className = 'btn-subcourse-action';
+                actionBtn.style.cssText = 'background:none; border:none; cursor:pointer;';
+                actionBtn.innerHTML = 'View Details <span>&rarr;</span>';
+                actionBtn.addEventListener('click', () => {
+                    openCourseDetailModal(res.title, res.categoryName, res.duration, res.desc);
+                });
+
+                footer.appendChild(actionBtn);
+                card.appendChild(contentDiv);
+                card.appendChild(footer);
+
+                searchResultsGrid.appendChild(card);
             }
-            searchResultsGrid.appendChild(card);
         });
     } else {
         searchResultsGrid.innerHTML = `

@@ -173,13 +173,12 @@
                         </td>
                         <td style="vertical-align: middle; text-align: right;">
                             <div style="display: inline-flex; gap: 0.4rem; justify-content: flex-end; align-items: center; white-space: nowrap;">
-                                <a href="{% url 'dashboard:toggle_student_status' student.id %}" class="btn {% if student.is_active %}btn-outline-dark{% else %}btn-primary{% endif %} btn-sm" style="font-size: 0.8rem; white-space: nowrap;">
+                                <button type="button" onclick="submitPostAction('{% url 'dashboard:toggle_student_status' student.id %}')" class="btn {% if student.is_active %}btn-outline-dark{% else %}btn-primary{% endif %} btn-sm" style="font-size: 0.8rem; white-space: nowrap; cursor: pointer;">
                                     {% if student.is_active %}Deactivate{% else %}Activate{% endif %}
-                                </a>
-                                <a href="{% url 'dashboard:delete_student' student.id %}" class="btn btn-danger btn-sm" style="font-size: 0.8rem; white-space: nowrap;" onclick="return confirmAction(event, 'Are you sure you want to delete student account {{ student.get_full_name|default:student.username }}?');">
+                                </button>
+                                <button type="button" data-action-url="{% url 'dashboard:delete_student' student.id %}" data-method="post" class="btn btn-danger btn-sm" style="font-size: 0.8rem; white-space: nowrap; cursor: pointer;" onclick="return confirmAction(event, 'Are you sure you want to delete student account {{ student.get_full_name|default:student.username }}?');">
                                     Delete
-                                </a>
-
+                                </button>
                             </div>
                         </td>
                     </tr>

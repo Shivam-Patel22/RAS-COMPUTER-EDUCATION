@@ -35,17 +35,17 @@
 
                     <td style="vertical-align: middle;">
                         {% if course.is_featured %}
-                            <a href="{% url 'dashboard:toggle_course_featured' course.id %}" class="btn btn-sm" style="background: #FEF3C7; color: #F47F23; border: 1px solid #F47F23; font-weight: 600; padding: 4px 10px; text-decoration: none; border-radius: 6px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem;" title="Click to remove from home featured list">
+                            <button type="button" onclick="submitPostAction('{% url 'dashboard:toggle_course_featured' course.id %}')" class="btn btn-sm" style="background: #FEF3C7; color: #F47F23; border: 1px solid #F47F23; font-weight: 600; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem; cursor: pointer;" title="Click to remove from home featured list">
                                 ⭐ Featured
-                            </a>
+                            </button>
                         {% else %}
-                            <a href="{% url 'dashboard:toggle_course_featured' course.id %}" 
+                            <button type="button"
                                class="btn btn-outline-dark btn-sm" 
-                               style="font-size: 0.8rem; padding: 4px 10px; color: var(--gray-600); text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem;" 
+                               style="font-size: 0.8rem; padding: 4px 10px; color: var(--gray-600); display: inline-flex; align-items: center; gap: 0.3rem; cursor: pointer;" 
                                title="Click to feature on home page"
-                               {% if featured_count >= 3 %}onclick="event.preventDefault(); showConfirmModal('You already have 3 featured courses selected. You must deselect at least one course to add this course in Featured Courses.', function(){}, {title: '⭐ Featured Courses Limit Reached', icon: '⚠️', confirmText: 'OK, I Will Deselect', confirmClass: 'btn btn-primary btn-sm'}); return false;"{% endif %}>
+                               {% if featured_count >= 3 %}onclick="event.preventDefault(); showConfirmModal('You already have 3 featured courses selected. You must deselect at least one course to add this course in Featured Courses.', function(){}, {title: '⭐ Featured Courses Limit Reached', icon: '⚠️', confirmText: 'OK, I Will Deselect', confirmClass: 'btn btn-primary btn-sm'}); return false;"{% else %}onclick="submitPostAction('{% url 'dashboard:toggle_course_featured' course.id %}')"{% endif %}>
                                 + Feature on Home
-                            </a>
+                            </button>
                         {% endif %}
                     </td>
                     <td>{{ course.created_at|date:"Y-m-d" }}</td>

@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard | C-DAC{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px; margin: 2rem auto;">
+    <div style="background: var(--dark-surface); color: white; border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="font-size: 1.8rem; color: white;">Welcome, {{ request.user.first_name|default:request.user.username }}!</h1>
+            <p style="color: var(--gray-400); margin-top: 0.25rem;">Student Dashboard & Enrolled Courses</p>
+        </div>
+        <div>
+            <form method="post" action="{% url 'accounts:logout' %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-dark" style="color: white; border-color: rgba(255,255,255,0.3);">Sign Out</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
+        <h2 style="font-size: 1.3rem; margin-bottom: 1rem; color: var(--gray-900);">My Enrolled Courses & Profile</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem;">
+            <div>
+                <span style="color: var(--gray-500); font-size: 0.85rem; display: block;">Full Name</span>
+                <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+            </div>
+            <div>
+                <span style="color: var(--gray-500); font-size: 0.85rem; display: block;">Email</span>
+                <strong>{{ request.user.email }}</strong>
+            </div>
+            <div>
+                <span style="color: var(--gray-500); font-size: 0.85rem; display: block;">Phone</span>
+                <strong>{{ profile.phone|default:"Not specified" }}</strong>
+            </div>
+            <div>
+                <span style="color: var(--gray-500); font-size: 0.85rem; display: block;">Enrolled Course</span>
+                <strong>{{ profile.enrolled_course.name|default:"General Registration" }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="padding: 2rem;">
+        <h2 style="font-size: 1.3rem; margin-bottom: 1rem; color: var(--gray-900);">My Issued Certificates</h2>
+        {% if certificates %}
+            <div class="table-container">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Certificate ID</th>
+                            <th>Course</th>
+                            <th>Issue Date</th>
+                            <th>Grade</th>
+                            <th style="text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cert in certificates %}
+                        <tr>
+                            <td><code>{{ cert.certificate_id }}</code></td>
+                            <td>{{ cert.course.name }}</td>
+                            <td>{{ cert.issue_date|date:"F j, Y" }}</td>
+                            <td><span class="badge badge-success">{{ cert.grade|default:"Passed" }}</span></td>
+                            <td style="text-align: right;">
+                                <a href="{% url 'certificates:verify' %}?certificate_id={{ cert.certificate_id }}" class="btn btn-primary btn-sm">View Certificate</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">📜</div>
+                <h3>No Certificates Issued Yet</h3>
+                <p style="color: var(--gray-500);">Your course completion certificates will appear here once issued by the instructor.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

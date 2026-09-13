@@ -20,7 +20,7 @@
                 <span class="theme-toggle-icon">🌙</span>
                 <span class="theme-toggle-text">Dark Mode</span>
             </button>
-            <a href="{% url 'dashboard:logout' %}" class="btn btn-danger btn-sm" style="white-space: nowrap; display: inline-flex; align-items: center; gap: 0.3rem;">🚪 Logout</a>
+            <button type="button" onclick="submitPostAction('{% url 'dashboard:logout' %}')" class="btn btn-danger btn-sm" style="white-space: nowrap; display: inline-flex; align-items: center; gap: 0.3rem; border: none; cursor: pointer;">🚪 Logout</button>
         </div>
     </div>
 

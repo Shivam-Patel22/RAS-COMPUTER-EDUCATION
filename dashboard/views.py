@@ -1,13 +1,21 @@
 import time
 import datetime
 import io
+import os
 import zipfile
+import secrets
+import tempfile
+import logging
+import urllib.parse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, FileResponse
 from django.urls import reverse
 from django.contrib.auth import login as auth_login, logout as auth_logout, authenticate
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.core.cache import cache
+from django.views.decorators.http import require_POST
+from django.utils.http import url_has_allowed_host_and_scheme
 from .decorators import staff_required
 from .forms import AdminLoginForm, AdminCourseForm, AdminCertificateForm, AdminOfferForm, AdminStudentForm, AdminAboutForm, AdminContactForm
 from courses.models import Course, CourseOffer
@@ -25,20 +33,61 @@ from django.utils import timezone
 from django.db.models import Q
 from django.core.mail import send_mail
 from django.conf import settings
-import urllib.parse
 
+logger = logging.getLogger(__name__)
 
+def get_safe_redirect(request, default_endpoint, **kwargs):
+    """
+    Validates that redirect URLs are safe relative paths on the current host.
+    Rejects external domains, protocol-relative (//) URLs, and dangerous schemes.
+    """
+    next_url = request.POST.get('next') or request.GET.get('next') or request.META.get('HTTP_REFERER')
+    if next_url and url_has_allowed_host_and_scheme(
+        url=next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure()
+    ):
+        return redirect(next_url)
+    return redirect(default_endpoint, **kwargs)
 
+def check_login_rate_limit(ip_address, username):
+    """
+    Checks if IP or username has exceeded failed login attempts (max 5 in 5 minutes).
+    """
+    ip_key = f"rl:ip:{ip_address}"
+    user_key = f"rl:user:{username.lower().strip()}"
+    return (cache.get(ip_key, 0) >= 5) or (cache.get(user_key, 0) >= 5)
+
+def record_failed_login(ip_address, username):
+    ip_key = f"rl:ip:{ip_address}"
+    user_key = f"rl:user:{username.lower().strip()}"
+    ip_attempts = cache.get(ip_key, 0) + 1
+    user_attempts = cache.get(user_key, 0) + 1
+    cache.set(ip_key, ip_attempts, timeout=300)
+    cache.set(user_key, user_attempts, timeout=300)
+    logger.warning(f"Failed admin login attempt for '{username}' from IP '{ip_address}'. Attempt #{max(ip_attempts, user_attempts)}")
+
+def clear_failed_logins(ip_address, username):
+    cache.delete(f"rl:ip:{ip_address}")
+    cache.delete(f"rl:user:{username.lower().strip()}")
 
 def admin_login(request):
     if request.user.is_authenticated and request.user.is_staff:
         return redirect('dashboard:index')
+
+    ip_address = request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip() or request.META.get('REMOTE_ADDR', '')
 
     if request.method == 'POST':
         form = AdminLoginForm(request.POST)
         if form.is_valid():
             username_or_email = form.cleaned_data['username']
             password = form.cleaned_data['password']
+
+            # Rate limit check (Max 5 attempts per 5 minutes)
+            if check_login_rate_limit(ip_address, username_or_email):
+                logger.warning(f"Rate limit exceeded on admin login for '{username_or_email}' from IP '{ip_address}'.")
+                messages.error(request, "Too many failed login attempts. Access is temporarily rate-limited for 5 minutes.")
+                return render(request, 'dashboard/login.html', {'form': form}, status=429)
 
             # Lookup by email or username
             try:
@@ -51,20 +100,24 @@ def admin_login(request):
 
             if user is not None:
                 if not user.is_staff:
-                    messages.error(request, "Access denied. Student accounts cannot access the admin panel.")
+                    record_failed_login(ip_address, username_or_email)
+                    messages.error(request, "Invalid staff credentials.")
                     return redirect('dashboard:login')
                 
+                clear_failed_logins(ip_address, username_or_email)
                 auth_login(request, user)
                 request.session['admin_last_activity'] = time.time()
                 messages.success(request, f"Logged in as staff administrator ({user.username}).")
                 return redirect('dashboard:index')
             else:
+                record_failed_login(ip_address, username_or_email)
                 messages.error(request, "Invalid staff credentials.")
     else:
         form = AdminLoginForm()
 
     return render(request, 'dashboard/login.html', {'form': form})
 
+@require_POST
 @staff_required
 def admin_logout(request):
     auth_logout(request)
@@ -163,6 +216,7 @@ def delete_course(request, pk):
 
     return render(request, 'dashboard/course_delete_confirm.html', {'course': course})
 
+@require_POST
 @staff_required
 def toggle_course_featured(request, pk):
     course = get_object_or_404(Course, pk=pk)
@@ -170,7 +224,7 @@ def toggle_course_featured(request, pk):
         featured_count = Course.objects.filter(is_featured=True).count()
         if featured_count >= 3:
             messages.warning(request, "You already have 3 featured courses selected. You must deselect at least one course to add this course in Featured Courses.")
-            return redirect('dashboard:manage_courses')
+            return get_safe_redirect(request, 'dashboard:manage_courses')
         course.is_featured = True
         course.save()
         messages.success(request, f"Course '{course.name}' is now featured on homepage.")
@@ -179,7 +233,7 @@ def toggle_course_featured(request, pk):
         course.save()
         messages.success(request, f"Course '{course.name}' removed from homepage featured list.")
 
-    return redirect('dashboard:manage_courses')
+    return get_safe_redirect(request, 'dashboard:manage_courses')
 
 @staff_required
 def manage_certificates(request):
@@ -230,20 +284,42 @@ def manage_certificates(request):
     }
     return render(request, 'dashboard/manage_certificates.html', context)
 
+MAX_EXPORT_CERTIFICATES = 100
+
+class TempFileResponse(FileResponse):
+    """FileResponse that deletes the underlying temporary export file upon completion."""
+    def __init__(self, temp_path, *args, **kwargs):
+        self.temp_path = temp_path
+        self._cached_content = None
+        file_obj = open(temp_path, 'rb')
+        super().__init__(file_obj, *args, **kwargs)
+
+    @property
+    def content(self):
+        """Allows testing client code (like test_download_certificates_zip) to read response.content."""
+        if self._cached_content is None:
+            self._cached_content = b"".join(self.streaming_content)
+        return self._cached_content
+
+    def close(self):
+        super().close()
+        try:
+            if os.path.exists(self.temp_path):
+                os.remove(self.temp_path)
+        except Exception:
+            pass
+
 @staff_required
 def download_certificates_zip(request):
     """
     Downloads certificates matching the specified date filter range as a ZIP archive.
-    If no start_date and end_date are provided, downloads ALL certificates in the database.
-    Each PDF inside the ZIP is named: CertificateHolderName-CourseName.pdf (e.g. Shivampatel-Python.pdf).
-    Duplicates append incremental counters (-2, -3).
-    ZIP file named: certificates_DD-MM-YYYY_to_DD-MM-YYYY.zip or certificates_all.zip.
+    Uses disk-backed temporary storage to avoid RAM exhaustion.
+    Enforces a strict batch limit (max 100 certificates per export) to protect system resources.
     """
     start_date_str = request.GET.get('start_date', '').strip()
     end_date_str = request.GET.get('end_date', '').strip()
 
     if not start_date_str and not end_date_str:
-        # No dates specified -> Download ALL certificates
         certificates = Certificate.objects.select_related('course', 'student').all().order_by('issue_date', 'created_at')
         zip_filename = "certificates_all.zip"
     else:
@@ -256,11 +332,11 @@ def download_certificates_zip(request):
 
         if not start_date or not end_date:
             messages.error(request, "Invalid date format. Please select valid starting and ending dates.")
-            return redirect(f"{reverse('dashboard:manage_certificates')}?start_date={urllib.parse.quote(start_date_str)}&end_date={urllib.parse.quote(end_date_str)}")
+            return get_safe_redirect(request, 'dashboard:manage_certificates')
 
         if start_date > end_date:
             messages.error(request, "Starting date cannot be later than ending date.")
-            return redirect(f"{reverse('dashboard:manage_certificates')}?start_date={urllib.parse.quote(start_date_str)}&end_date={urllib.parse.quote(end_date_str)}")
+            return get_safe_redirect(request, 'dashboard:manage_certificates')
 
         certificates = Certificate.objects.select_related('course', 'student').filter(
             issue_date__range=(start_date, end_date)
@@ -270,14 +346,25 @@ def download_certificates_zip(request):
         end_fmt = end_date.strftime('%d-%m-%Y')
         zip_filename = f"certificates_{start_fmt}_to_{end_fmt}.zip"
 
-    if not certificates.exists():
+    total_matching = certificates.count()
+    if total_matching == 0:
         messages.error(request, "No certificates found to download.")
         return redirect('dashboard:manage_certificates')
 
-    zip_buffer = io.BytesIO()
+    if total_matching > MAX_EXPORT_CERTIFICATES:
+        messages.error(
+            request,
+            f"Export batch limit exceeded: {total_matching} certificates found. To ensure server stability and avoid timeouts, please narrow your date filter to export up to {MAX_EXPORT_CERTIFICATES} certificates per batch."
+        )
+        return redirect('dashboard:manage_certificates')
+
+    temp_zip = tempfile.NamedTemporaryFile(delete=False, suffix='.zip')
+    temp_zip_path = temp_zip.name
+    temp_zip.close()
+
     dedup = FilenameDeduplicator()
 
-    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+    with zipfile.ZipFile(temp_zip_path, 'w', zipfile.ZIP_DEFLATED) as zip_file:
         for cert in certificates:
             try:
                 pdf_bytes = generate_certificate_pdf(cert)
@@ -286,13 +373,12 @@ def download_certificates_zip(request):
                 filename = dedup.get_unique_filename(student_name, course_name)
                 zip_file.writestr(filename, pdf_bytes)
             except Exception as e:
-                print(f"Error generating PDF for certificate {cert.certificate_id}: {e}")
+                logger.error(f"Error generating PDF for certificate {cert.certificate_id}: {e}")
 
-    zip_buffer.seek(0)
-
-    response = HttpResponse(zip_buffer.getvalue(), content_type='application/zip')
+    response = TempFileResponse(temp_zip_path, content_type='application/zip')
     response['Content-Disposition'] = f'attachment; filename="{zip_filename}"'
     return response
+
 
 
 
@@ -506,6 +592,7 @@ def manage_inquiries(request):
     }
     return render(request, 'dashboard/manage_inquiries.html', context)
 
+@require_POST
 @staff_required
 def toggle_inquiry_read(request, pk):
     inquiry = get_object_or_404(Inquiry, pk=pk)
@@ -513,23 +600,16 @@ def toggle_inquiry_read(request, pk):
     inquiry.save()
     status_str = "Read" if inquiry.is_read else "Unread"
     messages.success(request, f"Inquiry from {inquiry.name} marked as {status_str}.")
+    return get_safe_redirect(request, 'dashboard:manage_inquiries')
 
-    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER')
-    if next_url:
-        return redirect(next_url)
-    return redirect('dashboard:manage_inquiries')
-
+@require_POST
 @staff_required
 def delete_inquiry(request, pk):
     inquiry = get_object_or_404(Inquiry, pk=pk)
     name = inquiry.name
     inquiry.delete()
     messages.success(request, f"Inquiry from {name} has been deleted.")
-
-    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER')
-    if next_url:
-        return redirect(next_url)
-    return redirect('dashboard:manage_inquiries')
+    return get_safe_redirect(request, 'dashboard:manage_inquiries')
 
 @staff_required
 def add_inquiry_followup(request, pk):
@@ -580,7 +660,7 @@ def add_inquiry_followup(request, pk):
                         fail_silently=True
                     )
                 except Exception as e:
-                    print(f"Email delivery log: {e}")
+                    logger.error(f"Email delivery log: {e}")
 
             # 3. WhatsApp / SMS Delivery
             whatsapp_url = None
@@ -591,7 +671,6 @@ def add_inquiry_followup(request, pk):
                     clean_phone = '91' + clean_phone
                 encoded_text = urllib.parse.quote(wa_text)
                 whatsapp_url = f"https://api.whatsapp.com/send?phone={clean_phone}&text={encoded_text}"
-                print(f"[WHATSAPP/SMS DELIVERED] To: {inquiry.phone} | Payload: {wa_text}")
 
             messages.success(request, "Follow-up sent successfully.")
 
@@ -607,10 +686,8 @@ def add_inquiry_followup(request, pk):
         else:
             messages.error(request, "Follow-up message cannot be empty.")
 
-    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER')
-    if next_url:
-        return redirect(next_url)
-    return redirect('dashboard:manage_inquiries')
+    return get_safe_redirect(request, 'dashboard:manage_inquiries')
+
 
 @staff_required
 def get_inquiry_followups(request, pk):
@@ -708,6 +785,7 @@ def edit_offer(request, pk):
 
     return render(request, 'dashboard/offer_form.html', {'form': form, 'title': f'Edit Offer: {offer.title}', 'offer': offer})
 
+@require_POST
 @staff_required
 def toggle_offer_status(request, pk):
     offer = get_object_or_404(CourseOffer, pk=pk)
@@ -719,23 +797,17 @@ def toggle_offer_status(request, pk):
         status_msg = "activated"
     offer.save()
     messages.success(request, f"Course Offer '{offer.title}' has been {status_msg}.")
+    return get_safe_redirect(request, 'dashboard:manage_offers')
 
-    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER')
-    if next_url:
-        return redirect(next_url)
-    return redirect('dashboard:manage_offers')
-
+@require_POST
 @staff_required
 def delete_offer(request, pk):
     offer = get_object_or_404(CourseOffer, pk=pk)
     title = offer.title
     offer.delete()
     messages.success(request, f"Course Offer '{title}' has been permanently deleted.")
+    return get_safe_redirect(request, 'dashboard:manage_offers')
 
-    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER')
-    if next_url:
-        return redirect(next_url)
-    return redirect('dashboard:manage_offers')
 
 # ── Active Student Accounts ─────────────────────────────────
 from django.core.paginator import Paginator
@@ -822,7 +894,8 @@ def add_student(request):
                 is_staff=False,
                 is_active=is_active_val
             )
-            user.set_password('cdac1234')
+            temp_password = secrets.token_urlsafe(12)
+            user.set_password(temp_password)
 
             date_joined = form.cleaned_data.get('date_joined')
             if date_joined:
@@ -833,9 +906,13 @@ def add_student(request):
             profile.phone = form.cleaned_data.get('phone', '')
             profile.enrolled_course = form.cleaned_data.get('course')
             profile.notes = form.cleaned_data.get('notes', '')
+            profile.must_change_password = True
             profile.save()
 
-            messages.success(request, f"Student '{full_name}' (@{username}) enrolled successfully.")
+            messages.success(
+                request,
+                f"Student '{full_name}' (@{username}) enrolled successfully. Temporary password: {temp_password}"
+            )
             return redirect('dashboard:active_students')
         else:
             messages.error(request, "Invalid student details. Please check the required fields.")
@@ -846,6 +923,7 @@ def add_student(request):
     return render(request, 'dashboard/add_student.html', {'form': form, 'title': 'Add New Student'})
 
 @staff_required
+@require_POST
 def toggle_student_status(request, pk):
     user_obj = get_object_or_404(User, pk=pk, is_staff=False)
     user_obj.is_active = not user_obj.is_active
@@ -853,22 +931,17 @@ def toggle_student_status(request, pk):
     status_str = "Active" if user_obj.is_active else "Inactive"
     messages.success(request, f"Student '{user_obj.get_full_name() or user_obj.username}' marked as {status_str}.")
 
-    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER')
-    if next_url:
-        return redirect(next_url)
-    return redirect('dashboard:active_students')
+    return get_safe_redirect(request, 'dashboard:active_students')
 
 @staff_required
+@require_POST
 def delete_student(request, pk):
     user_obj = get_object_or_404(User, pk=pk, is_staff=False)
     name = user_obj.get_full_name() or user_obj.username
     user_obj.delete()
     messages.success(request, f"Student account '{name}' deleted successfully.")
 
-    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER')
-    if next_url:
-        return redirect(next_url)
-    return redirect('dashboard:active_students')
+    return get_safe_redirect(request, 'dashboard:active_students')
 
 from core.models import AboutContent, ContactContent
 
@@ -880,10 +953,7 @@ def edit_about(request):
         if form.is_valid():
             form.save()
             messages.success(request, "About section content updated successfully.")
-            next_url = request.GET.get('next') or request.META.get('HTTP_REFERER')
-            if next_url:
-                return redirect(next_url)
-            return redirect('core:about')
+            return get_safe_redirect(request, 'core:about')
         else:
             messages.error(request, "Error updating About content. Please check the required fields.")
     else:
@@ -904,10 +974,7 @@ def edit_contact(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Contact section details updated successfully.")
-            next_url = request.GET.get('next') or request.META.get('HTTP_REFERER')
-            if next_url:
-                return redirect(next_url)
-            return redirect('core:contact')
+            return get_safe_redirect(request, 'core:contact')
         else:
             messages.error(request, "Error updating Contact details. Please check the required fields.")
     else:
@@ -919,4 +986,5 @@ def edit_contact(request):
         'title': 'Edit Contact Details & Location'
     }
     return render(request, 'dashboard/edit_contact.html', context)
+
 

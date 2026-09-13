@@ -129,12 +129,11 @@
                     </td>
                     <td>
                         <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
-                            <a href="{% url 'dashboard:toggle_offer_status' offer.id %}" class="btn {% if offer.status == 'active' %}btn-dark-subtle{% else %}btn-outline-dark{% endif %} btn-sm">
+                            <button type="button" onclick="submitPostAction('{% url 'dashboard:toggle_offer_status' offer.id %}')" class="btn {% if offer.status == 'active' %}btn-dark-subtle{% else %}btn-outline-dark{% endif %} btn-sm" style="cursor: pointer;">
                                 {% if offer.status == 'active' %}Deactivate{% else %}Activate{% endif %}
-                            </a>
+                            </button>
                             <a href="{% url 'dashboard:edit_offer' offer.id %}" class="btn btn-outline-dark btn-sm">Edit</a>
-                            <a href="{% url 'dashboard:delete_offer' offer.id %}" class="btn btn-danger btn-sm" onclick="return confirmAction(event, 'Are you sure you want to delete this offer?');">Delete</a>
-
+                            <button type="button" data-action-url="{% url 'dashboard:delete_offer' offer.id %}" data-method="post" class="btn btn-danger btn-sm" style="cursor: pointer;" onclick="return confirmAction(event, 'Are you sure you want to delete this offer?');">Delete</button>
                         </div>
                     </td>
                 </tr>
