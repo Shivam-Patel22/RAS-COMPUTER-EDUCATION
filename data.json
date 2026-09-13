@@ -1,0 +1,2172 @@
+[
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$PLMMBQEeKgmXeiW1TYF0iF$bSGWLdeSyrYmxQku5oKpsHntIfJR9gFzlEDo9O3fJuA=",
+    "last_login": "2026-09-13T06:40:54.036Z",
+    "is_superuser": true,
+    "username": "admin2",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-08-07T16:41:41.516Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$C1NeRLDgWGbYTd078aFR1q$Pi/e+Bfbqk/3aQYdauY2cchj33sPUTJOO4nUzOLTTPc=",
+    "last_login": null,
+    "is_superuser": true,
+    "username": "admin",
+    "first_name": "",
+    "last_name": "",
+    "email": "admin@cdac.in",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-08-07T16:53:25.764Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$koniGdcqhwV0cYhB3dhvbV$CVL0kI1NVLUSPXf+c5+9lghRQGgvzCU32nDoLAVsHQY=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "rahul_sharma",
+    "first_name": "Rahul",
+    "last_name": "Sharma",
+    "email": "rahul.sharma@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-01-10T00:00:00Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$6qTAlhf0ujQi1RhGnFgbpT$NoxjiFumo6zQlAGjAW8FwRtclc738LEGH8WpzvssK+8=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "priya_patel",
+    "first_name": "Priya",
+    "last_name": "Patel",
+    "email": "priya.patel@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-01-15T00:00:00Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$gAuf49wVUYrkcxVu5ADgwd$J49sGRBF9YesXRcDgyCqd92mB0/6H093/Eua5EKFvjE=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "amit_verma",
+    "first_name": "Amit",
+    "last_name": "Verma",
+    "email": "amit.verma@yahoo.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-01-20T00:00:00Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$6lgDJDgBUUOB0QtnVO87SG$7IllmgHrcXpFrwfw5LEmoeu4lHmCt11nsRha7oy6OII=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "sneha_gupta",
+    "first_name": "Sneha",
+    "last_name": "Gupta",
+    "email": "sneha.gupta@outlook.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-02-01T00:00:00Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$NmAwAXuRYlneggnB067HCx$+SpENowItbps03RmkULvGSo4c4wEwGPFDFigLjvOYvE=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "arjun_singh",
+    "first_name": "Arjun",
+    "last_name": "Singh",
+    "email": "arjun.singh@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-02-08T00:00:00Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$7gXoGYjBhov38yABd0HUYs$OTvAxAr/8RO/p1Dvw10kYhaNZr4U8szBbOg/kcOZnwE=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "kavya_nair",
+    "first_name": "Kavya",
+    "last_name": "Nair",
+    "email": "kavya.nair@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-02-14T00:00:00Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$ZFviXUoEodcJWwZF1nUxGW$znsBZ55mxp6sB+orj9PYWR1GCJnu94dtwSyFF+sPkFI=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "rohan_mehta",
+    "first_name": "Rohan",
+    "last_name": "Mehta",
+    "email": "rohan.mehta@hotmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-02-20T00:00:00Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$frKRnQcbKIkl1UppYyZboN$v9JmbyH4I8lc53Ih7rPhK6XSGwDjcdxkI4Zws3d3+Vo=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "ananya_iyer",
+    "first_name": "Ananya",
+    "last_name": "Iyer",
+    "email": "ananya.iyer@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-03-03T00:00:00Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$pJ1fw5HiwQQK9IyOA1eSzm$FImgqD4L8xPU304nZyURX+o34ygtrNB8L7WVqjgknzM=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "kiran_joshi",
+    "first_name": "Kiran",
+    "last_name": "Joshi",
+    "email": "kiran.joshi@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-03-10T00:00:00Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$RVR9zJS1j3hf8GM1z6QTNb$CIe8U2c2xbn+JAzTuoCSYrxniYodBUlzb3oo6DzPAgA=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "pooja_desai",
+    "first_name": "Pooja",
+    "last_name": "Desai",
+    "email": "pooja.desai@rediffmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-03-18T00:00:00Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$CTumN965Q4VmPe8VjWwq92$P69WB+h4cYmrbot2xGqallNgDgGAuZOaB8bT54hyLq8=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "varun_kapoor",
+    "first_name": "Varun",
+    "last_name": "Kapoor",
+    "email": "varun.kapoor@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-02T00:00:00Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$nQXE59BLA6QO5jdfsySm1z$MzS/GK3F+HSibxRH0RHAAY9TITZemstMYJ36iQGLJok=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "divya_reddy",
+    "first_name": "Divya",
+    "last_name": "Reddy",
+    "email": "divya.reddy@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-09T00:00:00Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$qVY6IqRnX9YGBmIReXOuLD$Dr2WRLFTrKNi6JVnn/NUkg06cxdnd9PDaA+ST1u7I6w=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "nikhil_kumar",
+    "first_name": "Nikhil",
+    "last_name": "Kumar",
+    "email": "nikhil.kumar@outlook.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-20T00:00:00Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$I7JMEBvgkuMGbKPU9NQQhk$puVjqcJ/YuqFqd/Hb1n/gRAtg40mnbVFcWQFVMytvQg=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "meera_pillai",
+    "first_name": "Meera",
+    "last_name": "Pillai",
+    "email": "meera.pillai@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-05T00:00:00Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$LLUABu019EHOKBC19H1aCD$1oW6sQQTtkDcV+5KA5bhEtym4aWKeR+z2OPicu3Vk9s=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "suresh_bhat",
+    "first_name": "Suresh",
+    "last_name": "Bhat",
+    "email": "suresh.bhat@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-14T00:00:00Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$qZy8bmoetpgneI4BZjXS7J$Gpk++qG1z0ARQ+GSOjM6e9lOX8l43YcbDtEYFkWAhnw=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "instructor",
+    "first_name": "Vikram",
+    "last_name": "Sharma",
+    "email": "instructor@cdac.in",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-08-07T16:57:45.801Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "core.inquiry",
+  "pk": 1,
+  "fields": {
+    "name": "Rajesh Kumar",
+    "phone": "+91 9825012345",
+    "email": "rajesh.k@gmail.com",
+    "course": null,
+    "subject": "Inquiry regarding Python Django weekend batch timings",
+    "message": "Hello, I am a working professional interested in taking the Python Web Development course. Do you offer weekend or evening batches?",
+    "created_at": "2026-08-07T16:57:53.589Z",
+    "is_read": true
+  }
+},
+{
+  "model": "core.inquiry",
+  "pk": 2,
+  "fields": {
+    "name": "Neha Shah",
+    "phone": "+91 9712345678",
+    "email": "neha.shah99@yahoo.com",
+    "course": null,
+    "subject": "MERN Stack course fees and installment payment options",
+    "message": "Hi, I want to join the MERN stack course starting next month. Is there any installment payment plan available for students?",
+    "created_at": "2026-08-07T16:57:53.600Z",
+    "is_read": true
+  }
+},
+{
+  "model": "core.inquiry",
+  "pk": 3,
+  "fields": {
+    "name": "Manish Chawla",
+    "phone": "+91 9909988776",
+    "email": "manish.chawla@gmail.com",
+    "course": null,
+    "subject": "Prerequisites for Data Science & Machine Learning",
+    "message": "I have a background in Commerce. Can I learn Data Science and Machine Learning without prior coding experience?",
+    "created_at": "2026-08-07T16:57:53.610Z",
+    "is_read": true
+  }
+},
+{
+  "model": "core.inquiry",
+  "pk": 4,
+  "fields": {
+    "name": "Bhavna Patel",
+    "phone": "+91 9426011223",
+    "email": "bhavna.p@outlook.com",
+    "course": null,
+    "subject": "Tally Prime & GST Certification Batch Start Date",
+    "message": "When does the next Tally Prime & GST training batch begin? Please share class schedules.",
+    "created_at": "2026-08-07T16:57:53.614Z",
+    "is_read": true
+  }
+},
+{
+  "model": "core.inquiry",
+  "pk": 5,
+  "fields": {
+    "name": "Vikram Solanki",
+    "phone": "+91 9898012345",
+    "email": "vsolanki@gmail.com",
+    "course": null,
+    "subject": "Ethical Hacking Lab Facilities",
+    "message": "Does the Cyber Security course include hands-on penetration testing labs and Linux environments?",
+    "created_at": "2026-08-07T16:57:53.620Z",
+    "is_read": true
+  }
+},
+{
+  "model": "core.inquiry",
+  "pk": 6,
+  "fields": {
+    "name": "Siddharth Trivedi",
+    "phone": "+91 9601234567",
+    "email": "sid.trivedi@gmail.com",
+    "course": null,
+    "subject": "AWS DevOps Certification voucher details",
+    "message": "Do you provide guidance for AWS Certified Cloud Practitioner / Solutions Architect exams?",
+    "created_at": "2026-08-07T16:57:53.630Z",
+    "is_read": true
+  }
+},
+{
+  "model": "core.inquiryfollowup",
+  "pk": 1,
+  "fields": {
+    "inquiry": 1,
+    "admin_user": [
+      "admin"
+    ],
+    "status": "contacted",
+    "message": "Called Rajesh. Informed him about the Saturday-Sunday 10 AM to 1 PM weekend batch options.",
+    "callback_at": null,
+    "created_at": "2026-08-07T16:57:53.593Z"
+  }
+},
+{
+  "model": "core.inquiryfollowup",
+  "pk": 2,
+  "fields": {
+    "inquiry": 1,
+    "admin_user": [
+      "admin"
+    ],
+    "status": "interested",
+    "message": "Rajesh confirmed interest. Requested syllabus PDF on WhatsApp.",
+    "callback_at": null,
+    "created_at": "2026-08-07T16:57:53.597Z"
+  }
+},
+{
+  "model": "core.inquiryfollowup",
+  "pk": 3,
+  "fields": {
+    "inquiry": 2,
+    "admin_user": [
+      "admin"
+    ],
+    "status": "contacted",
+    "message": "Explained 2-part installment scheme for 6-month MERN course.",
+    "callback_at": null,
+    "created_at": "2026-08-07T16:57:53.603Z"
+  }
+},
+{
+  "model": "core.inquiryfollowup",
+  "pk": 4,
+  "fields": {
+    "inquiry": 2,
+    "admin_user": [
+      "admin"
+    ],
+    "status": "converted",
+    "message": "Student enrolled in MERN batch and paid initial fee.",
+    "callback_at": null,
+    "created_at": "2026-08-07T16:57:53.606Z"
+  }
+},
+{
+  "model": "core.inquiryfollowup",
+  "pk": 5,
+  "fields": {
+    "inquiry": 4,
+    "admin_user": [
+      "admin"
+    ],
+    "status": "callback_later",
+    "message": "Requested callback after 5 PM on Monday.",
+    "callback_at": "2026-08-09T16:57:53.616Z",
+    "created_at": "2026-08-07T16:57:53.617Z"
+  }
+},
+{
+  "model": "core.inquiryfollowup",
+  "pk": 6,
+  "fields": {
+    "inquiry": 5,
+    "admin_user": [
+      "admin"
+    ],
+    "status": "contacted",
+    "message": "Demonstrated online lab setup via demo call.",
+    "callback_at": null,
+    "created_at": "2026-08-07T16:57:53.623Z"
+  }
+},
+{
+  "model": "core.inquiryfollowup",
+  "pk": 7,
+  "fields": {
+    "inquiry": 5,
+    "admin_user": [
+      "admin"
+    ],
+    "status": "interested",
+    "message": "Planning to join upcoming batch on 15th.",
+    "callback_at": null,
+    "created_at": "2026-08-07T16:57:53.626Z"
+  }
+},
+{
+  "model": "core.aboutcontent",
+  "pk": 1,
+  "fields": {
+    "heading": "About C-DAC Class Gandhinagar",
+    "subtitle": "Empowering Students & IT Professionals with Practical Computer Education & Industry Skills.",
+    "mission_title": "Our Mission & Vision",
+    "description": "At the Centre for Development of Advanced Computing (C-DAC) Class, our mission is to deliver high-quality, practical computer education across Web Development, Data Science, Cyber Security, Accounting, and Cloud Computing. Our hands-on curriculum is designed to make students industry-ready with cryptographically verifiable certificates.",
+    "feature_1_title": "Practical Learning",
+    "feature_1_desc": "Hands-on coding, live project building, and practical lab assignments tailored for real industry demands.",
+    "feature_2_title": "Authentic Certification",
+    "feature_2_desc": "Certificates featuring unique SHA-256 hashes and instant online verification for employers.",
+    "feature_3_title": "Community Support",
+    "feature_3_desc": "1-on-1 mentor guidance, interview preparation, resume building, and active job placement assistance.",
+    "updated_at": "2026-08-07T17:15:18.996Z"
+  }
+},
+{
+  "model": "core.contactcontent",
+  "pk": 1,
+  "fields": {
+    "phone": "+91 98765 43210",
+    "whatsapp_number": "+91 91049 94493",
+    "email": "info@cdac-class.in",
+    "address": "C-DAC Computer Class, Sector 11, Gandhinagar, Gujarat 382011, India",
+    "working_hours": "Mon - Sat: 9:00 AM - 6:00 PM",
+    "map_embed_url": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d471.09!2d72.6320823!3d23.1852315!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395c2b921555555d%3A0x50e94504c763b697!2sCDAC%20Computer%20Class!5e0!3m2!1sen!2sin!4v1722593000000!5m2!1sen!2sin",
+    "updated_at": "2026-08-11T11:37:47.073Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 10,
+  "fields": {
+    "name": "Basic",
+    "category": "basic",
+    "description": "Main course category for Basic.",
+    "duration": "Basic Skills",
+    "fee": null,
+    "image": "",
+    "is_featured": true,
+    "created_at": "2026-08-11T11:11:07.220Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 11,
+  "fields": {
+    "name": "CCC",
+    "category": "basic",
+    "description": "Course on Computer Concepts certified foundation module.",
+    "duration": "Basic Skills",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.229Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 12,
+  "fields": {
+    "name": "MS Office",
+    "category": "basic",
+    "description": "Microsoft Word, Excel, PowerPoint, and Outlook essentials.",
+    "duration": "Basic Skills",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.236Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 13,
+  "fields": {
+    "name": "Adv. Excel",
+    "category": "basic",
+    "description": "Advanced functions, pivot tables, data visualization, and formulas.",
+    "duration": "Basic Skills",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.244Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 14,
+  "fields": {
+    "name": "Adv. MSOffice",
+    "category": "basic",
+    "description": "Advanced office productivity suite, macros, and document automation.",
+    "duration": "Basic Skills",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.250Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 15,
+  "fields": {
+    "name": "DEO",
+    "category": "basic",
+    "description": "Data Entry Operator skill training & typing accuracy.",
+    "duration": "Basic Skills",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.257Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 16,
+  "fields": {
+    "name": "CPT",
+    "category": "basic",
+    "description": "Computer Proficiency Test preparation and core practicals.",
+    "duration": "Basic Skills",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.263Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 17,
+  "fields": {
+    "name": "DTP",
+    "category": "basic",
+    "description": "Desktop Publishing fundamentals for layout, typesetting, and print.",
+    "duration": "Basic Skills",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.269Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 18,
+  "fields": {
+    "name": "CAD",
+    "category": "basic",
+    "description": "Computer-Aided Design fundamentals for technical drawings.",
+    "duration": "Basic Skills",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.276Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 19,
+  "fields": {
+    "name": "Accounting",
+    "category": "basic",
+    "description": "Main course category for Accounting.",
+    "duration": "Specialized",
+    "fee": null,
+    "image": "",
+    "is_featured": true,
+    "created_at": "2026-08-11T11:11:07.282Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 20,
+  "fields": {
+    "name": "Tally Prime Basic",
+    "category": "accounting",
+    "description": "Fundamental accounting principles, vouchers, ledger, and inventory in Tally.",
+    "duration": "Specialized",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.290Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 21,
+  "fields": {
+    "name": "Tally Prime Specialist",
+    "category": "accounting",
+    "description": "Intermediate Tally Prime with GST taxation, payroll, and banking features.",
+    "duration": "Specialized",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.297Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 22,
+  "fields": {
+    "name": "Tally Prime Xpert",
+    "category": "accounting",
+    "description": "Advanced Tally Prime master module including MIS reporting and audit features.",
+    "duration": "Specialized",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.303Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 23,
+  "fields": {
+    "name": "Programming",
+    "category": "basic",
+    "description": "Main course category for Programming.",
+    "duration": "Modular Tracks",
+    "fee": null,
+    "image": "",
+    "is_featured": true,
+    "created_at": "2026-08-11T11:11:07.309Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 24,
+  "fields": {
+    "name": "C",
+    "category": "programming",
+    "description": "Procedural programming logic, memory structures, and algorithms.",
+    "duration": "Modular Tracks",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.316Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 25,
+  "fields": {
+    "name": "C++",
+    "category": "programming",
+    "description": "Object-oriented concepts, STL containers, and low-level development.",
+    "duration": "Modular Tracks",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.322Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 26,
+  "fields": {
+    "name": "C#",
+    "category": "programming",
+    "description": "Object-oriented C# development for desktop and enterprise apps.",
+    "duration": "Modular Tracks",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.326Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 27,
+  "fields": {
+    "name": "Python",
+    "category": "programming",
+    "description": "Python scripting, data structures, functional code, and backend concepts.",
+    "duration": "Modular Tracks",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.331Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 28,
+  "fields": {
+    "name": "JAVA",
+    "category": "programming",
+    "description": "Core Java OOPs, multithreading, collections framework, and JVM memory.",
+    "duration": "Modular Tracks",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.338Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 29,
+  "fields": {
+    "name": "PHP",
+    "category": "programming",
+    "description": "Server-side web scripting, dynamic database integration, and backend.",
+    "duration": "Modular Tracks",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.345Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 30,
+  "fields": {
+    "name": ".NET",
+    "category": "programming",
+    "description": "Microsoft .NET application architecture and enterprise services.",
+    "duration": "Modular Tracks",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.352Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 31,
+  "fields": {
+    "name": "HTML",
+    "category": "programming",
+    "description": "HTML5 semantic markup, page architecture, and web standards.",
+    "duration": "Modular Tracks",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.358Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 32,
+  "fields": {
+    "name": "CSS",
+    "category": "programming",
+    "description": "CSS3 styling, Flexbox, Grid, animations, and responsive layout design.",
+    "duration": "Modular Tracks",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.363Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 33,
+  "fields": {
+    "name": "JavaScript",
+    "category": "programming",
+    "description": "Modern ES6+ JavaScript syntax, asynchronous JS, and DOM API.",
+    "duration": "Modular Tracks",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.370Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 34,
+  "fields": {
+    "name": "React",
+    "category": "programming",
+    "description": "Frontend React library, functional components, hooks, and state management.",
+    "duration": "Modular Tracks",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.376Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 35,
+  "fields": {
+    "name": "React Native",
+    "category": "programming",
+    "description": "Cross-platform mobile application development for Android & iOS.",
+    "duration": "Modular Tracks",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.381Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 36,
+  "fields": {
+    "name": "Flutter",
+    "category": "programming",
+    "description": "Google Flutter framework and Dart programming for cross-platform apps.",
+    "duration": "Modular Tracks",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.387Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 37,
+  "fields": {
+    "name": "MySQL",
+    "category": "programming",
+    "description": "Relational SQL database queries, joins, indexes, and database design.",
+    "duration": "Modular Tracks",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.393Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 38,
+  "fields": {
+    "name": "Diploma (6 Months)",
+    "category": "basic",
+    "description": "Main course category for Diploma (6 Months).",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": true,
+    "created_at": "2026-08-11T11:11:07.398Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 39,
+  "fields": {
+    "name": "Diploma in Office Automation",
+    "category": "diploma-6-months",
+    "description": "6-Month diploma program in office automation tools and workflows.",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.404Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 40,
+  "fields": {
+    "name": "Diploma in Financial Accounting",
+    "category": "diploma-6-months",
+    "description": "6-Month diploma in computerized accounting and financial management.",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.409Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 41,
+  "fields": {
+    "name": "Diploma in Office Automation & Financial Accounting",
+    "category": "diploma-6-months",
+    "description": "6-Month dual diploma in office software and accounting.",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.414Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 42,
+  "fields": {
+    "name": "Diploma in Computer Programming",
+    "category": "diploma-6-months",
+    "description": "6-Month diploma covering programming fundamentals and algorithms.",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.419Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 43,
+  "fields": {
+    "name": "Diploma in Computer Applications",
+    "category": "diploma-6-months",
+    "description": "6-Month diploma in general computer applications and IT skills.",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.424Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 44,
+  "fields": {
+    "name": "Diploma in Graphics Design",
+    "category": "diploma-6-months",
+    "description": "6-Month diploma in visual graphics, typography, and image editing.",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.429Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 45,
+  "fields": {
+    "name": "Diploma in Web Design",
+    "category": "diploma-6-months",
+    "description": "6-Month diploma in web design, UI layouts, HTML, and CSS.",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.435Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 46,
+  "fields": {
+    "name": "Diploma in Graphics and Web Design",
+    "category": "diploma-6-months",
+    "description": "6-Month comprehensive graphics and web design program.",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.440Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 47,
+  "fields": {
+    "name": "Diploma in Frontend Development",
+    "category": "diploma-6-months",
+    "description": "6-Month diploma in frontend web engineering and JavaScript.",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.445Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 48,
+  "fields": {
+    "name": "Diploma in JAVA",
+    "category": "diploma-6-months",
+    "description": "6-Month diploma in Java software development.",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.450Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 49,
+  "fields": {
+    "name": "Diploma in Web Development",
+    "category": "diploma-6-months",
+    "description": "6-Month diploma in full-stack web development.",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.456Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 50,
+  "fields": {
+    "name": "Diploma in DOT Technologies",
+    "category": "diploma-6-months",
+    "description": "6-Month diploma in Microsoft .NET technologies.",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.461Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 51,
+  "fields": {
+    "name": "Diploma in Digital Marketing",
+    "category": "diploma-6-months",
+    "description": "6-Month diploma in SEO, social media, and digital marketing.",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.468Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 52,
+  "fields": {
+    "name": "Diploma in Data Analysis",
+    "category": "diploma-6-months",
+    "description": "6-Month diploma in data analysis, Excel, SQL, and PowerBI.",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.474Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 53,
+  "fields": {
+    "name": "Diploma in CAD - Civil Drawing",
+    "category": "diploma-6-months",
+    "description": "6-Month diploma in CAD drafting for civil engineering.",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.480Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 54,
+  "fields": {
+    "name": "Diploma in CAD - Mechanical Drawing",
+    "category": "diploma-6-months",
+    "description": "6-Month diploma in CAD drafting for mechanical engineering.",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.486Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 55,
+  "fields": {
+    "name": "Diploma in 2D and 3D Drawing",
+    "category": "diploma-6-months",
+    "description": "6-Month diploma in 2D and 3D technical drawing.",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.492Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 56,
+  "fields": {
+    "name": "Diploma in Communication Skill",
+    "category": "diploma-6-months",
+    "description": "6-Month diploma in professional communication and soft skills.",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.497Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 57,
+  "fields": {
+    "name": "DIPLOMA in Python for Data Analysis",
+    "category": "diploma-6-months",
+    "description": "6-Month diploma in Python, Pandas, and data analytics.",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.504Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 58,
+  "fields": {
+    "name": "DIPLOMA in Using Artificial Intelligence (AI) Tools",
+    "category": "diploma-6-months",
+    "description": "6-Month diploma in AI productivity tools and workflows.",
+    "duration": "6 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.510Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 59,
+  "fields": {
+    "name": "Advance Diploma (12 Months)",
+    "category": "basic",
+    "description": "Main course category for Advance Diploma (12 Months).",
+    "duration": "12 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": true,
+    "created_at": "2026-08-11T11:11:07.516Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 60,
+  "fields": {
+    "name": "Adv. Diploma in Office Automation",
+    "category": "advance-diploma-12-months",
+    "description": "12-Month advance diploma program in office automation.",
+    "duration": "12 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.522Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 61,
+  "fields": {
+    "name": "Adv. Diploma in Financial Accounting",
+    "category": "advance-diploma-12-months",
+    "description": "12-Month advance diploma in accounting and financial systems.",
+    "duration": "12 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.528Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 62,
+  "fields": {
+    "name": "Adv. Diploma in Office Automation & Financial Accounting",
+    "category": "advance-diploma-12-months",
+    "description": "12-Month dual advance diploma.",
+    "duration": "12 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.533Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 63,
+  "fields": {
+    "name": "Adv. Diploma in Computer Programming",
+    "category": "advance-diploma-12-months",
+    "description": "12-Month advance diploma in software programming.",
+    "duration": "12 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.539Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 64,
+  "fields": {
+    "name": "Adv. Diploma in Computer Applications",
+    "category": "advance-diploma-12-months",
+    "description": "12-Month advance diploma in computer applications.",
+    "duration": "12 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.544Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 65,
+  "fields": {
+    "name": "Adv. Diploma in Graphics Design",
+    "category": "advance-diploma-12-months",
+    "description": "12-Month advance diploma in graphic design & digital art.",
+    "duration": "12 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.550Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 66,
+  "fields": {
+    "name": "Adv. Diploma in Web Design",
+    "category": "advance-diploma-12-months",
+    "description": "12-Month advance diploma in modern web design.",
+    "duration": "12 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.556Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 67,
+  "fields": {
+    "name": "Adv. Diploma in Graphics and Web Design",
+    "category": "advance-diploma-12-months",
+    "description": "12-Month master diploma in graphics & web design.",
+    "duration": "12 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.562Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 68,
+  "fields": {
+    "name": "Adv. Diploma in Frontend Development",
+    "category": "advance-diploma-12-months",
+    "description": "12-Month advance diploma in frontend engineering.",
+    "duration": "12 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.567Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 69,
+  "fields": {
+    "name": "Adv. Diploma in JAVA",
+    "category": "advance-diploma-12-months",
+    "description": "12-Month advance diploma in Java software engineering.",
+    "duration": "12 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.573Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 70,
+  "fields": {
+    "name": "Adv. Diploma in Web Development",
+    "category": "advance-diploma-12-months",
+    "description": "12-Month advance diploma in web software development.",
+    "duration": "12 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.579Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 71,
+  "fields": {
+    "name": "Adv. Diploma in DOT Technologies",
+    "category": "advance-diploma-12-months",
+    "description": "12-Month advance diploma in .NET enterprise tech.",
+    "duration": "12 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.586Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 72,
+  "fields": {
+    "name": "Adv. Diploma in Digital Marketing",
+    "category": "advance-diploma-12-months",
+    "description": "12-Month advance diploma in digital marketing & analytics.",
+    "duration": "12 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.592Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 73,
+  "fields": {
+    "name": "Adv. Diploma in Data Analysis",
+    "category": "advance-diploma-12-months",
+    "description": "12-Month advance diploma in data science & analytics.",
+    "duration": "12 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.598Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 74,
+  "fields": {
+    "name": "Adv. Diploma in CAD - Civil Drawing",
+    "category": "advance-diploma-12-months",
+    "description": "12-Month advance diploma in civil CAD drafting.",
+    "duration": "12 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.606Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 75,
+  "fields": {
+    "name": "Adv. Diploma in CAD - Mechanical Drawing",
+    "category": "advance-diploma-12-months",
+    "description": "12-Month advance diploma in mechanical CAD drafting.",
+    "duration": "12 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.611Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 76,
+  "fields": {
+    "name": "Adv. Diploma in 2D and 3D Drawing",
+    "category": "advance-diploma-12-months",
+    "description": "12-Month advance diploma in 2D & 3D CAD modeling.",
+    "duration": "12 Months",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.620Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 77,
+  "fields": {
+    "name": "Frontend / Full Stack Development",
+    "category": "basic",
+    "description": "Main course category for Frontend / Full Stack Development.",
+    "duration": "Career Track",
+    "fee": null,
+    "image": "",
+    "is_featured": true,
+    "created_at": "2026-08-11T11:11:07.626Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 78,
+  "fields": {
+    "name": "Frontend Development with React",
+    "category": "frontend-full-stack-development",
+    "description": "Specialized track in modern React frontend development.",
+    "duration": "Career Track",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.634Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 79,
+  "fields": {
+    "name": "Full Stack Development with Python + Django",
+    "category": "frontend-full-stack-development",
+    "description": "Full stack web development track using Python & Django framework.",
+    "duration": "Career Track",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.642Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 80,
+  "fields": {
+    "name": "Full Stack Development with PHP + Laravel",
+    "category": "frontend-full-stack-development",
+    "description": "Full stack web development track using PHP & Laravel framework.",
+    "duration": "Career Track",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.649Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 81,
+  "fields": {
+    "name": "Full Stack Development with Angular + .Net Core",
+    "category": "frontend-full-stack-development",
+    "description": "Full stack enterprise development with Angular & .NET Core.",
+    "duration": "Career Track",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.657Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 82,
+  "fields": {
+    "name": "MERN Stack Development",
+    "category": "frontend-full-stack-development",
+    "description": "Full stack JavaScript track using MongoDB, Express, React, & Node.",
+    "duration": "Career Track",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.662Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 83,
+  "fields": {
+    "name": "Cross Platform App Development with React Native",
+    "category": "frontend-full-stack-development",
+    "description": "Mobile app development track using React Native.",
+    "duration": "Career Track",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.673Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 84,
+  "fields": {
+    "name": "Cross Platform App Development with Flutter",
+    "category": "frontend-full-stack-development",
+    "description": "Mobile app development track using Flutter & Dart.",
+    "duration": "Career Track",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.678Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 85,
+  "fields": {
+    "name": "UI/UX Design with Figma",
+    "category": "frontend-full-stack-development",
+    "description": "UI/UX design track using Figma, wireframing, & prototyping.",
+    "duration": "Career Track",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.684Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 86,
+  "fields": {
+    "name": "Modular Courses",
+    "category": "basic",
+    "description": "Main course category for Modular Courses.",
+    "duration": "Flexible",
+    "fee": null,
+    "image": "",
+    "is_featured": true,
+    "created_at": "2026-08-11T11:11:07.690Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 87,
+  "fields": {
+    "name": "PageMaker",
+    "category": "modular-courses",
+    "description": "Modular course on Adobe PageMaker document layout.",
+    "duration": "Flexible",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.704Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 88,
+  "fields": {
+    "name": "Photoshop",
+    "category": "modular-courses",
+    "description": "Modular course on Adobe Photoshop image editing.",
+    "duration": "Flexible",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.710Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 89,
+  "fields": {
+    "name": "CorelDraw",
+    "category": "modular-courses",
+    "description": "Modular course on CorelDraw vector design.",
+    "duration": "Flexible",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.717Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 90,
+  "fields": {
+    "name": "Illustrator",
+    "category": "modular-courses",
+    "description": "Modular course on Adobe Illustrator graphics.",
+    "duration": "Flexible",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.723Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 91,
+  "fields": {
+    "name": "InDesign",
+    "category": "modular-courses",
+    "description": "Modular course on Adobe InDesign publishing layout.",
+    "duration": "Flexible",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.728Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 92,
+  "fields": {
+    "name": "Canva",
+    "category": "modular-courses",
+    "description": "Modular course on Canva digital design & templates.",
+    "duration": "Flexible",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.733Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 93,
+  "fields": {
+    "name": "PowerBI",
+    "category": "modular-courses",
+    "description": "Modular course on Microsoft PowerBI data visualization.",
+    "duration": "Flexible",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.739Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 94,
+  "fields": {
+    "name": "Core JAVA",
+    "category": "modular-courses",
+    "description": "Modular course on Core Java programming.",
+    "duration": "Flexible",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.744Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 95,
+  "fields": {
+    "name": "Adv. JAVA",
+    "category": "modular-courses",
+    "description": "Modular course on Advanced Java & enterprise frameworks.",
+    "duration": "Flexible",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.749Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 96,
+  "fields": {
+    "name": "WordPress",
+    "category": "modular-courses",
+    "description": "Modular course on WordPress CMS site building.",
+    "duration": "Flexible",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.756Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 97,
+  "fields": {
+    "name": "Figma",
+    "category": "modular-courses",
+    "description": "Modular course on Figma UI design.",
+    "duration": "Flexible",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.761Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 98,
+  "fields": {
+    "name": "Bootstrap",
+    "category": "modular-courses",
+    "description": "Modular course on Bootstrap responsive framework.",
+    "duration": "Flexible",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:11:07.769Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 99,
+  "fields": {
+    "name": "Alll out",
+    "category": "basic",
+    "description": "Full out",
+    "duration": "4 Weeks",
+    "fee": null,
+    "image": "",
+    "is_featured": false,
+    "created_at": "2026-08-11T11:12:36.433Z"
+  }
+},
+{
+  "model": "courses.courseoffer",
+  "pk": 1,
+  "fields": {
+    "title": "30% OFF on Python Full Stack Course",
+    "description": null,
+    "course": null,
+    "discount": "30% OFF",
+    "badge": "🎉 LIMITED OFFER",
+    "start_date": null,
+    "end_date": null,
+    "priority": 10,
+    "status": "active",
+    "created_by": [
+      "admin"
+    ],
+    "created_at": "2026-08-07T16:53:26.351Z",
+    "updated_at": "2026-08-07T16:53:26.351Z"
+  }
+},
+{
+  "model": "courses.courseoffer",
+  "pk": 2,
+  "fields": {
+    "title": "New AI & ML Advanced Batch Starts 15 Aug",
+    "description": null,
+    "course": null,
+    "discount": "Enroll Now",
+    "badge": "🚀 NEW BATCH",
+    "start_date": null,
+    "end_date": null,
+    "priority": 8,
+    "status": "active",
+    "created_by": [
+      "admin"
+    ],
+    "created_at": "2026-08-07T16:53:26.356Z",
+    "updated_at": "2026-08-07T16:53:26.356Z"
+  }
+},
+{
+  "model": "courses.courseoffer",
+  "pk": 3,
+  "fields": {
+    "title": "Free Verified Certificate with Web Development Course",
+    "description": null,
+    "course": null,
+    "discount": "Free Certification",
+    "badge": "📜 FREE CERTIFICATE",
+    "start_date": null,
+    "end_date": null,
+    "priority": 5,
+    "status": "active",
+    "created_by": [
+      "admin"
+    ],
+    "created_at": "2026-08-07T16:53:26.359Z",
+    "updated_at": "2026-08-07T16:53:26.359Z"
+  }
+},
+{
+  "model": "courses.courseoffer",
+  "pk": 4,
+  "fields": {
+    "title": "Early Bird Special Discount on Financial Accounting",
+    "description": null,
+    "course": null,
+    "discount": "20% OFF",
+    "badge": "⏰ LIMITED TIME",
+    "start_date": null,
+    "end_date": null,
+    "priority": 3,
+    "status": "active",
+    "created_by": [
+      "admin"
+    ],
+    "created_at": "2026-08-07T16:53:26.363Z",
+    "updated_at": "2026-08-07T16:53:26.363Z"
+  }
+},
+{
+  "model": "courses.courseoffer",
+  "pk": 5,
+  "fields": {
+    "title": "30% OFF on Python Web Development Course",
+    "description": null,
+    "course": null,
+    "discount": "30% OFF",
+    "badge": "LIMITED OFFER",
+    "start_date": null,
+    "end_date": null,
+    "priority": 10,
+    "status": "active",
+    "created_by": [
+      "admin"
+    ],
+    "created_at": "2026-08-07T16:57:46.306Z",
+    "updated_at": "2026-08-07T16:57:46.307Z"
+  }
+},
+{
+  "model": "courses.courseoffer",
+  "pk": 6,
+  "fields": {
+    "title": "New Data Science & ML Advanced Batch Starts Soon",
+    "description": null,
+    "course": null,
+    "discount": "Enroll Now",
+    "badge": "NEW BATCH",
+    "start_date": null,
+    "end_date": null,
+    "priority": 8,
+    "status": "active",
+    "created_by": [
+      "admin"
+    ],
+    "created_at": "2026-08-07T16:57:46.311Z",
+    "updated_at": "2026-08-07T16:57:46.311Z"
+  }
+},
+{
+  "model": "courses.courseoffer",
+  "pk": 7,
+  "fields": {
+    "title": "Free Verified Certificate with MERN Stack Web Development",
+    "description": null,
+    "course": null,
+    "discount": "Free Certification",
+    "badge": "FREE CERTIFICATE",
+    "start_date": null,
+    "end_date": null,
+    "priority": 5,
+    "status": "active",
+    "created_by": [
+      "admin"
+    ],
+    "created_at": "2026-08-07T16:57:46.315Z",
+    "updated_at": "2026-08-07T16:57:46.315Z"
+  }
+},
+{
+  "model": "courses.courseoffer",
+  "pk": 8,
+  "fields": {
+    "title": "DevOps & AWS Cloud Certification Bundle Discount",
+    "description": null,
+    "course": null,
+    "discount": "RS 5000 OFF",
+    "badge": "CLOUD SPECIAL",
+    "start_date": null,
+    "end_date": null,
+    "priority": 7,
+    "status": "active",
+    "created_by": [
+      "admin"
+    ],
+    "created_at": "2026-08-07T16:57:46.318Z",
+    "updated_at": "2026-08-07T16:57:46.318Z"
+  }
+},
+{
+  "model": "certificates.certificate",
+  "pk": 7,
+  "fields": {
+    "certificate_id": "CERT-2026-SP-4391-01",
+    "first_name": "Shivam",
+    "middle_name": "Tarak",
+    "last_name": "Patel",
+    "student_name": "Shivam Tarak Patel",
+    "student": null,
+    "course": 11,
+    "course_start_date": "2026-08-24",
+    "course_end_date": "2026-08-27",
+    "issue_date": "2026-08-31",
+    "grade": "A",
+    "created_at": "2026-08-24T12:22:14.354Z",
+    "verification_token": "795C55EFEEFADA28",
+    "verification_hash": "795c55efeefada28c3d99005f230e08a4d20e9aa9fe666fcd048fa5b20eff4e3",
+    "printed_at": "2026-08-24T12:22:18.791Z",
+    "last_verified_at": null
+  }
+},
+{
+  "model": "accounts.studentprofile",
+  "pk": 1,
+  "fields": {
+    "user": [
+      "rahul_sharma"
+    ],
+    "phone": "+91 9876543210",
+    "enrolled_course": null,
+    "notes": "Top performer in Django backend modules.",
+    "must_change_password": false,
+    "created_at": "2026-08-07T16:53:26.900Z"
+  }
+},
+{
+  "model": "accounts.studentprofile",
+  "pk": 2,
+  "fields": {
+    "user": [
+      "priya_patel"
+    ],
+    "phone": "+91 9876543211",
+    "enrolled_course": null,
+    "notes": "Working on final year React project.",
+    "must_change_password": false,
+    "created_at": "2026-08-07T16:53:27.506Z"
+  }
+},
+{
+  "model": "accounts.studentprofile",
+  "pk": 3,
+  "fields": {
+    "user": [
+      "amit_verma"
+    ],
+    "phone": "+91 9876543212",
+    "enrolled_course": null,
+    "notes": "Completed Machine Learning capstone project.",
+    "must_change_password": false,
+    "created_at": "2026-08-07T16:53:28.037Z"
+  }
+},
+{
+  "model": "accounts.studentprofile",
+  "pk": 4,
+  "fields": {
+    "user": [
+      "sneha_gupta"
+    ],
+    "phone": "+91 9876543213",
+    "enrolled_course": null,
+    "notes": "Passed Tally Prime assessment with distinction.",
+    "must_change_password": false,
+    "created_at": "2026-08-07T16:53:28.586Z"
+  }
+},
+{
+  "model": "accounts.studentprofile",
+  "pk": 5,
+  "fields": {
+    "user": [
+      "arjun_singh"
+    ],
+    "phone": "+91 9876543214",
+    "enrolled_course": null,
+    "notes": "Interested in ethical hacking lab sessions.",
+    "must_change_password": false,
+    "created_at": "2026-08-07T16:53:29.142Z"
+  }
+},
+{
+  "model": "accounts.studentprofile",
+  "pk": 6,
+  "fields": {
+    "user": [
+      "kavya_nair"
+    ],
+    "phone": "+91 9876543215",
+    "enrolled_course": null,
+    "notes": "Enrolled in Spring Boot microservices batch.",
+    "must_change_password": false,
+    "created_at": "2026-08-07T16:53:29.651Z"
+  }
+},
+{
+  "model": "accounts.studentprofile",
+  "pk": 7,
+  "fields": {
+    "user": [
+      "rohan_mehta"
+    ],
+    "phone": "+91 9876543216",
+    "enrolled_course": null,
+    "notes": "Preparing for AWS Certified Solutions Architect.",
+    "must_change_password": false,
+    "created_at": "2026-08-07T16:53:30.127Z"
+  }
+},
+{
+  "model": "accounts.studentprofile",
+  "pk": 8,
+  "fields": {
+    "user": [
+      "ananya_iyer"
+    ],
+    "phone": "+91 9876543217",
+    "enrolled_course": null,
+    "notes": "Enrolled for fundamentals algorithms review.",
+    "must_change_password": false,
+    "created_at": "2026-08-07T16:53:30.801Z"
+  }
+},
+{
+  "model": "accounts.studentprofile",
+  "pk": 9,
+  "fields": {
+    "user": [
+      "kiran_joshi"
+    ],
+    "phone": "+91 9876543218",
+    "enrolled_course": null,
+    "notes": "Attending FastAPI weekend workshop.",
+    "must_change_password": false,
+    "created_at": "2026-08-07T16:53:31.356Z"
+  }
+},
+{
+  "model": "accounts.studentprofile",
+  "pk": 10,
+  "fields": {
+    "user": [
+      "pooja_desai"
+    ],
+    "phone": "+91 9876543219",
+    "enrolled_course": null,
+    "notes": "Submitted Node.js REST API assignment.",
+    "must_change_password": false,
+    "created_at": "2026-08-07T16:53:31.851Z"
+  }
+},
+{
+  "model": "accounts.studentprofile",
+  "pk": 11,
+  "fields": {
+    "user": [
+      "varun_kapoor"
+    ],
+    "phone": "+91 9876543220",
+    "enrolled_course": null,
+    "notes": "Regular participant in Data Science seminars.",
+    "must_change_password": false,
+    "created_at": "2026-08-07T16:53:32.336Z"
+  }
+},
+{
+  "model": "accounts.studentprofile",
+  "pk": 12,
+  "fields": {
+    "user": [
+      "divya_reddy"
+    ],
+    "phone": "+91 9876543221",
+    "enrolled_course": null,
+    "notes": "Completed network security assignment.",
+    "must_change_password": false,
+    "created_at": "2026-08-07T16:53:32.850Z"
+  }
+},
+{
+  "model": "accounts.studentprofile",
+  "pk": 13,
+  "fields": {
+    "user": [
+      "nikhil_kumar"
+    ],
+    "phone": "+91 9876543222",
+    "enrolled_course": null,
+    "notes": "Java enterprise batch student.",
+    "must_change_password": false,
+    "created_at": "2026-08-07T16:53:33.337Z"
+  }
+},
+{
+  "model": "accounts.studentprofile",
+  "pk": 14,
+  "fields": {
+    "user": [
+      "meera_pillai"
+    ],
+    "phone": "+91 9876543223",
+    "enrolled_course": null,
+    "notes": "Docker and Kubernetes labs completed.",
+    "must_change_password": false,
+    "created_at": "2026-08-07T16:53:33.811Z"
+  }
+},
+{
+  "model": "accounts.studentprofile",
+  "pk": 15,
+  "fields": {
+    "user": [
+      "suresh_bhat"
+    ],
+    "phone": "+91 9876543224",
+    "enrolled_course": null,
+    "notes": "GST filing practical session completed.",
+    "must_change_password": false,
+    "created_at": "2026-08-07T16:53:34.299Z"
+  }
+}
+]

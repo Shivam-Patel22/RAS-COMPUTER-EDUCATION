@@ -11,9 +11,11 @@ python manage.py collectstatic --no-input
 # Run database migrations
 python manage.py migrate
 
+# Load initial data fixture if data.json exists
+if [ -f data.json ]; then
+    python manage.py loaddata data.json
+fi
+
 # Create superuser from environment variables if set
 python manage.py createsuperuser_if_none_exists
-
-# (Optional) Seed initial data if database is empty
-# python manage.py seed_data
 
