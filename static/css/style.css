@@ -525,6 +525,7 @@ img {
     max-width: 100%;
     height: calc(100vh - var(--header-height));
     height: calc(100dvh - var(--header-height));
+    min-height: 520px;
     background-color: #1e1e1e;
     display: flex;
     align-items: center;
@@ -533,6 +534,88 @@ img {
     position: relative;
     margin: 0;
     padding: 0;
+}
+
+/* Hero Institute Branding Header */
+.hero-brand-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: clamp(0.75rem, 1.8vw, 1.35rem) 1rem 0.5rem;
+    pointer-events: none;
+    text-align: center;
+    background: linear-gradient(180deg, rgba(30, 30, 30, 0.75) 0%, rgba(30, 30, 30, 0.35) 60%, transparent 100%);
+}
+
+.hero-institute-title {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    pointer-events: auto;
+}
+
+.hero-institute-main {
+    font-family: var(--font-heading);
+    font-size: clamp(1.35rem, 2.7vw, 2.35rem);
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #ffffff;
+    line-height: 1.15;
+    text-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.95),
+        0 4px 14px rgba(0, 0, 0, 0.8),
+        0 0 20px rgba(244, 127, 35, 0.25);
+    display: inline-block;
+}
+
+.hero-institute-main .brand-name-ras {
+    color: var(--secondary); /* #F47F23 */
+    text-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.95),
+        0 0 16px rgba(244, 127, 35, 0.55);
+}
+
+.hero-institute-sub {
+    font-family: var(--font-heading);
+    font-size: clamp(0.72rem, 1.25vw, 1.05rem);
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #ffffff;
+    margin-top: 0.3rem;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    text-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.95),
+        0 0 12px rgba(47, 155, 212, 0.3);
+}
+
+.hero-institute-sub::before,
+.hero-institute-sub::after {
+    content: "";
+    display: inline-block;
+    width: clamp(18px, 3.5vw, 42px);
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #2F9BD4);
+    opacity: 0.85;
+    vertical-align: middle;
+}
+
+.hero-institute-sub::after {
+    background: linear-gradient(90deg, #2F9BD4, transparent);
 }
 
 .hero-banner-container {
@@ -552,7 +635,7 @@ img {
     max-width: 100%;
     max-height: 100%;
     object-fit: cover;
-    object-position: center;
+    object-position: center calc(50% + 35px);
     display: block;
     border: none;
     outline: none;
@@ -1752,6 +1835,40 @@ textarea.form-control {
 [data-theme="dark"] .badge-leadership { background: rgba(153, 27, 27, 0.4); color: #fca5a5; }
 
 
+/* Search Input Clear Button */
+.search-clear-btn {
+    position: absolute;
+    right: 1.15rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: var(--gray-400);
+    font-size: 1.35rem;
+    line-height: 1;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: var(--transition);
+    user-select: none;
+    z-index: 2;
+}
+
+.search-clear-btn:hover {
+    background: var(--gray-200);
+    color: var(--gray-800);
+}
+
+.search-clear-btn:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 1px;
+}
+
 /* ==========================================================================
    Hierarchical Course Navigation System (Categories & Sub-courses)
    ========================================================================== */
@@ -2127,6 +2244,15 @@ textarea.form-control {
 }
 
 [data-theme="dark"] .category-banner-title {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .search-clear-btn {
+    color: var(--gray-400);
+}
+
+[data-theme="dark"] .search-clear-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
     color: #ffffff;
 }
 

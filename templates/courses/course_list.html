@@ -14,8 +14,9 @@
     <!-- Search & Filter Bar -->
     <div style="max-width: 650px; margin: 0 auto 2.5rem; position: relative;">
         <div style="position: relative; display: flex; align-items: center;">
-            <input type="text" id="course-search-input" class="form-control" placeholder="Search categories or sub-courses (e.g. Tally, Python, Diploma, Figma)..." style="font-size: 1rem; padding: 0.9rem 1.25rem 0.9rem 3rem; border-radius: var(--radius-full); box-shadow: var(--shadow-sm); width: 100%;">
+            <input type="text" id="course-search-input" class="form-control" placeholder="Search categories or sub-courses (e.g. Tally, Python, Diploma, Figma)..." style="font-size: 1rem; padding: 0.9rem 2.85rem 0.9rem 3rem; border-radius: var(--radius-full); box-shadow: var(--shadow-sm); width: 100%;">
             <span style="position: absolute; left: 1.2rem; font-size: 1.2rem; pointer-events: none; opacity: 0.6;">🔍</span>
+            <button type="button" id="course-search-clear" class="search-clear-btn" aria-label="Clear search" title="Clear search" style="display: none;">&times;</button>
         </div>
     </div>
 
@@ -44,9 +45,8 @@
 
         <!-- Search Results View (Fallback when searching globally) -->
         <div id="search-results-view" class="fade-in-view" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <div style="margin-bottom: 1.5rem;">
                 <h3 style="font-size: 1.3rem; font-weight: 700;">Search Results</h3>
-                <button type="button" class="btn-back-courses" onclick="resetSearchAndShowCategories()">Clear Search</button>
             </div>
             <div class="courses-grid" id="search-results-grid"></div>
         </div>
@@ -124,6 +124,24 @@ const subcoursesGrid = document.getElementById('subcourses-grid');
 const searchResultsView = document.getElementById('search-results-view');
 const searchResultsGrid = document.getElementById('search-results-grid');
 const searchInput = document.getElementById('course-search-input');
+const searchClearBtn = document.getElementById('course-search-clear');
+
+function updateSearchClearButton() {
+    if (!searchInput || !searchClearBtn) return;
+    if (searchInput.value.length > 0) {
+        searchClearBtn.style.display = 'inline-flex';
+    } else {
+        searchClearBtn.style.display = 'none';
+    }
+}
+
+function clearSearchInput() {
+    if (!searchInput) return;
+    searchInput.value = '';
+    updateSearchClearButton();
+    resetSearchAndShowCategories();
+    searchInput.focus();
+}
 
 // Modal Elements
 const modalBackdrop = document.getElementById('course-detail-modal');
@@ -342,6 +360,7 @@ function showCategoriesView() {
     categoriesView.style.display = 'block';
 
     if (searchInput) searchInput.value = '';
+    updateSearchClearButton();
 }
 
 // Open Course Details Modal
@@ -441,6 +460,7 @@ function handleSearch(query) {
                     subCourses: []
                 }, () => {
                     if (searchInput) searchInput.value = '';
+                    updateSearchClearButton();
                     openCategory(res.catId);
                 });
                 searchResultsGrid.appendChild(card);
@@ -502,6 +522,7 @@ function handleSearch(query) {
 
 function resetSearchAndShowCategories() {
     if (searchInput) searchInput.value = '';
+    updateSearchClearButton();
     showCategoriesView();
 }
 
@@ -522,9 +543,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Search input listener
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
+            updateSearchClearButton();
             handleSearch(e.target.value);
         });
+        searchInput.addEventListener('keyup', updateSearchClearButton);
     }
+
+    // Clear search button listener
+    if (searchClearBtn) {
+        searchClearBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            clearSearchInput();
+        });
+    }
+
+    updateSearchClearButton();
 
     // Modal backdrop click to close
     if (modalBackdrop) {
