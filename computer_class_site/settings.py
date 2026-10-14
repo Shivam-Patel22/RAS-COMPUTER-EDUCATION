@@ -13,6 +13,11 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 import dj_database_url
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,8 +29,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Use environment secret key in production, fallback to development key
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-()ko!df&ipcfb6k$*!0#g@z@+9og96s6+1w0utd4q^2o8zok#b')
 
-# DEBUG should be False on Render
-DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
+# DEBUG: True in local development, False in production (e.g. Render) unless overridden
+DEBUG = os.environ.get('DEBUG', 'False' if os.environ.get('RENDER') else 'True').lower() in ('true', '1', 't')
 
 # Allow Render's onrender.com domain and localhost
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,.onrender.com').split(',') if h.strip()]
@@ -148,9 +153,14 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+WHITENOISE_USE_FINDERS = True
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Ensure static and media directories exist
+STATIC_ROOT.mkdir(parents=True, exist_ok=True)
+MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
 
 # Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
