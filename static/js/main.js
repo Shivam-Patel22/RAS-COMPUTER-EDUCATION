@@ -27,8 +27,40 @@ function updateThemeToggleIcons() {
     });
 }
 
+// Dynamic Header Height Measurement for Hero Section
+function updateHeaderHeight() {
+    const navbar = document.querySelector('.navbar-header');
+    const ticker = document.querySelector('.offers-ticker-container');
+    let totalHeight = 0;
+    if (navbar) {
+        totalHeight += navbar.getBoundingClientRect().height;
+    }
+    if (ticker && ticker.offsetParent !== null) {
+        totalHeight += ticker.getBoundingClientRect().height;
+    }
+    if (totalHeight > 0) {
+        document.documentElement.style.setProperty('--header-height', `${Math.round(totalHeight)}px`);
+    }
+}
+
+// Measure immediately and register responsive listeners
+updateHeaderHeight();
+window.addEventListener('resize', updateHeaderHeight);
+window.addEventListener('orientationchange', updateHeaderHeight);
+
+if (window.ResizeObserver) {
+    const headerObserver = new ResizeObserver(() => {
+        updateHeaderHeight();
+    });
+    const navbarEl = document.querySelector('.navbar-header');
+    const tickerEl = document.querySelector('.offers-ticker-container');
+    if (navbarEl) headerObserver.observe(navbarEl);
+    if (tickerEl) headerObserver.observe(tickerEl);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     updateThemeToggleIcons();
+    updateHeaderHeight();
 
     // 1. Mobile Menu Toggle
     const mobileToggle = document.getElementById('mobile-toggle');

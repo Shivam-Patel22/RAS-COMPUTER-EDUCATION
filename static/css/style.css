@@ -535,7 +535,7 @@ img {
     height: 100%;
     max-width: 100%;
     max-height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     object-position: center;
     display: block;
     border: none;
@@ -883,6 +883,19 @@ textarea.form-control {
     }
 }
 
+/* Portrait Phones (max-width: 600px and orientation: portrait): contain entire image with dark charcoal background */
+@media (max-width: 600px) and (orientation: portrait) {
+    .hero-banner-section,
+    .hero-section {
+        background-color: #1e1e1e;
+    }
+
+    .hero-banner-img {
+        object-fit: contain;
+        object-position: center;
+    }
+}
+
 @media (max-width: 480px) {
     :root {
         --navbar-height: 64px;
@@ -926,8 +939,6 @@ textarea.form-control {
     .hero-banner-img {
         max-width: 100%;
         max-height: 100%;
-        object-fit: contain;
-        object-position: center;
     }
 }
 

@@ -95,6 +95,14 @@
         </div>
     </div>
     {% endif %}
+    <script>
+        (function() {
+            var nb = document.querySelector('.navbar-header');
+            var tk = document.querySelector('.offers-ticker-container');
+            var h = (nb ? nb.getBoundingClientRect().height : 0) + (tk && tk.offsetParent !== null ? tk.getBoundingClientRect().height : 0);
+            if (h > 0) document.documentElement.style.setProperty('--header-height', Math.round(h) + 'px');
+        })();
+    </script>
 
     <!-- Flash Messages -->
     {% if messages %}
