@@ -52,7 +52,9 @@ class CertificatesTestCase(TestCase):
 
         add_url = reverse('dashboard:add_certificate')
         data = {
-            'certificate_id': 'CERT-2026-HARSHAL01',
+            'prefix': 'RAS',
+            'id_gen_mode': 'manual',
+            'certificate_id': 'RAS-2026-HC1050',
             'first_name': 'Harshal',
             'middle_name': 'Narendrasinh',
             'last_name': 'Chauhan',
@@ -64,7 +66,7 @@ class CertificatesTestCase(TestCase):
         }
         response = self.client.post(add_url, data)
         self.assertRedirects(response, reverse('dashboard:manage_certificates'))
-        cert = Certificate.objects.get(certificate_id='CERT-2026-HARSHAL01')
+        cert = Certificate.objects.get(certificate_id='RAS-2026-HC1050')
         self.assertEqual(cert.student_name, 'Harshal Narendrasinh Chauhan')
         self.assertEqual(str(cert.course_start_date), '2026-01-10')
         self.assertEqual(str(cert.course_end_date), '2026-07-10')
@@ -72,7 +74,9 @@ class CertificatesTestCase(TestCase):
     def test_middle_name_compulsory_validation(self):
         from dashboard.forms import AdminCertificateForm
         form = AdminCertificateForm(data={
-            'certificate_id': 'CERT-2026-TEST02',
+            'prefix': 'RAS',
+            'id_gen_mode': 'manual',
+            'certificate_id': 'RAS-2026-HC1002',
             'first_name': 'Harshal',
             'middle_name': '',  # Empty compulsory middle name
             'last_name': 'Chauhan',
@@ -88,7 +92,9 @@ class CertificatesTestCase(TestCase):
         from dashboard.forms import AdminCertificateForm
         # End date earlier than start date
         form = AdminCertificateForm(data={
-            'certificate_id': 'CERT-2026-TEST03',
+            'prefix': 'RAS',
+            'id_gen_mode': 'manual',
+            'certificate_id': 'RAS-2026-HC1003',
             'first_name': 'Harshal',
             'middle_name': 'Narendrasinh',
             'last_name': 'Chauhan',
@@ -103,14 +109,12 @@ class CertificatesTestCase(TestCase):
 
     def test_auto_generate_certificate_id_format(self):
         from certificates.utils import generate_certificate_id
-        cert_id = generate_certificate_id('Harshal', 'Chauhan')
-        # Format: CERT-2026-HC-XXXX-XX
-        parts = cert_id.split('-')
-        self.assertEqual(len(parts), 5)
-        self.assertEqual(parts[0], 'CERT')
-        self.assertEqual(parts[2], 'HC')
-        self.assertEqual(len(parts[3]), 4)
-        self.assertEqual(len(parts[4]), 2)
+        from datetime import datetime
+        year = datetime.now().year
+        cert_id_ras = generate_certificate_id('RAS', first_name='Harshal', last_name='Chauhan')
+        self.assertEqual(cert_id_ras, f'RAS-{year}-HC1001')
+        cert_id_citi = generate_certificate_id('CITI', first_name='Harshal', last_name='Chauhan')
+        self.assertEqual(cert_id_citi, f'CITI-{year}-HC5001')
 
     def test_admin_verify_certificate_endpoint(self):
         self.client.login(username='certadmin', password='adminpassword123')
@@ -163,7 +167,9 @@ class CertificatesTestCase(TestCase):
         # Valid 4-digit years (1999, 2007, 2025, 2026, 2038, 2099)
         for valid_date in ['1999-05-12', '2007-11-20', '2025-01-01', '2026-08-04', '2038-12-31', '2099-09-09']:
             form = AdminCertificateForm(data={
-                'certificate_id': f'CERT-{valid_date[:4]}-TEST',
+                'prefix': 'RAS',
+                'id_gen_mode': 'manual',
+                'certificate_id': f'RAS-{valid_date[:4]}-TS1001',
                 'first_name': 'Test',
                 'middle_name': 'User',
                 'last_name': 'Student',
@@ -176,7 +182,9 @@ class CertificatesTestCase(TestCase):
 
         # Invalid years (year < 1000 or year > 9999)
         form_invalid = AdminCertificateForm(data={
-            'certificate_id': 'CERT-999-TEST',
+            'prefix': 'RAS',
+            'id_gen_mode': 'manual',
+            'certificate_id': 'RAS-2026-TS1001',
             'first_name': 'Test',
             'middle_name': 'User',
             'last_name': 'Student',
@@ -427,6 +435,363 @@ class CertificatesTestCase(TestCase):
         self.assertContains(response, 'COMPUTER &amp; INDUSTRIAL TRAINING INSTITUTION')
         self.assertContains(response, 'OFFICIAL GOVERNMENT RECOGNIZED PROGRAM (CCC)')
         self.assertContains(response, 'Aarav Shah')
+
+
+class CertificatePrefixAndSequenceTestCase(TestCase):
+    def setUp(self):
+        self.course = Course.objects.create(
+            name='Full Stack Web Development',
+            description='Web Dev with Python & JS',
+            duration='16 Weeks',
+            fee=800.00
+        )
+        self.admin = User.objects.create_superuser(
+            username='seqadmin',
+            email='seqadmin@cdac.in',
+            password='adminpassword123'
+        )
+
+    def test_01_automatic_ras_generation_with_initials(self):
+        """1. Automatic RAS generation produces RAS-YYYY-FL1001 for student."""
+        from datetime import datetime
+        from certificates.utils import generate_certificate_id
+        current_year = datetime.now().year
+        cert_id = generate_certificate_id('RAS', first_name='Harshal', last_name='Chauhan')
+        self.assertEqual(cert_id, f"RAS-{current_year}-HC1001")
+
+    def test_02_automatic_citi_generation_with_initials(self):
+        """2. Automatic CITI generation produces CITI-YYYY-FL5001 for student."""
+        from datetime import datetime
+        from certificates.utils import generate_certificate_id
+        current_year = datetime.now().year
+        cert_id = generate_certificate_id('CITI', first_name='Harshal', last_name='Chauhan')
+        self.assertEqual(cert_id, f"CITI-{current_year}-HC5001")
+
+    def test_03_independent_prefix_and_continuous_student_sequences(self):
+        """3. Sequence increments across different students and prefixes independently."""
+        from datetime import datetime
+        from certificates.utils import generate_certificate_id
+        current_year = datetime.now().year
+
+        # Student 1: Harshal Chauhan (RAS) -> HC1001
+        ras1_id = generate_certificate_id('RAS', first_name='Harshal', last_name='Chauhan')
+        self.assertEqual(ras1_id, f"RAS-{current_year}-HC1001")
+        Certificate.objects.create(
+            certificate_id=ras1_id,
+            first_name='Harshal',
+            last_name='Chauhan',
+            student_name='Harshal Chauhan',
+            course=self.course,
+            issue_date=date(current_year, 1, 10)
+        )
+
+        # Student 2: Amit Patel (RAS) -> AP1002 (sequence continues, does NOT restart!)
+        ras2_id = generate_certificate_id('RAS', first_name='Amit', last_name='Patel')
+        self.assertEqual(ras2_id, f"RAS-{current_year}-AP1002")
+        Certificate.objects.create(
+            certificate_id=ras2_id,
+            first_name='Amit',
+            last_name='Patel',
+            student_name='Amit Patel',
+            course=self.course,
+            issue_date=date(current_year, 1, 11)
+        )
+
+        # Student 3: Priya (RAS, no last name) -> P1003
+        ras3_id = generate_certificate_id('RAS', first_name='Priya', last_name='')
+        self.assertEqual(ras3_id, f"RAS-{current_year}-P1003")
+        Certificate.objects.create(
+            certificate_id=ras3_id,
+            first_name='Priya',
+            last_name='',
+            student_name='Priya',
+            course=self.course,
+            issue_date=date(current_year, 1, 12)
+        )
+
+        # CITI generation starts at 5001 independent of RAS
+        citi1_id = generate_certificate_id('CITI', first_name='Harshal', last_name='Chauhan')
+        self.assertEqual(citi1_id, f"CITI-{current_year}-HC5001")
+        Certificate.objects.create(
+            certificate_id=citi1_id,
+            first_name='Harshal',
+            last_name='Chauhan',
+            student_name='Harshal Chauhan',
+            course=self.course,
+            issue_date=date(current_year, 1, 12)
+        )
+
+        # Next CITI: Riya Patel -> RP5002
+        citi2_id = generate_certificate_id('CITI', first_name='Riya', last_name='Patel')
+        self.assertEqual(citi2_id, f"CITI-{current_year}-RP5002")
+
+    def test_04_manual_generation_rules_and_validation(self):
+        """4. Manual generation enforces prefix, student initials, format, and rejects literal XX."""
+        from datetime import datetime
+        from dashboard.forms import AdminCertificateForm
+        current_year = datetime.now().year
+
+        # 4a. Valid manual entry matching prefix RAS and initials HC
+        form_valid = AdminCertificateForm(data={
+            'prefix': 'RAS',
+            'id_gen_mode': 'manual',
+            'certificate_id': f'RAS-{current_year}-HC1099',
+            'first_name': 'Harshal',
+            'middle_name': 'Narendrasinh',
+            'last_name': 'Chauhan',
+            'course': self.course.id,
+            'course_start_date': f'{current_year}-01-01',
+            'course_end_date': f'{current_year}-06-01',
+            'issue_date': f'{current_year}-06-15',
+        })
+        self.assertTrue(form_valid.is_valid(), f"Errors: {form_valid.errors}")
+
+        # 4b. Prefix mismatch: selected RAS, entered CITI
+        form_prefix_mismatch = AdminCertificateForm(data={
+            'prefix': 'RAS',
+            'id_gen_mode': 'manual',
+            'certificate_id': f'CITI-{current_year}-HC5001',
+            'first_name': 'Harshal',
+            'middle_name': 'Narendrasinh',
+            'last_name': 'Chauhan',
+            'course': self.course.id,
+            'course_start_date': f'{current_year}-01-01',
+            'course_end_date': f'{current_year}-06-01',
+            'issue_date': f'{current_year}-06-15',
+        })
+        self.assertFalse(form_prefix_mismatch.is_valid())
+        self.assertIn('certificate_id', form_prefix_mismatch.errors)
+        self.assertIn("must start with the selected prefix 'RAS'", form_prefix_mismatch.errors['certificate_id'][0])
+
+        # 4c. Literal XX rejected
+        form_xx = AdminCertificateForm(data={
+            'prefix': 'RAS',
+            'id_gen_mode': 'manual',
+            'certificate_id': f'RAS-{current_year}-XX1001',
+            'first_name': 'Harshal',
+            'middle_name': 'Narendrasinh',
+            'last_name': 'Chauhan',
+            'course': self.course.id,
+            'course_start_date': f'{current_year}-01-01',
+            'course_end_date': f'{current_year}-06-01',
+            'issue_date': f'{current_year}-06-15',
+        })
+        self.assertFalse(form_xx.is_valid())
+        self.assertIn('certificate_id', form_xx.errors)
+        self.assertIn("Literal 'XX' is not allowed", form_xx.errors['certificate_id'][0])
+
+        # 4d. Initials mismatch rejected: entered AP, student is Harshal Chauhan (HC)
+        form_mismatch_initials = AdminCertificateForm(data={
+            'prefix': 'RAS',
+            'id_gen_mode': 'manual',
+            'certificate_id': f'RAS-{current_year}-AP1001',
+            'first_name': 'Harshal',
+            'middle_name': 'Narendrasinh',
+            'last_name': 'Chauhan',
+            'course': self.course.id,
+            'course_start_date': f'{current_year}-01-01',
+            'course_end_date': f'{current_year}-06-01',
+            'issue_date': f'{current_year}-06-15',
+        })
+        self.assertFalse(form_mismatch_initials.is_valid())
+        self.assertIn('certificate_id', form_mismatch_initials.errors)
+        self.assertIn("do not match student initials", form_mismatch_initials.errors['certificate_id'][0])
+
+        # 4e. Missing last name handled safely in manual generation (Priya -> P)
+        form_single_name = AdminCertificateForm(data={
+            'prefix': 'RAS',
+            'id_gen_mode': 'manual',
+            'certificate_id': f'RAS-{current_year}-P1055',
+            'first_name': 'Priya',
+            'middle_name': 'Devi',
+            'last_name': '',
+            'course': self.course.id,
+            'course_start_date': f'{current_year}-01-01',
+            'course_end_date': f'{current_year}-06-01',
+            'issue_date': f'{current_year}-06-15',
+        })
+        self.assertTrue(form_single_name.is_valid(), f"Errors: {form_single_name.errors}")
+
+        # 4f. Duplicate ID rejected
+        Certificate.objects.create(
+            certificate_id=f'RAS-{current_year}-HC1001',
+            student_name='Harshal Chauhan',
+            course=self.course,
+            issue_date=date(current_year, 1, 1)
+        )
+        form_duplicate = AdminCertificateForm(data={
+            'prefix': 'RAS',
+            'id_gen_mode': 'manual',
+            'certificate_id': f'RAS-{current_year}-HC1001',
+            'first_name': 'Harshal',
+            'middle_name': 'Narendrasinh',
+            'last_name': 'Chauhan',
+            'course': self.course.id,
+            'course_start_date': f'{current_year}-01-01',
+            'course_end_date': f'{current_year}-06-01',
+            'issue_date': f'{current_year}-06-15',
+        })
+        self.assertFalse(form_duplicate.is_valid())
+        self.assertIn('certificate_id', form_duplicate.errors)
+        self.assertIn('already in use', form_duplicate.errors['certificate_id'][0])
+
+    def test_05_dynamic_year_handling(self):
+        """5. Year is taken dynamically from server's current date, not hardcoded."""
+        from datetime import datetime
+        from certificates.utils import generate_certificate_id
+        current_year = datetime.now().year
+        cert_id = generate_certificate_id('RAS', first_name='Harshal', last_name='Chauhan')
+        self.assertIn(f"-{current_year}-HC", cert_id)
+
+    def test_06_new_year_reset(self):
+        """6. Each prefix's sequence resets to starting number for a new year."""
+        from certificates.utils import generate_certificate_id
+        # Year 2026 has certificates
+        Certificate.objects.create(
+            certificate_id='RAS-2026-HC1001',
+            student_name='Harshal Chauhan',
+            course=self.course,
+            issue_date=date(2026, 1, 1)
+        )
+        Certificate.objects.create(
+            certificate_id='CITI-2026-HC5001',
+            student_name='Harshal Chauhan CITI',
+            course=self.course,
+            issue_date=date(2026, 1, 1)
+        )
+
+        # In year 2027, sequences must reset to 1001 and 5001
+        self.assertEqual(generate_certificate_id('RAS', year=2027, first_name='Harshal', last_name='Chauhan'), 'RAS-2027-HC1001')
+        self.assertEqual(generate_certificate_id('CITI', year=2027, first_name='Harshal', last_name='Chauhan'), 'CITI-2027-HC5001')
+
+        # Existing 2026 certificates remain untouched
+        self.assertTrue(Certificate.objects.filter(certificate_id='RAS-2026-HC1001').exists())
+        self.assertTrue(Certificate.objects.filter(certificate_id='CITI-2026-HC5001').exists())
+
+    def test_07_no_duplicate_ids_generated(self):
+        """7. No duplicate IDs are generated even with rapid sequence calls."""
+        from certificates.utils import generate_certificate_id
+        from datetime import datetime
+        current_year = datetime.now().year
+
+        generated_ids = set()
+        for i in range(20):
+            cid = generate_certificate_id('RAS', first_name=f'User{i}', last_name='Test')
+            self.assertNotIn(cid, generated_ids)
+            generated_ids.add(cid)
+            Certificate.objects.create(
+                certificate_id=cid,
+                student_name=f'User{i} Test',
+                course=self.course,
+                issue_date=date(current_year, 1, 1)
+            )
+
+        self.assertEqual(len(generated_ids), 20)
+
+    def test_08_existing_records_preserved(self):
+        """8. Existing historical records (e.g. CERT-..., RAS-...-XX...) are preserved untouched."""
+        historical = Certificate.objects.create(
+            certificate_id='CERT-2026-OLD-001',
+            student_name='Historical Student',
+            course=self.course,
+            issue_date=date(2026, 1, 1)
+        )
+        historical_xx = Certificate.objects.create(
+            certificate_id='RAS-2026-XX1001',
+            student_name='Legacy Student',
+            course=self.course,
+            issue_date=date(2026, 1, 1)
+        )
+        self.assertEqual(historical.prefix, 'CERT')
+        historical.refresh_from_db()
+        self.assertEqual(historical.certificate_id, 'CERT-2026-OLD-001')
+        historical_xx.refresh_from_db()
+        self.assertEqual(historical_xx.certificate_id, 'RAS-2026-XX1001')
+
+    def test_09_certificate_verification_with_new_and_historical_ids(self):
+        """9. Certificate verification continues to work with new initials IDs and historical IDs."""
+        from datetime import datetime
+        current_year = datetime.now().year
+
+        ras_cert = Certificate.objects.create(
+            certificate_id=f'RAS-{current_year}-HC1001',
+            student_name='Harshal Chauhan',
+            course=self.course,
+            issue_date=date(current_year, 3, 10),
+            grade='A+'
+        )
+        citi_cert = Certificate.objects.create(
+            certificate_id=f'CITI-{current_year}-RP5001',
+            student_name='Riya Patel',
+            course=self.course,
+            issue_date=date(current_year, 3, 11),
+            grade='A'
+        )
+        legacy_cert = Certificate.objects.create(
+            certificate_id=f'RAS-{current_year}-XX1000',
+            student_name='Legacy User',
+            course=self.course,
+            issue_date=date(current_year, 3, 1),
+            grade='B'
+        )
+
+        url = reverse('certificates:verify')
+        # Verify RAS
+        res_ras = self.client.post(url, {'certificate_id': f'RAS-{current_year}-HC1001'})
+        self.assertEqual(res_ras.status_code, 200)
+        self.assertContains(res_ras, 'Harshal Chauhan')
+
+        # Verify CITI
+        res_citi = self.client.post(url, {'certificate_id': f'CITI-{current_year}-RP5001'})
+        self.assertEqual(res_citi.status_code, 200)
+        self.assertContains(res_citi, 'Riya Patel')
+
+        # Verify Legacy historical certificate
+        res_legacy = self.client.post(url, {'certificate_id': f'RAS-{current_year}-XX1000'})
+        self.assertEqual(res_legacy.status_code, 200)
+        self.assertContains(res_legacy, 'Legacy User')
+
+    def test_10_ajax_next_id_api_endpoint(self):
+        """10. API endpoint returns next sequence and ID with student initials."""
+        from datetime import datetime
+        current_year = datetime.now().year
+        self.client.login(username='seqadmin', password='adminpassword123')
+
+        url = reverse('dashboard:get_next_certificate_id')
+        res_ras = self.client.get(url, {'prefix': 'RAS', 'first_name': 'Harshal', 'last_name': 'Chauhan'})
+        self.assertEqual(res_ras.status_code, 200)
+        self.assertEqual(res_ras.json()['certificate_id'], f'RAS-{current_year}-HC1001')
+        self.assertEqual(res_ras.json()['initials'], 'HC')
+
+        res_citi = self.client.get(url, {'prefix': 'CITI', 'first_name': 'Harshal', 'last_name': 'Chauhan'})
+        self.assertEqual(res_citi.status_code, 200)
+        self.assertEqual(res_citi.json()['certificate_id'], f'CITI-{current_year}-HC5001')
+
+    def test_11_student_initials_rules(self):
+        """11. Verify initials generation rules according to prompt specification."""
+        from certificates.utils import get_student_initials
+        # Harshal Chauhan -> HC
+        self.assertEqual(get_student_initials('Harshal', 'Chauhan'), 'HC')
+        self.assertEqual(get_student_initials(student_name='Harshal Chauhan'), 'HC')
+
+        # Amit Patel -> AP
+        self.assertEqual(get_student_initials('Amit', 'Patel'), 'AP')
+        self.assertEqual(get_student_initials(student_name='Amit Patel'), 'AP')
+
+        # Riya Shah -> RS
+        self.assertEqual(get_student_initials('Riya', 'Shah'), 'RS')
+        self.assertEqual(get_student_initials(student_name='Riya Shah'), 'RS')
+
+        # Priya -> P (missing last name)
+        self.assertEqual(get_student_initials('Priya', ''), 'P')
+        self.assertEqual(get_student_initials(student_name='Priya'), 'P')
+
+        # Case sensitivity & spaces
+        self.assertEqual(get_student_initials('  harshal  ', '  chauhan  '), 'HC')
+
+        # Multi-word names: first letter of first name and first letter of last name
+        self.assertEqual(get_student_initials(student_name='Harshal Narendrasinh Chauhan'), 'HC')
+
 
 
 

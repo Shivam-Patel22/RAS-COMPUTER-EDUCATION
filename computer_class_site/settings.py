@@ -36,6 +36,11 @@ DEBUG = os.environ.get('DEBUG', 'False' if os.environ.get('RENDER') else 'True')
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,.onrender.com').split(',') if h.strip()]
 
 CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
+    'http://127.0.0.1',
+    'http://localhost',
+] + [
     f"https://{host.lstrip('.')}" if host.startswith('.') else f"https://{host}"
     for host in ALLOWED_HOSTS if host and not host.startswith(('localhost', '127.0.0.1'))
 ]

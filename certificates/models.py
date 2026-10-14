@@ -56,6 +56,13 @@ class Certificate(models.Model):
             '(ccc)' in course_name
         )
 
+    @property
+    def prefix(self):
+        """Returns the certificate prefix (RAS, CITI, etc.) from certificate_id."""
+        if self.certificate_id and '-' in self.certificate_id:
+            return self.certificate_id.split('-')[0].upper()
+        return ''
+
     def __str__(self):
         return f"{self.certificate_id} - {self.student_name} ({self.course.name})"
 

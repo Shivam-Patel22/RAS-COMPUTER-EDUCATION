@@ -2,7 +2,8 @@ from django import forms
 from django.contrib.auth.models import User
 from courses.models import Course
 from certificates.models import Certificate
-from certificates.utils import generate_certificate_id
+from certificates.utils import generate_certificate_id, validate_certificate_id_format, get_student_initials
+from datetime import datetime
 
 class AdminLoginForm(forms.Form):
     username = forms.CharField(
@@ -77,7 +78,18 @@ class AdminCourseForm(forms.ModelForm):
                 pass
 
 
+PREFIX_CHOICES = [
+    ('RAS', 'RAS'),
+    ('CITI', 'CITI'),
+]
+
+
 class AdminCertificateForm(forms.ModelForm):
+    prefix = forms.ChoiceField(
+        choices=PREFIX_CHOICES,
+        initial='RAS',
+        widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_prefix'})
+    )
     first_name = forms.CharField(
         max_length=100,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name *', 'required': 'required'})
@@ -89,14 +101,15 @@ class AdminCertificateForm(forms.ModelForm):
     )
     last_name = forms.CharField(
         max_length=100,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name *', 'required': 'required'})
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'})
     )
 
     class Meta:
         model = Certificate
-        fields = ['certificate_id', 'first_name', 'middle_name', 'last_name', 'course', 'course_start_date', 'course_end_date', 'issue_date', 'grade']
+        fields = ['prefix', 'certificate_id', 'first_name', 'middle_name', 'last_name', 'course', 'course_start_date', 'course_end_date', 'issue_date', 'grade']
         widgets = {
-            'certificate_id': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+            'certificate_id': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_certificate_id', 'readonly': 'readonly'}),
             'course': forms.Select(attrs={'class': 'form-control', 'required': 'required'}),
             'course_start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date', 'min': '1000-01-01', 'max': '9999-12-31', 'required': 'required'}),
             'course_end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date', 'min': '1000-01-01', 'max': '9999-12-31', 'required': 'required'}),
@@ -107,6 +120,12 @@ class AdminCertificateForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.pk:
+            if self.instance.certificate_id:
+                cert_id_upper = self.instance.certificate_id.strip().upper()
+                if cert_id_upper.startswith('CITI'):
+                    self.initial['prefix'] = 'CITI'
+                elif cert_id_upper.startswith('RAS'):
+                    self.initial['prefix'] = 'RAS'
             if not self.initial.get('first_name'):
                 if self.instance.first_name:
                     self.initial['first_name'] = self.instance.first_name
@@ -127,10 +146,11 @@ class AdminCertificateForm(forms.ModelForm):
                         self.initial['middle_name'] = ""
                         self.initial['last_name'] = ""
         else:
+            current_prefix = self.initial.get('prefix', 'RAS')
+            fn = self.initial.get('first_name', '')
+            ln = self.initial.get('last_name', '')
             if not self.initial.get('certificate_id'):
-                fn = self.initial.get('first_name', '')
-                ln = self.initial.get('last_name', '')
-                self.initial['certificate_id'] = generate_certificate_id(fn, ln)
+                self.initial['certificate_id'] = generate_certificate_id(prefix=current_prefix, first_name=fn, last_name=ln)
 
     def clean_course_start_date(self):
         start_date = self.cleaned_data.get('course_start_date')
@@ -153,6 +173,9 @@ class AdminCertificateForm(forms.ModelForm):
                 raise forms.ValidationError("Please enter a valid 4-digit year (1000–9999).")
         return issue_date
 
+    def clean_certificate_id(self):
+        return self.cleaned_data.get('certificate_id', '').strip().upper()
+
     def clean(self):
         cleaned_data = super().clean()
         start_date = cleaned_data.get('course_start_date')
@@ -160,24 +183,51 @@ class AdminCertificateForm(forms.ModelForm):
         if start_date and end_date:
             if end_date < start_date:
                 self.add_error('course_end_date', "Course End Date cannot be earlier than Course Start Date.")
-        return cleaned_data
 
-    def clean_certificate_id(self):
-        cert_id = self.cleaned_data.get('certificate_id', '').strip()
-        first_name = self.cleaned_data.get('first_name', '')
-        last_name = self.cleaned_data.get('last_name', '')
+        prefix = cleaned_data.get('prefix', 'RAS')
+        fn = cleaned_data.get('first_name', '').strip()
+        ln = cleaned_data.get('last_name', '').strip()
+        initials = get_student_initials(first_name=fn, last_name=ln)
+        cert_id = cleaned_data.get('certificate_id', '').strip().upper()
+        id_gen_mode = self.data.get('id_gen_mode', 'auto')
+
+        # Auto-generate if blank
         if not cert_id:
-            cert_id = generate_certificate_id(first_name, last_name)
+            cert_id = generate_certificate_id(prefix=prefix, first_name=fn, last_name=ln)
+            cleaned_data['certificate_id'] = cert_id
 
-        qs = Certificate.objects.filter(certificate_id__iexact=cert_id)
-        if self.instance and self.instance.pk:
-            qs = qs.exclude(pk=self.instance.pk)
-        if qs.exists():
-            raise forms.ValidationError(f"Certificate ID '{cert_id}' is already in use. Please enter a unique Certificate ID.")
-        return cert_id
+        # Preserve historical or unchanged existing certificate IDs on edit
+        if self.instance and self.instance.pk and self.instance.certificate_id and cert_id == self.instance.certificate_id.upper():
+            return cleaned_data
+
+        if id_gen_mode == 'auto':
+            # In auto mode, ensure the ID uses the selected prefix and correct student initials
+            qs = Certificate.objects.filter(certificate_id__iexact=cert_id)
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            expected_prefix_year = f"{prefix}-{datetime.now().year}-{initials}"
+            if qs.exists() or not cert_id.startswith(expected_prefix_year):
+                cert_id = generate_certificate_id(prefix=prefix, first_name=fn, last_name=ln)
+                cleaned_data['certificate_id'] = cert_id
+        else:
+            # Manual Mode: strictly validate prefix, format, student initials, and uniqueness
+            is_valid, error_msg = validate_certificate_id_format(cert_id, prefix=prefix, expected_initials=initials)
+            if not is_valid:
+                self.add_error('certificate_id', error_msg)
+            else:
+                qs = Certificate.objects.filter(certificate_id__iexact=cert_id)
+                if self.instance and self.instance.pk:
+                    qs = qs.exclude(pk=self.instance.pk)
+                if qs.exists():
+                    self.add_error('certificate_id', f"Certificate ID '{cert_id}' is already in use. Please enter a unique Certificate ID.")
+
+        return cleaned_data
 
     def save(self, commit=True):
         instance = super().save(commit=False)
+        cert_id = self.cleaned_data.get('certificate_id', '').strip().upper()
+        if cert_id:
+            instance.certificate_id = cert_id
         fn = self.cleaned_data.get('first_name', '').strip()
         mn = self.cleaned_data.get('middle_name', '').strip()
         ln = self.cleaned_data.get('last_name', '').strip()

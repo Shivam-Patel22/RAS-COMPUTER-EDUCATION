@@ -1,61 +1,187 @@
-import random
 import re
+import threading
 from datetime import datetime
 
-def get_next_certificate_sequence():
+_cert_gen_lock = threading.Lock()
+
+def get_student_initials(first_name="", last_name="", student_name=""):
     """
-    Returns the next 2-digit sequence number formatted with leading zeros (01, 02... 99).
-    Increments based on the highest existing suffix sequence number or total count.
+    Derives student initials from first_name, last_name, or student_name.
+    Requirements:
+    - Uppercase.
+    - Ignore leading and trailing spaces.
+    - If first_name and last_name are present: first letter of first_name + first letter of last_name.
+    - If multiple words in student_name (when first/last not explicitly provided):
+      first letter of first name + first letter of last name.
+    - If last name is missing (or single-word name):
+      only the first initial.
+    - Fallback: 'FL' if completely blank (e.g. for placeholder display).
+    """
+    fn = (str(first_name) if first_name else "").strip()
+    ln = (str(last_name) if last_name else "").strip()
+    sn = (str(student_name) if student_name else "").strip()
+
+    if fn and ln:
+        return f"{fn[0].upper()}{ln[0].upper()}"
+    elif fn:
+        return fn[0].upper()
+    elif ln:
+        return ln[0].upper()
+    elif sn:
+        words = sn.split()
+        if len(words) >= 2:
+            return f"{words[0][0].upper()}{words[-1][0].upper()}"
+        elif len(words) == 1:
+            return words[0][0].upper()
+
+    return "FL"
+
+
+def get_next_certificate_sequence(prefix="RAS", year=None):
+    """
+    Returns the next sequence number (integer) for the given prefix and calendar year.
+    Independent sequence counters:
+    - RAS starts at 1001 for each new calendar year.
+    - CITI starts at 5001 for each new calendar year.
+    - The sequence continues independently for each prefix and year across all students.
     """
     from .models import Certificate
+
+    clean_prefix = (str(prefix).strip().upper()) if prefix else "RAS"
+    if clean_prefix not in ("RAS", "CITI"):
+        clean_prefix = "RAS"
+
+    if year is None:
+        year = datetime.now().year
+
+    start_seq = 1001 if clean_prefix == "RAS" else 5001
     max_seq = 0
-    # Query only the certificate_id column to avoid loading entire model instances into memory
-    for cert_id in Certificate.objects.values_list('certificate_id', flat=True):
-        match = re.search(r'-(\d{2})$', cert_id)
+    found = False
+
+    prefix_filter = f"{clean_prefix}-{year}-"
+    # Matches any ID starting with PREFIX-YYYY- followed by letters then digits, e.g. RAS-2026-HC1001, RAS-2026-P1002, RAS-2026-XX1001
+    pattern = re.compile(rf"^{re.escape(clean_prefix)}-{year}-([A-Za-z]*)(\d+)$", re.IGNORECASE)
+
+    # Inspect existing certificate records for this prefix and year
+    for cert_id in Certificate.objects.filter(certificate_id__istartswith=prefix_filter).values_list('certificate_id', flat=True):
+        match = pattern.match(cert_id)
         if match:
+            found = True
             try:
-                seq_num = int(match.group(1))
-                if seq_num > max_seq:
-                    max_seq = seq_num
+                seq_val = int(match.group(2))
+                if seq_val > max_seq:
+                    max_seq = seq_val
             except ValueError:
                 pass
 
-    if max_seq > 0:
+    if found and max_seq >= start_seq:
         next_seq = max_seq + 1
     else:
-        next_seq = Certificate.objects.count() + 1
+        next_seq = start_seq
 
-    if next_seq > 99:
-        next_seq = ((next_seq - 1) % 99) + 1
+    # Ensure we never reuse an existing sequence number for this prefix and year
+    pattern_seq = re.compile(rf"^{re.escape(clean_prefix)}-{year}-[A-Za-z]*{next_seq}$", re.IGNORECASE)
+    while any(pattern_seq.match(cid) for cid in Certificate.objects.filter(certificate_id__istartswith=prefix_filter).values_list('certificate_id', flat=True)):
+        next_seq += 1
+        pattern_seq = re.compile(rf"^{re.escape(clean_prefix)}-{year}-[A-Za-z]*{next_seq}$", re.IGNORECASE)
 
-    return f"{next_seq:02d}"
+    return next_seq
 
-def generate_certificate_id(first_name="", last_name=""):
+
+def generate_certificate_id(prefix="RAS", year=None, first_name="", last_name="", student_name="", initials=None, *args, **kwargs):
     """
-    Auto-generates a unique server-side certificate ID in format CERT-YYYY-FL-RANDOM-SEQ
+    Auto-generates a unique server-side certificate ID in format:
+    PREFIX-YYYY-FLSEQUENCE
     Where:
-    - YYYY = current year
-    - FL = first letter of First Name + first letter of Last Name (uppercase)
-    - RANDOM = random 4-digit number
-    - SEQ = running certificate number with leading zeros (2 digits: 01, 02... 99)
+    - PREFIX = RAS or CITI, selected by the admin (default RAS).
+    - YYYY = current running year dynamically obtained from server's current date.
+    - FL = student initials (first letter of first name + first letter of last name, or single letter if no last name).
+    - SEQUENCE = sequential number for the selected prefix (RAS starts at 1001, CITI at 5001).
     """
     from .models import Certificate
-    year = datetime.now().year
 
-    fn_clean = first_name.strip() if first_name else ""
-    ln_clean = last_name.strip() if last_name else ""
+    raw_prefix = str(prefix).strip().upper() if prefix else "RAS"
+    if raw_prefix in ("RAS", "CITI"):
+        clean_prefix = raw_prefix
+    else:
+        clean_prefix = "RAS"
+        if not first_name:
+            first_name = prefix
 
-    f_char = fn_clean[0].upper() if fn_clean else "X"
-    l_char = ln_clean[0].upper() if ln_clean else "X"
-    fl = f"{f_char}{l_char}"
+    if isinstance(year, str) and not year.strip().isdigit():
+        if not last_name and first_name:
+            last_name = first_name
+        first_name = year
+        year = None
+    elif isinstance(year, (int, str)) and str(year).strip().isdigit():
+        year = int(str(year).strip())
+    else:
+        year = None
 
-    seq_str = get_next_certificate_sequence()
+    if year is None:
+        year = datetime.now().year
 
-    while True:
-        random_num = random.randint(1000, 9999)
-        cert_id = f"CERT-{year}-{fl}-{random_num}-{seq_str}"
-        if not Certificate.objects.filter(certificate_id__iexact=cert_id).exists():
-            return cert_id
+    if not initials:
+        initials = get_student_initials(first_name=first_name, last_name=last_name, student_name=student_name)
+    else:
+        initials = re.sub(r'[^A-Z]', '', str(initials).strip().upper())
+        if not initials:
+            initials = "FL"
+
+    with _cert_gen_lock:
+        seq = get_next_certificate_sequence(clean_prefix, year)
+        cert_id = f"{clean_prefix}-{year}-{initials}{seq}"
+
+        while Certificate.objects.filter(certificate_id__iexact=cert_id).exists():
+            seq += 1
+            cert_id = f"{clean_prefix}-{year}-{initials}{seq}"
+
+        return cert_id
+
+
+def validate_certificate_id_format(cert_id, prefix=None, expected_initials=None):
+    """
+    Validates that cert_id conforms to PREFIX-YYYY-FLSEQUENCE:
+    - PREFIX must be RAS or CITI
+    - YYYY must be a 4-digit year
+    - FL must be student initials (1-2 uppercase letters, not literal 'XX')
+    - SEQUENCE is digits
+    If prefix is provided, cert_id must match the provided prefix.
+    If expected_initials is provided, initials must match expected_initials.
+    Returns (is_valid, error_message).
+    """
+    if not cert_id:
+        return False, "Certificate ID cannot be empty."
+
+    cert_id = str(cert_id).strip().upper()
+    parts = cert_id.split('-')
+    if len(parts) != 3:
+        return False, "Certificate ID must follow the format 'PREFIX-YYYY-FLSEQUENCE' (e.g. RAS-2026-HC1001)."
+
+    cert_prefix, year_str, fl_seq = parts
+    if cert_prefix not in ('RAS', 'CITI'):
+        return False, "Invalid certificate prefix. Certificate ID must start with either 'RAS' or 'CITI'."
+
+    if prefix and cert_prefix != prefix.strip().upper():
+        return False, f"Certificate ID must start with the selected prefix '{prefix.strip().upper()}'."
+
+    if not re.match(r'^\d{4}$', year_str):
+        return False, "Certificate ID year must be a valid 4-digit year (e.g. 2026)."
+
+    if fl_seq.startswith('XX'):
+        return False, "Literal 'XX' is not allowed in Certificate ID. It must be replaced with the student's initials (e.g. HC1001)."
+
+    match = re.match(r'^([A-Z]{1,2})(\d+)$', fl_seq)
+    if not match:
+        return False, "Certificate ID must include student initials (1-2 letters) followed by the sequence number (e.g. HC1001)."
+
+    extracted_initials = match.group(1)
+    if expected_initials and expected_initials != 'FL':
+        clean_expected = re.sub(r'[^A-Z]', '', expected_initials.strip().upper())
+        if clean_expected and extracted_initials != clean_expected:
+            return False, f"Certificate ID initials '{extracted_initials}' do not match student initials '{clean_expected}'."
+
+    return True, None
 
 
 def is_ccc_certificate(cert):

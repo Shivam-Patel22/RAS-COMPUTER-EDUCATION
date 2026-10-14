@@ -23,9 +23,7 @@
         </div>
         {% endif %}
 
-        <form method="post" action="{% url 'certificates:verify' %}" data-validate="true">
-            {% csrf_token %}
-
+        <form method="get" action="{% url 'certificates:verify' %}" data-validate="true">
             <div class="form-group">
                 <label for="{{ form.certificate_id.id_for_label }}">Certificate ID *</label>
                 {{ form.certificate_id }}

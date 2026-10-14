@@ -22,18 +22,24 @@
                 <label style="font-weight: 600; margin-bottom: 0.5rem; display: block; color: var(--gray-800);">Certificate ID Generation Mode</label>
                 <div style="display: flex; gap: 1.5rem;">
                     <label style="display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; font-weight: 500; color: var(--gray-800);">
-                        <input type="radio" name="id_gen_mode" value="auto" checked onchange="toggleIdMode(this.value)"> ⚡ Auto Generate
+                        <input type="radio" name="id_gen_mode" value="auto" {% if request.POST.id_gen_mode != 'manual' %}checked{% endif %} onchange="toggleIdMode(this.value)"> ⚡ Auto Generate
                     </label>
                     <label style="display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; font-weight: 500; color: var(--gray-800);">
-                        <input type="radio" name="id_gen_mode" value="manual" onchange="toggleIdMode(this.value)"> ✏️ Manual Entry (Custom ID)
+                        <input type="radio" name="id_gen_mode" value="manual" {% if request.POST.id_gen_mode == 'manual' %}checked{% endif %} onchange="toggleIdMode(this.value)"> ✏️ Manual Entry (Custom ID)
                     </label>
                 </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label for="{{ form.prefix.id_for_label }}" style="font-weight: 600; margin-bottom: 0.5rem; display: block; color: var(--gray-800);">Certificate Prefix *</label>
+                {{ form.prefix }}
+                {% if form.prefix.errors %}<div class="form-error">{{ form.prefix.errors.0 }}</div>{% endif %}
             </div>
 
             <div class="form-group">
                 <label for="{{ form.certificate_id.id_for_label }}">Certificate ID *</label>
                 {{ form.certificate_id }}
-                <small id="id-mode-hint" style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.3rem;">Format: CERT-YYYY-FL-RANDOM-SEQ (Server auto-generated)</small>
+                <small id="id-mode-hint" style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.3rem;">⚡ Auto mode active: Format PREFIX-YYYY-FLSEQUENCE (Server auto-generated)</small>
                 {% if form.certificate_id.errors %}<div class="form-error">{{ form.certificate_id.errors.0 }}</div>{% endif %}
             </div>
 
@@ -51,7 +57,7 @@
                 </div>
 
                 <div class="form-group" style="margin-bottom: 0;">
-                    <label for="{{ form.last_name.id_for_label }}">Last Name *</label>
+                    <label for="{{ form.last_name.id_for_label }}">Last Name</label>
                     {{ form.last_name }}
                     {% if form.last_name.errors %}<div class="form-error">{{ form.last_name.errors.0 }}</div>{% endif %}
                 </div>
@@ -98,66 +104,160 @@
 
 {% block extra_js %}
 <script>
-function getInitials() {
-    var fnInput = document.getElementById('id_first_name');
-    var lnInput = document.getElementById('id_last_name');
+var nextSeqs = {
+    'RAS': {{ next_ras_seq|default:1001 }},
+    'CITI': {{ next_citi_seq|default:5001 }}
+};
+var currentYear = {{ current_year|default:2026 }};
+var nextIdApiUrl = '{% url "dashboard:get_next_certificate_id" %}';
+var isEdit = {% if cert or form.instance.pk %}true{% else %}false{% endif %};
 
-    var fnVal = (fnInput && fnInput.value) ? fnInput.value.trim() : '';
-    var lnVal = (lnInput && lnInput.value) ? lnInput.value.trim() : '';
-
-    var fChar = fnVal ? fnVal.charAt(0).toUpperCase() : 'X';
-    var lChar = lnVal ? lnVal.charAt(0).toUpperCase() : 'X';
-
-    return fChar + lChar;
+function getSelectedPrefix() {
+    var prefixSelect = document.getElementById('id_prefix');
+    return (prefixSelect && prefixSelect.value) ? prefixSelect.value.trim().toUpperCase() : 'RAS';
 }
 
-function updateAutoCertId() {
-    var certInput = document.getElementById('id_certificate_id');
-    var manualRadio = document.querySelector('input[name="id_gen_mode"][value="manual"]');
-    if (!certInput || (manualRadio && manualRadio.checked)) return;
+function getStudentInitials() {
+    var fnInput = document.getElementById('id_first_name');
+    var lnInput = document.getElementById('id_last_name');
+    var fn = (fnInput && fnInput.value) ? fnInput.value.trim() : '';
+    var ln = (lnInput && lnInput.value) ? lnInput.value.trim() : '';
 
-    var currentVal = certInput.value || '';
-    var fl = getInitials();
-    var parts = currentVal.split('-');
-    if (parts.length === 5 && parts[0] === 'CERT') {
-        parts[2] = fl;
-        certInput.value = parts.join('-');
+    if (fn && ln) {
+        return (fn.charAt(0) + ln.charAt(0)).toUpperCase();
+    } else if (fn) {
+        var words = fn.split(/\s+/).filter(Boolean);
+        if (words.length >= 2) {
+            return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
+        }
+        return fn.charAt(0).toUpperCase();
+    } else if (ln) {
+        var words = ln.split(/\s+/).filter(Boolean);
+        if (words.length >= 2) {
+            return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
+        }
+        return ln.charAt(0).toUpperCase();
+    }
+    return 'FL';
+}
+
+function computeCertId(prefix, initials, seq) {
+    return prefix + '-' + currentYear + '-' + initials + seq;
+}
+
+function updateCertId() {
+    var certInput = document.getElementById('id_certificate_id');
+    if (!certInput) return;
+    var manualRadio = document.querySelector('input[name="id_gen_mode"][value="manual"]');
+    var isManual = manualRadio && manualRadio.checked;
+
+    var prefix = getSelectedPrefix();
+    var initials = getStudentInitials();
+    var seq = nextSeqs[prefix] || (prefix === 'RAS' ? 1001 : 5001);
+
+    if (!isManual) {
+        certInput.value = computeCertId(prefix, initials, seq);
+
+        var fnInput = document.getElementById('id_first_name');
+        var lnInput = document.getElementById('id_last_name');
+        var fn = (fnInput && fnInput.value) ? fnInput.value.trim() : '';
+        var ln = (lnInput && lnInput.value) ? lnInput.value.trim() : '';
+
+        var apiUrl = nextIdApiUrl + '?prefix=' + encodeURIComponent(prefix) +
+                     '&first_name=' + encodeURIComponent(fn) +
+                     '&last_name=' + encodeURIComponent(ln);
+
+        fetch(apiUrl)
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data && data.sequence) {
+                    nextSeqs[prefix] = data.sequence;
+                    var currentPrefix = getSelectedPrefix();
+                    var currentManualRadio = document.querySelector('input[name="id_gen_mode"][value="manual"]');
+                    if (currentPrefix === prefix && (!currentManualRadio || !currentManualRadio.checked)) {
+                        certInput.value = data.certificate_id;
+                    }
+                }
+            })
+            .catch(function() {});
     }
 }
 
 function toggleIdMode(mode) {
     var certInput = document.getElementById('id_certificate_id');
     var hint = document.getElementById('id-mode-hint');
+    var prefix = getSelectedPrefix();
+    var initials = getStudentInitials();
+    var seq = nextSeqs[prefix] || (prefix === 'RAS' ? 1001 : 5001);
     if (!certInput) return;
 
     if (mode === 'manual') {
         certInput.removeAttribute('readonly');
-        certInput.placeholder = 'e.g. CERT-2026-HARSHAL01, CDAC-ML-2026-1001';
-        if (hint) hint.textContent = '✏️ Manual mode active: Enter custom unique Certificate ID (e.g. CERT-2026-HARSHAL01, CDAC-ML-2026-1001).';
+        certInput.placeholder = 'e.g. ' + computeCertId(prefix, initials, seq);
+        if (hint) {
+            hint.textContent = '✏️ Manual mode active: Format ' + prefix + '-YYYY-FLSEQUENCE (e.g. ' + computeCertId(prefix, initials, seq) + ').';
+        }
         certInput.focus();
     } else {
         certInput.setAttribute('readonly', 'readonly');
-        if (hint) hint.textContent = '⚡ Auto mode active: Format CERT-YYYY-FL-RANDOM-SEQ (Server auto-generated)';
-        updateAutoCertId();
+        if (hint) {
+            hint.textContent = '⚡ Auto mode active: Format ' + prefix + '-YYYY-FLSEQUENCE (Server auto-generated)';
+        }
+        updateCertId();
     }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    var prefixSelect = document.getElementById('id_prefix');
     var manualRadio = document.querySelector('input[name="id_gen_mode"][value="manual"]');
-    if (manualRadio && manualRadio.checked) {
-        toggleIdMode('manual');
-    } else {
-        toggleIdMode('auto');
-    }
-
     var fnInput = document.getElementById('id_first_name');
     var lnInput = document.getElementById('id_last_name');
 
-    if (fnInput) {
-        fnInput.addEventListener('input', updateAutoCertId);
+    if (prefixSelect) {
+        prefixSelect.addEventListener('change', function() {
+            var isManual = manualRadio && manualRadio.checked;
+            toggleIdMode(isManual ? 'manual' : 'auto');
+            if (!isManual) {
+                updateCertId();
+            }
+        });
     }
-    if (lnInput) {
-        lnInput.addEventListener('input', updateAutoCertId);
+
+    function onNameChange() {
+        var isManual = manualRadio && manualRadio.checked;
+        if (!isManual) {
+            updateCertId();
+        } else {
+            var prefix = getSelectedPrefix();
+            var initials = getStudentInitials();
+            var seq = nextSeqs[prefix] || (prefix === 'RAS' ? 1001 : 5001);
+            var certInput = document.getElementById('id_certificate_id');
+            var hint = document.getElementById('id-mode-hint');
+            if (certInput) {
+                certInput.placeholder = 'e.g. ' + computeCertId(prefix, initials, seq);
+            }
+            if (hint) {
+                hint.textContent = '✏️ Manual mode active: Format ' + prefix + '-YYYY-FLSEQUENCE (e.g. ' + computeCertId(prefix, initials, seq) + ').';
+            }
+        }
+    }
+
+    if (fnInput) fnInput.addEventListener('input', onNameChange);
+    if (lnInput) lnInput.addEventListener('input', onNameChange);
+
+    if (manualRadio && manualRadio.checked) {
+        toggleIdMode('manual');
+    } else {
+        if (!isEdit) {
+            toggleIdMode('auto');
+        } else {
+            var certInput = document.getElementById('id_certificate_id');
+            if (certInput) certInput.setAttribute('readonly', 'readonly');
+            var hint = document.getElementById('id-mode-hint');
+            if (hint) {
+                hint.textContent = '⚡ Auto mode active: Format PREFIX-YYYY-FLSEQUENCE (Server auto-generated)';
+            }
+        }
     }
 });
 </script>

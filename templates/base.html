@@ -41,8 +41,7 @@
             <nav class="nav-menu" id="nav-menu">
                 <ul class="nav-links" style="align-items: center;">
                     <li class="header-verify-item">
-                        <form action="{% url 'certificates:verify' %}" method="post" class="header-verify-form">
-                            {% csrf_token %}
+                        <form action="{% url 'certificates:verify' %}" method="get" class="header-verify-form">
                             <input type="text" name="certificate_id" placeholder="Enter Certificate ID" class="header-verify-input" required autocomplete="off">
                             <button type="submit" class="btn btn-primary header-verify-btn" style="background: var(--primary); color: white; border: none; border-radius: var(--radius-sm);">Verify</button>
                         </form>
