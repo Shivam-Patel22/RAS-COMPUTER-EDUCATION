@@ -25,3 +25,14 @@ env/
 .idea/
 .vscode/
 *.swp
+
+# Local developer seed data & seed date (Private)
+.seed_date
+seed_date.txt
+/seed_local.py
+/seed_data_local.py
+/seed_data.py
+/seed_data.json
+/core/management/commands/seed_local.py
+/core/management/commands/seed_data_local.py
+
