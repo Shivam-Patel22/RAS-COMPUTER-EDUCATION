@@ -13,6 +13,12 @@ class AdminLoginForm(forms.Form):
     )
 
 class AdminCourseForm(forms.ModelForm):
+    remove_image = forms.BooleanField(
+        required=False,
+        label="Remove current image",
+        widget=forms.CheckboxInput(attrs={'style': 'width: 16px; height: 16px; cursor: pointer;'})
+    )
+
     class Meta:
         model = Course
         fields = ['name', 'category', 'duration', 'description', 'image', 'is_featured']
@@ -28,6 +34,47 @@ class AdminCourseForm(forms.ModelForm):
             'category': 'Course Category *',
             'is_featured': '⭐ Feature this course on homepage',
         }
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        remove_image = self.cleaned_data.get('remove_image', False)
+        has_new_image = bool(self.files and self.files.get('image'))
+
+        old_image_name = None
+        if instance.pk:
+            try:
+                current_db_instance = Course.objects.get(pk=instance.pk)
+                if current_db_instance.image:
+                    old_image_name = current_db_instance.image.name
+            except Course.DoesNotExist:
+                pass
+
+        if has_new_image:
+            # Newly uploaded image takes priority over remove_image
+            if old_image_name:
+                self._delete_old_image_if_not_shared(instance, old_image_name)
+        elif remove_image:
+            # Clear image reference from course
+            instance.image = None
+            if old_image_name:
+                self._delete_old_image_if_not_shared(instance, old_image_name)
+
+        if commit:
+            instance.save()
+            self.save_m2m()
+        return instance
+
+    def _delete_old_image_if_not_shared(self, instance, old_image_name):
+        if not old_image_name:
+            return
+        is_shared = Course.objects.filter(image=old_image_name).exclude(pk=instance.pk).exists()
+        if not is_shared:
+            try:
+                storage = instance._meta.get_field('image').storage
+                if storage.exists(old_image_name):
+                    storage.delete(old_image_name)
+            except Exception:
+                pass
 
 
 class AdminCertificateForm(forms.ModelForm):

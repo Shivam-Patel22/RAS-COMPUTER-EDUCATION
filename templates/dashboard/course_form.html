@@ -46,6 +46,14 @@
             <div class="form-group">
                 <label for="{{ form.image.id_for_label }}">Course Image (Optional)</label>
                 {{ form.image }}
+                {% if form.instance.pk and form.instance.image %}
+                <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    {{ form.remove_image }}
+                    <label for="{{ form.remove_image.id_for_label }}" style="margin: 0; font-size: 0.88rem; font-weight: 500; color: var(--gray-700); cursor: pointer; user-select: none;">
+                        Remove current image
+                    </label>
+                </div>
+                {% endif %}
                 {% if form.image.errors %}<div class="form-error">{{ form.image.errors.0 }}</div>{% endif %}
             </div>
 
