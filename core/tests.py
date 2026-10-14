@@ -79,6 +79,8 @@ class CoreTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, 'id="contact-instagram-link"')
         self.assertNotContains(response, 'id="contact-facebook-link"')
+        self.assertNotContains(response, 'id="footer-instagram-link"')
+        self.assertNotContains(response, 'id="footer-facebook-link"')
         self.assertNotContains(response, '<strong>Instagram:</strong>')
         self.assertNotContains(response, '<strong>Facebook:</strong>')
 
@@ -92,7 +94,7 @@ class CoreTestCase(TestCase):
 
         response = self.client.get(reverse('core:contact'))
         self.assertEqual(response.status_code, 200)
-        # Check Instagram presence
+        # Check Instagram presence in contact card
         self.assertContains(response, '<strong>Instagram:</strong>')
         self.assertContains(response, 'id="contact-instagram-link"')
         self.assertContains(response, 'href="https://www.instagram.com/cdac_official/"')
@@ -100,11 +102,15 @@ class CoreTestCase(TestCase):
         self.assertContains(response, 'target="_blank"')
         self.assertContains(response, 'rel="noopener noreferrer"')
 
-        # Check Facebook presence
+        # Check Facebook presence in contact card
         self.assertContains(response, '<strong>Facebook:</strong>')
         self.assertContains(response, 'id="contact-facebook-link"')
         self.assertContains(response, 'href="https://www.facebook.com/cdacclasses/"')
         self.assertContains(response, 'CDAC Computer Education')
+
+        # Check footer presence (global base.html)
+        self.assertContains(response, 'id="footer-instagram-link"')
+        self.assertContains(response, 'id="footer-facebook-link"')
 
     def test_contact_content_helper_properties(self):
         contact = ContactContent.get_solo()
