@@ -18,7 +18,20 @@ class InquiryFollowUpAdmin(admin.ModelAdmin):
 
 @admin.register(ContactContent)
 class ContactContentAdmin(admin.ModelAdmin):
-    list_display = ('phone', 'whatsapp_number', 'email', 'updated_at')
+    list_display = ('phone', 'whatsapp_number', 'email', 'instagram_username', 'facebook_name', 'updated_at')
+    fieldsets = (
+        ('Contact Information', {
+            'fields': ('phone', 'whatsapp_number', 'email', 'address', 'working_hours')
+        }),
+        ('Social Media Links', {
+            'fields': ('instagram_username', 'instagram_url', 'facebook_name', 'facebook_url'),
+            'description': 'Configure official Instagram and Facebook handles and URLs. Leave blank to hide on public pages.'
+        }),
+        ('Location Map', {
+            'fields': ('map_embed_url',)
+        }),
+    )
+
 
 @admin.register(AboutContent)
 class AboutContentAdmin(admin.ModelAdmin):

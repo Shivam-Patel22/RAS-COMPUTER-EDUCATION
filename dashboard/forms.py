@@ -320,7 +320,10 @@ class AdminAboutForm(forms.ModelForm):
 class AdminContactForm(forms.ModelForm):
     class Meta:
         model = ContactContent
-        fields = ['phone', 'whatsapp_number', 'email', 'address', 'working_hours', 'map_embed_url']
+        fields = [
+            'phone', 'whatsapp_number', 'email', 'address', 'working_hours', 'map_embed_url',
+            'instagram_username', 'instagram_url', 'facebook_name', 'facebook_url'
+        ]
         widgets = {
             'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. +91 98765 43210', 'required': 'required'}),
             'whatsapp_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. +91 91049 94493'}),
@@ -328,6 +331,10 @@ class AdminContactForm(forms.ModelForm):
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'required': 'required'}),
             'working_hours': forms.TextInput(attrs={'class': 'form-control'}),
             'map_embed_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'Google Maps Embed URL'}),
+            'instagram_username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. @cdac_official or cdac_official'}),
+            'instagram_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'e.g. https://www.instagram.com/cdac_official/'}),
+            'facebook_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. CDAC Computer Education'}),
+            'facebook_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'e.g. https://www.facebook.com/cdacclasses/'}),
         }
         labels = {
             'phone': 'Contact Phone Number *',
@@ -336,6 +343,39 @@ class AdminContactForm(forms.ModelForm):
             'address': 'Campus Office Address *',
             'working_hours': 'Working / Office Hours',
             'map_embed_url': 'Google Maps Embed URL',
+            'instagram_username': 'Instagram Username / Display Name',
+            'instagram_url': 'Instagram Profile URL',
+            'facebook_name': 'Facebook Page / Display Name',
+            'facebook_url': 'Facebook Page URL',
         }
+
+    def clean_instagram_url(self):
+        url = self.cleaned_data.get('instagram_url', '')
+        if not url:
+            return ''
+        url = url.strip()
+        if not url.startswith(('http://', 'https://')):
+            url = f"https://{url}"
+        if not (url.startswith('http://') or url.startswith('https://')):
+            raise forms.ValidationError("Please enter a valid HTTP/HTTPS URL.")
+        lower_url = url.lower()
+        if 'instagram.com' not in lower_url and 'instagr.am' not in lower_url:
+            raise forms.ValidationError("Please enter a valid Instagram profile URL (e.g. https://www.instagram.com/username/).")
+        return url
+
+    def clean_facebook_url(self):
+        url = self.cleaned_data.get('facebook_url', '')
+        if not url:
+            return ''
+        url = url.strip()
+        if not url.startswith(('http://', 'https://')):
+            url = f"https://{url}"
+        if not (url.startswith('http://') or url.startswith('https://')):
+            raise forms.ValidationError("Please enter a valid HTTP/HTTPS URL.")
+        lower_url = url.lower()
+        if 'facebook.com' not in lower_url and 'fb.com' not in lower_url and 'fb.me' not in lower_url:
+            raise forms.ValidationError("Please enter a valid Facebook page URL (e.g. https://www.facebook.com/pagename/).")
+        return url
+
 
 

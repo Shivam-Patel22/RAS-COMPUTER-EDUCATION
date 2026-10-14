@@ -99,6 +99,37 @@ class ContactContent(models.Model):
     address = models.TextField(default="Gandhinagar, Gujarat, India")
     working_hours = models.CharField(max_length=150, default="Mon - Sat: 9:00 AM - 6:00 PM")
     map_embed_url = models.URLField(blank=True, null=True, max_length=500, default="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d471.09!2d72.6320823!3d23.1852315!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395c2b921555555d%3A0x50e94504c763b697!2sCDAC%20Computer%20Class!5e0!3m2!1sen!2sin!4v1722593000000!5m2!1sen!2sin")
+    
+    # Social Media Links
+    instagram_username = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        verbose_name="Instagram Username",
+        help_text="Instagram username or handle (e.g. @cdac_classes or cdac_official)"
+    )
+    instagram_url = models.URLField(
+        max_length=300,
+        blank=True,
+        default="",
+        verbose_name="Instagram Profile URL",
+        help_text="Full Instagram profile URL (e.g. https://www.instagram.com/username/)"
+    )
+    facebook_name = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        verbose_name="Facebook Page Name",
+        help_text="Facebook page name or display name (e.g. CDAC Computer Education)"
+    )
+    facebook_url = models.URLField(
+        max_length=300,
+        blank=True,
+        default="",
+        verbose_name="Facebook Page URL",
+        help_text="Full Facebook page URL (e.g. https://www.facebook.com/pagename/)"
+    )
+
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -117,11 +148,54 @@ class ContactContent(models.Model):
                 return digits
         return "919876543210"
 
-
     @property
     def whatsapp_url(self):
         num = self.formatted_whatsapp_number
         return f"https://wa.me/{num}"
+
+    @property
+    def clean_instagram_url(self):
+        if not self.instagram_url:
+            return ""
+        url = self.instagram_url.strip()
+        if not url.startswith(('http://', 'https://')):
+            return f"https://{url}"
+        return url
+
+    @property
+    def display_instagram(self):
+        if self.instagram_username and self.instagram_username.strip():
+            return self.instagram_username.strip()
+        if self.instagram_url:
+            cleaned = self.instagram_url.strip().rstrip('/').split('/')[-1]
+            return f"@{cleaned}" if cleaned else "Instagram"
+        return ""
+
+    @property
+    def has_instagram(self):
+        return bool(self.clean_instagram_url and self.display_instagram)
+
+    @property
+    def clean_facebook_url(self):
+        if not self.facebook_url:
+            return ""
+        url = self.facebook_url.strip()
+        if not url.startswith(('http://', 'https://')):
+            return f"https://{url}"
+        return url
+
+    @property
+    def display_facebook(self):
+        if self.facebook_name and self.facebook_name.strip():
+            return self.facebook_name.strip()
+        if self.facebook_url:
+            cleaned = self.facebook_url.strip().rstrip('/').split('/')[-1]
+            return cleaned.replace('-', ' ').title() if cleaned else "Facebook"
+        return ""
+
+    @property
+    def has_facebook(self):
+        return bool(self.clean_facebook_url and self.display_facebook)
 
     @classmethod
     def get_solo(cls):
