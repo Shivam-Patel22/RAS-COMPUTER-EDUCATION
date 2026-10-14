@@ -486,6 +486,7 @@ img {
 
 .grid-3 {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    align-items: stretch;
 }
 
 .grid-2 {
@@ -505,6 +506,16 @@ img {
     transform: translateY(-4px);
     box-shadow: var(--shadow-lg);
     border-color: var(--primary-light);
+}
+
+.course-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.course-card .course-description {
+    flex: 1;
 }
 
 /* Hero Banner Section */
