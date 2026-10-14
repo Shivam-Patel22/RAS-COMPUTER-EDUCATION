@@ -162,8 +162,8 @@
                     <a href="tel:{% if contact_content and contact_content.phone %}{{ contact_content.phone }}{% else %}+912025704100{% endif %}" style="color: var(--gray-700); text-decoration: none; font-weight: 500;">{% if contact_content and contact_content.phone %}{{ contact_content.phone }}{% else %}+91 (020) 2570-4100{% endif %}</a>
                 </div>
 
-                <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.92rem; color: var(--gray-700);">
-                    <span style="font-size: 1.1rem;">✉️</span>
+                <div style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.92rem; color: var(--gray-700);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                     <a href="mailto:{% if contact_content and contact_content.email %}{{ contact_content.email }}{% else %}info@cdac.in{% endif %}" style="color: var(--gray-700); text-decoration: none; font-weight: 500;">{% if contact_content and contact_content.email %}{{ contact_content.email }}{% else %}info@cdac.in{% endif %}</a>
                 </div>
 
