@@ -2,7 +2,7 @@ from django import forms
 
 class CertificateVerificationForm(forms.Form):
     certificate_id = forms.CharField(
-        max_length=30,
+        max_length=50,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Enter Certificate ID',

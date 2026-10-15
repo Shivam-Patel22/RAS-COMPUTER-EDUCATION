@@ -2,7 +2,15 @@ from django import forms
 from django.contrib.auth.models import User
 from courses.models import Course
 from certificates.models import Certificate
-from certificates.utils import generate_certificate_id, validate_certificate_id_format, get_student_initials
+from certificates.utils import (
+    generate_certificate_id,
+    validate_certificate_id_format,
+    get_student_initials,
+    extract_recipient_initials,
+    preview_certificate_id,
+    SequenceExhaustedError,
+    RandomCodeExhaustedError,
+)
 from datetime import datetime
 
 class AdminLoginForm(forms.Form):
@@ -159,7 +167,7 @@ class AdminCertificateForm(forms.ModelForm):
             fn = self.initial.get('first_name', '')
             ln = self.initial.get('last_name', '')
             if not self.initial.get('certificate_id'):
-                self.initial['certificate_id'] = generate_certificate_id(prefix=current_prefix, first_name=fn, last_name=ln)
+                self.initial['certificate_id'] = preview_certificate_id(prefix=current_prefix, first_name=fn, last_name=ln)
 
     def clean_course_start_date(self):
         start_date = self.cleaned_data.get('course_start_date')
@@ -196,31 +204,28 @@ class AdminCertificateForm(forms.ModelForm):
         prefix = cleaned_data.get('prefix', 'RAS')
         fn = cleaned_data.get('first_name', '').strip()
         ln = cleaned_data.get('last_name', '').strip()
-        initials = get_student_initials(first_name=fn, last_name=ln)
         cert_id = cleaned_data.get('certificate_id', '').strip().upper()
         id_gen_mode = self.data.get('id_gen_mode', 'auto')
-
-        # Auto-generate if blank
-        if not cert_id:
-            cert_id = generate_certificate_id(prefix=prefix, first_name=fn, last_name=ln)
-            cleaned_data['certificate_id'] = cert_id
 
         # Preserve historical or unchanged existing certificate IDs on edit
         if self.instance and self.instance.pk and self.instance.certificate_id and cert_id == self.instance.certificate_id.upper():
             return cleaned_data
 
-        if id_gen_mode == 'auto':
-            # In auto mode, ensure the ID uses the selected prefix and correct student initials
-            qs = Certificate.objects.filter(certificate_id__iexact=cert_id)
-            if self.instance and self.instance.pk:
-                qs = qs.exclude(pk=self.instance.pk)
-            expected_prefix_year = f"{prefix}-{datetime.now().year}-{initials}"
-            if qs.exists() or not cert_id.startswith(expected_prefix_year):
-                cert_id = generate_certificate_id(prefix=prefix, first_name=fn, last_name=ln)
-                cleaned_data['certificate_id'] = cert_id
-        else:
+        if not fn:
+            self.add_error('first_name', "First Name is required.")
+        if not ln:
+            self.add_error('last_name', "Last Name is required.")
+
+        initials = None
+        if fn and ln:
+            try:
+                initials = extract_recipient_initials(first_name=fn, last_name=ln)
+            except ValueError as e:
+                self.add_error('first_name', str(e))
+
+        if id_gen_mode == 'manual':
             # Manual Mode: strictly validate prefix, format, student initials, and uniqueness
-            is_valid, error_msg = validate_certificate_id_format(cert_id, prefix=prefix, expected_initials=initials)
+            is_valid, error_msg = validate_certificate_id_format(cert_id, prefix=prefix, expected_initials=initials, allow_legacy=True)
             if not is_valid:
                 self.add_error('certificate_id', error_msg)
             else:
@@ -229,6 +234,29 @@ class AdminCertificateForm(forms.ModelForm):
                     qs = qs.exclude(pk=self.instance.pk)
                 if qs.exists():
                     self.add_error('certificate_id', f"Certificate ID '{cert_id}' is already in use. Please enter a unique Certificate ID.")
+                else:
+                    # Register manual random code if it matches standard pattern
+                    parts = cert_id.split('-')
+                    if len(parts) == 6 and len(parts[4]) == 6 and parts[4].isdigit():
+                        from certificates.models import CertificateRandomCodeRegistry
+                        CertificateRandomCodeRegistry.objects.get_or_create(
+                            code=parts[4],
+                            defaults={'certificate_id': cert_id, 'status': 'active'}
+                        )
+        else:
+            # Auto Mode: generate authoritative Certificate ID if no prior errors
+            if not self.errors and fn and ln and initials:
+                try:
+                    cert_id = generate_certificate_id(
+                        prefix=prefix,
+                        first_name=fn,
+                        last_name=ln,
+                        initials=initials,
+                        reserve=True
+                    )
+                    cleaned_data['certificate_id'] = cert_id
+                except (SequenceExhaustedError, RandomCodeExhaustedError) as e:
+                    self.add_error('certificate_id', str(e))
 
         return cleaned_data
 

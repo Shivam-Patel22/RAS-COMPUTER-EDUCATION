@@ -23,12 +23,17 @@ from courses.models import Course, CourseOffer
 from certificates.models import Certificate
 from certificates.utils import (
     generate_certificate_id,
+    preview_certificate_id,
     get_student_initials,
+    extract_recipient_initials,
     get_next_certificate_sequence,
+    peek_next_certificate_sequence,
     generate_certificate_pdf,
     build_safe_certificate_filename,
     FilenameDeduplicator,
-    parse_date_input
+    parse_date_input,
+    SequenceExhaustedError,
+    RandomCodeExhaustedError,
 )
 from certificates.forms import CertificateVerificationForm
 from core.models import Inquiry, InquiryFollowUp
@@ -391,45 +396,54 @@ def download_certificates_zip(request):
 def add_certificate(request):
     if request.method == 'POST':
         form = AdminCertificateForm(request.POST)
-        if form.is_valid():
-            cert = form.save(commit=False)
-            prefix = form.cleaned_data.get('prefix', 'RAS')
-            fn = form.cleaned_data.get('first_name', '')
-            ln = form.cleaned_data.get('last_name', '')
-            if not cert.certificate_id:
-                cert.certificate_id = generate_certificate_id(prefix=prefix, first_name=fn, last_name=ln)
+        try:
+            if form.is_valid():
+                cert = form.save(commit=False)
+                prefix = form.cleaned_data.get('prefix', 'RAS')
+                fn = form.cleaned_data.get('first_name', '')
+                ln = form.cleaned_data.get('last_name', '')
+                if not cert.certificate_id:
+                    cert.certificate_id = generate_certificate_id(prefix=prefix, first_name=fn, last_name=ln, reserve=True)
 
-            # Concurrency-safe save with retry
-            max_retries = 5
-            saved = False
-            for attempt in range(max_retries):
-                try:
-                    with transaction.atomic():
-                        cert.save()
-                    saved = True
-                    break
-                except IntegrityError:
-                    if request.POST.get('id_gen_mode') == 'manual' or attempt == max_retries - 1:
-                        messages.error(request, f"Certificate ID '{cert.certificate_id}' is already in use.")
-                        current_year = datetime.date.today().year
-                        return render(request, 'dashboard/certificate_form.html', {
-                            'form': form,
-                            'title': 'Issue New Certificate',
-                            'next_ras_seq': get_next_certificate_sequence('RAS', current_year),
-                            'next_citi_seq': get_next_certificate_sequence('CITI', current_year),
-                            'current_year': current_year,
-                        })
-                    cert.certificate_id = generate_certificate_id(prefix=prefix, first_name=fn, last_name=ln)
+                # Concurrency-safe save with retry
+                max_retries = 5
+                saved = False
+                for attempt in range(max_retries):
+                    try:
+                        with transaction.atomic():
+                            cert.save()
+                        saved = True
+                        break
+                    except IntegrityError:
+                        if request.POST.get('id_gen_mode') == 'manual' or attempt == max_retries - 1:
+                            messages.error(request, f"Certificate ID '{cert.certificate_id}' is already in use.")
+                            current_year = datetime.date.today().year
+                            return render(request, 'dashboard/certificate_form.html', {
+                                'form': form,
+                                'title': 'Issue New Certificate',
+                                'next_ras_seq': peek_next_certificate_sequence('RAS'),
+                                'next_citi_seq': peek_next_certificate_sequence('CITI'),
+                                'current_year': current_year,
+                            })
+                        cert.certificate_id = generate_certificate_id(prefix=prefix, first_name=fn, last_name=ln, reserve=True)
 
-            if saved:
-                messages.success(request, f"Certificate '{cert.certificate_id}' issued to {cert.student_name}.")
-                return redirect('dashboard:manage_certificates')
+                if saved:
+                    # Update registry status to active for this certificate
+                    parts = cert.certificate_id.split('-')
+                    if len(parts) == 6 and len(parts[4]) == 6:
+                        from certificates.models import CertificateRandomCodeRegistry
+                        CertificateRandomCodeRegistry.objects.filter(code=parts[4]).update(certificate_id=cert.certificate_id, status='active')
+
+                    messages.success(request, f"Certificate '{cert.certificate_id}' issued to {cert.student_name}.")
+                    return redirect('dashboard:manage_certificates')
+        except (SequenceExhaustedError, RandomCodeExhaustedError) as e:
+            messages.error(request, str(e))
     else:
         form = AdminCertificateForm()
 
     current_year = datetime.date.today().year
-    next_ras_seq = get_next_certificate_sequence('RAS', current_year)
-    next_citi_seq = get_next_certificate_sequence('CITI', current_year)
+    next_ras_seq = peek_next_certificate_sequence('RAS')
+    next_citi_seq = peek_next_certificate_sequence('CITI')
     return render(request, 'dashboard/certificate_form.html', {
         'form': form,
         'title': 'Issue New Certificate',
@@ -451,8 +465,8 @@ def edit_certificate(request, pk):
         form = AdminCertificateForm(instance=cert)
 
     current_year = datetime.date.today().year
-    next_ras_seq = get_next_certificate_sequence('RAS', current_year)
-    next_citi_seq = get_next_certificate_sequence('CITI', current_year)
+    next_ras_seq = peek_next_certificate_sequence('RAS')
+    next_citi_seq = peek_next_certificate_sequence('CITI')
     return render(request, 'dashboard/certificate_form.html', {
         'form': form,
         'title': f'Edit Certificate: {cert.certificate_id}',
@@ -464,21 +478,34 @@ def edit_certificate(request, pk):
 
 @staff_required
 def get_next_certificate_id_api(request):
-    """API endpoint to get the next sequence and certificate ID for a given prefix and student name."""
+    """API endpoint to get the next sequence and certificate ID preview for a given prefix and student name."""
     prefix = request.GET.get('prefix', 'RAS').strip().upper()
     if prefix not in ('RAS', 'CITI'):
         prefix = 'RAS'
     first_name = request.GET.get('first_name', '')
     last_name = request.GET.get('last_name', '')
-    current_year = datetime.date.today().year
-    seq = get_next_certificate_sequence(prefix=prefix, year=current_year)
-    cert_id = generate_certificate_id(prefix=prefix, year=current_year, first_name=first_name, last_name=last_name)
-    initials = get_student_initials(first_name=first_name, last_name=last_name)
+    now = datetime.date.today()
+    current_year = now.year
+    current_month = now.month
+    seq = peek_next_certificate_sequence(prefix=prefix)
+    cert_id = preview_certificate_id(
+        prefix=prefix,
+        year=current_year,
+        month=current_month,
+        first_name=first_name,
+        last_name=last_name
+    )
+    try:
+        initials = extract_recipient_initials(first_name=first_name, last_name=last_name)
+    except ValueError:
+        initials = get_student_initials(first_name=first_name, last_name=last_name)
+
     return JsonResponse({
         'status': 'success',
         'prefix': prefix,
         'sequence': seq,
         'year': current_year,
+        'month': f"{current_month:02d}",
         'certificate_id': cert_id,
         'initials': initials
     })

@@ -39,7 +39,7 @@
             <div class="form-group">
                 <label for="{{ form.certificate_id.id_for_label }}">Certificate ID *</label>
                 {{ form.certificate_id }}
-                <small id="id-mode-hint" style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.3rem;">⚡ Auto mode active: Format PREFIX-YYYY-FLSEQUENCE (Server auto-generated)</small>
+                <small id="id-mode-hint" style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.3rem;">⚡ Auto mode active: Format PREFIX-YYYY-MM-FF-RRRRRR-SSSS (Server auto-generated)</small>
                 {% if form.certificate_id.errors %}<div class="form-error">{{ form.certificate_id.errors.0 }}</div>{% endif %}
             </div>
 
@@ -142,7 +142,10 @@ function getStudentInitials() {
 }
 
 function computeCertId(prefix, initials, seq) {
-    return prefix + '-' + currentYear + '-' + initials + seq;
+    var now = new Date();
+    var month = String(now.getMonth() + 1).padStart(2, '0');
+    var cleanInit = initials && initials.length === 2 ? initials : 'FL';
+    return prefix + '-' + currentYear + '-' + month + '-' + cleanInit + '-100000-' + seq;
 }
 
 function updateCertId() {
@@ -195,13 +198,13 @@ function toggleIdMode(mode) {
         certInput.removeAttribute('readonly');
         certInput.placeholder = 'e.g. ' + computeCertId(prefix, initials, seq);
         if (hint) {
-            hint.textContent = '✏️ Manual mode active: Format ' + prefix + '-YYYY-FLSEQUENCE (e.g. ' + computeCertId(prefix, initials, seq) + ').';
+            hint.textContent = '✏️ Manual mode active: Format ' + prefix + '-YYYY-MM-FF-RRRRRR-SSSS (e.g. ' + computeCertId(prefix, initials, seq) + ').';
         }
         certInput.focus();
     } else {
         certInput.setAttribute('readonly', 'readonly');
         if (hint) {
-            hint.textContent = '⚡ Auto mode active: Format ' + prefix + '-YYYY-FLSEQUENCE (Server auto-generated)';
+            hint.textContent = '⚡ Auto mode active: Format ' + prefix + '-YYYY-MM-FF-RRRRRR-SSSS (Server auto-generated)';
         }
         updateCertId();
     }

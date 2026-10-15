@@ -3,7 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Certificate(models.Model):
-    certificate_id = models.CharField(max_length=30, unique=True, db_index=True)
+    certificate_id = models.CharField(max_length=50, unique=True, db_index=True)
     first_name = models.CharField(max_length=100, blank=True, default='')
     middle_name = models.CharField(max_length=100, blank=True, default='')
     last_name = models.CharField(max_length=100, blank=True, default='')
@@ -65,5 +65,54 @@ class Certificate(models.Model):
 
     def __str__(self):
         return f"{self.certificate_id} - {self.student_name} ({self.course.name})"
+
+
+class CertificateSequence(models.Model):
+    """
+    Independent persistent sequence counters per certificate prefix (RAS, CITI).
+    - RAS counter starts at 1001.
+    - CITI counter starts at 5001.
+    - Persistent across restarts, redeployments, month/year changes.
+    - Concurrency-safe atomic reservation via database-level row locking.
+    - Never decremented, reused, or reset upon deletion/cancellation.
+    - Upper limit: 9999.
+    """
+    prefix = models.CharField(max_length=20, unique=True, db_index=True)
+    next_sequence = models.PositiveIntegerField()
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Certificate Sequence'
+        verbose_name_plural = 'Certificate Sequences'
+
+    def __str__(self):
+        return f"{self.prefix}: {self.next_sequence}"
+
+
+class CertificateRandomCodeRegistry(models.Model):
+    """
+    Permanent database registry for globally unique six-digit numeric codes (100000-999999).
+    - Database-level unique constraint on code.
+    - Cryptographically secure random allocation with atomic insert.
+    - Never released or reused, including after certificate deletion or cancellation.
+    - Safe collision retry with exhaustion protection (maximum 900,000 allocations).
+    """
+    STATUS_CHOICES = [
+        ('allocated', 'Allocated'),
+        ('active', 'Active'),
+        ('cancelled', 'Cancelled'),
+    ]
+    code = models.CharField(max_length=6, unique=True, db_index=True)
+    certificate_id = models.CharField(max_length=50, blank=True, default='', db_index=True)
+    allocated_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='allocated')
+
+    class Meta:
+        verbose_name = 'Certificate Random Code Allocation'
+        verbose_name_plural = 'Certificate Random Code Allocations'
+
+    def __str__(self):
+        return f"{self.code} -> {self.certificate_id or 'reserved'} ({self.status})"
+
 
 
