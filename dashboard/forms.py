@@ -28,13 +28,22 @@ class AdminCourseForm(forms.ModelForm):
             'category': forms.Select(attrs={'class': 'form-control', 'required': 'required'}),
             'duration': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 8 Weeks / 3 Months', 'required': 'required'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Detailed syllabus and overview', 'rows': 5, 'required': 'required'}),
-            'image': forms.FileInput(attrs={'class': 'form-control'}),
+            'image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
             'is_featured': forms.CheckboxInput(attrs={'style': 'width: 20px; height: 20px; cursor: pointer;'}),
         }
         labels = {
             'category': 'Course Category *',
             'is_featured': '⭐ Feature this course on homepage',
         }
+
+    def clean_image(self):
+        image = self.cleaned_data.get('image')
+        if image and hasattr(image, 'content_type'):
+            if not image.content_type.startswith('image/'):
+                raise forms.ValidationError("Please upload a valid image file (e.g., JPG, PNG, WEBP).")
+            if image.size > 5 * 1024 * 1024:
+                raise forms.ValidationError("Image file size must not exceed 5MB.")
+        return image
 
     def save(self, commit=True):
         instance = super().save(commit=False)

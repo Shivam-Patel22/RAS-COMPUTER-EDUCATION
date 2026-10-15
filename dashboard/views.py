@@ -170,6 +170,7 @@ def add_course(request):
                 course.is_featured = False
                 messages.warning(request, "Cannot set course as featured: You already have 3 featured courses selected. You must deselect at least one course to add this course in Featured Courses.")
             course.save()
+            form.save_m2m()
             messages.success(request, f"Course '{course.name}' created successfully.")
             return redirect('dashboard:manage_courses')
     else:
@@ -193,6 +194,7 @@ def edit_course(request, pk):
                 updated_course.is_featured = False
                 messages.warning(request, "Cannot set course as featured: You already have 3 featured courses selected. You must deselect at least one course to add this course in Featured Courses.")
             updated_course.save()
+            form.save_m2m()
             messages.success(request, f"Course '{updated_course.name}' updated successfully.")
             return redirect('dashboard:manage_courses')
     else:

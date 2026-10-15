@@ -71,7 +71,12 @@ def course_list(request):
 
     # Group database courses dynamically
     for course in db_courses:
+        image_url = course.image_url_or_default
+
         if course.name in [c['name'] for c in CATEGORY_METADATA.values()]:
+            for c_id, c_data in CATEGORY_METADATA.items():
+                if c_data['name'] == course.name and image_url:
+                    categories_dict[c_id]['image_url'] = image_url
             continue
 
         cat_key = course.category if course.category in categories_dict else 'basic'
@@ -79,7 +84,8 @@ def course_list(request):
             'id': course.id,
             'name': course.name,
             'description': course.description or f"Professional {course.name} course program tailored with practical lab training and certification.",
-            'duration': course.duration or categories_dict[cat_key]['duration']
+            'duration': course.duration or categories_dict[cat_key]['duration'],
+            'image_url': image_url,
         })
 
     courses_data_list = list(categories_dict.values())

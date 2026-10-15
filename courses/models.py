@@ -30,6 +30,15 @@ class Course(models.Model):
     def __str__(self):
         return f"{self.name} ({self.get_category_display()})"
 
+    @property
+    def image_url_or_default(self):
+        if self.image:
+            try:
+                return self.image.url
+            except Exception:
+                return ''
+        return ''
+
 
 
 class CourseOffer(models.Model):

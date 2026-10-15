@@ -64,6 +64,14 @@
             <button type="button" class="course-modal-close" onclick="closeCourseDetailModal()" aria-label="Close modal">&times;</button>
         </div>
         <div class="course-modal-body">
+            <!-- Modal Course Image / Placeholder -->
+            <div class="modal-course-img-wrapper" id="modal-img-wrapper" style="width: 100%; height: 200px; border-radius: var(--radius-md); overflow: hidden; margin-bottom: 0.25rem;">
+                <img id="modal-course-img" src="" alt="Course image" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                <div id="modal-course-placeholder" style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; font-size: 3.5rem;">
+                    💻
+                </div>
+            </div>
+
             <!-- Key Info Highlights Grid -->
             <div class="course-modal-highlights">
                 <div class="highlight-box">
@@ -151,6 +159,9 @@ const modalDuration = document.getElementById('modal-duration');
 const modalDesc = document.getElementById('modal-description');
 const modalInquiryBtn = document.getElementById('modal-inquiry-btn');
 const modalTopicsContainer = document.getElementById('modal-topics');
+const modalImgWrapper = document.getElementById('modal-img-wrapper');
+const modalCourseImg = document.getElementById('modal-course-img');
+const modalPlaceholder = document.getElementById('modal-course-placeholder');
 
 let currentActiveCategoryId = null;
 
@@ -278,6 +289,34 @@ function openCategory(catId) {
             const desc = sub.description || defaultDesc;
 
             const contentDiv = document.createElement('div');
+
+            // Course Image or Clean Placeholder
+            const imgWrapper = document.createElement('div');
+            imgWrapper.className = 'subcourse-img-wrapper';
+
+            const placeholder = document.createElement('div');
+            placeholder.className = 'subcourse-img-placeholder';
+            placeholder.textContent = category.icon || '💻';
+
+            if (sub.image_url) {
+                const img = document.createElement('img');
+                img.src = sub.image_url;
+                img.alt = sub.name;
+                img.className = 'subcourse-img';
+                img.loading = 'lazy';
+                img.onerror = function() {
+                    this.style.display = 'none';
+                    placeholder.style.display = 'flex';
+                };
+                placeholder.style.display = 'none';
+                imgWrapper.appendChild(img);
+                imgWrapper.appendChild(placeholder);
+            } else {
+                imgWrapper.appendChild(placeholder);
+            }
+
+            contentDiv.appendChild(imgWrapper);
+
             const badge = document.createElement('span');
             badge.className = 'subcourse-badge';
             badge.textContent = category.name;
@@ -303,7 +342,7 @@ function openCategory(catId) {
             actionBtn.style.cssText = 'background:none; border:none; cursor:pointer;';
             actionBtn.innerHTML = 'View Details <span>&rarr;</span>';
             actionBtn.addEventListener('click', () => {
-                openCourseDetailModal(sub.name, category.name, category.duration, desc);
+                openCourseDetailModal(sub.name, category.name, category.duration, desc, sub.image_url, category.icon);
             });
 
             footer.appendChild(actionBtn);
@@ -330,7 +369,7 @@ function openCategory(catId) {
         fbBtn.className = 'btn btn-primary';
         fbBtn.innerHTML = 'View Details &rarr;';
         fbBtn.addEventListener('click', () => {
-            openCourseDetailModal(category.name, category.name, category.duration, category.description);
+            openCourseDetailModal(category.name, category.name, category.duration, category.description, '', category.icon);
         });
 
         fallbackBox.appendChild(fbTitle);
@@ -364,7 +403,7 @@ function showCategoriesView() {
 }
 
 // Open Course Details Modal
-function openCourseDetailModal(courseTitle, categoryName, duration, description) {
+function openCourseDetailModal(courseTitle, categoryName, duration, description, imageUrl, categoryIcon) {
     modalTitle.textContent = courseTitle;
     modalBadge.textContent = categoryName;
     modalDuration.textContent = duration || "Standard Track";
@@ -372,6 +411,27 @@ function openCourseDetailModal(courseTitle, categoryName, duration, description)
 
     // Set Inquiry Button redirect with pre-selected course param
     modalInquiryBtn.href = `${CONTACT_URL}?course=${encodeURIComponent(courseTitle)}`;
+
+    // Handle Modal Image / Placeholder
+    if (modalPlaceholder) {
+        modalPlaceholder.textContent = categoryIcon || '💻';
+    }
+    if (modalCourseImg) {
+        if (imageUrl) {
+            modalCourseImg.src = imageUrl;
+            modalCourseImg.alt = courseTitle;
+            modalCourseImg.style.display = 'block';
+            if (modalPlaceholder) modalPlaceholder.style.display = 'none';
+            modalCourseImg.onerror = function() {
+                modalCourseImg.style.display = 'none';
+                if (modalPlaceholder) modalPlaceholder.style.display = 'flex';
+            };
+        } else {
+            modalCourseImg.style.display = 'none';
+            modalCourseImg.src = '';
+            if (modalPlaceholder) modalPlaceholder.style.display = 'flex';
+        }
+    }
 
     // Generate topic chips
     modalTopicsContainer.innerHTML = '';
@@ -399,6 +459,10 @@ function closeCourseDetailModal() {
     modalBackdrop.classList.remove('active');
     modalBackdrop.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
+    if (modalCourseImg) {
+        modalCourseImg.src = '';
+        modalCourseImg.style.display = 'none';
+    }
 }
 
 // Search Filter Logic
@@ -440,7 +504,8 @@ function handleSearch(query) {
                         desc: sub.description || `Specialized ${sub.name} training under ${cat.name}.`,
                         icon: cat.icon,
                         catId: cat.id,
-                        duration: cat.duration
+                        duration: cat.duration,
+                        image_url: sub.image_url
                     });
                 }
             });
@@ -469,6 +534,34 @@ function handleSearch(query) {
                 card.className = 'subcourse-card';
 
                 const contentDiv = document.createElement('div');
+
+                // Course Image or Clean Placeholder
+                const imgWrapper = document.createElement('div');
+                imgWrapper.className = 'subcourse-img-wrapper';
+
+                const placeholder = document.createElement('div');
+                placeholder.className = 'subcourse-img-placeholder';
+                placeholder.textContent = res.icon || '💻';
+
+                if (res.image_url) {
+                    const img = document.createElement('img');
+                    img.src = res.image_url;
+                    img.alt = res.title;
+                    img.className = 'subcourse-img';
+                    img.loading = 'lazy';
+                    img.onerror = function() {
+                        this.style.display = 'none';
+                        placeholder.style.display = 'flex';
+                    };
+                    placeholder.style.display = 'none';
+                    imgWrapper.appendChild(img);
+                    imgWrapper.appendChild(placeholder);
+                } else {
+                    imgWrapper.appendChild(placeholder);
+                }
+
+                contentDiv.appendChild(imgWrapper);
+
                 const badge = document.createElement('span');
                 badge.className = 'subcourse-badge';
                 badge.textContent = res.categoryName;
@@ -494,7 +587,7 @@ function handleSearch(query) {
                 actionBtn.style.cssText = 'background:none; border:none; cursor:pointer;';
                 actionBtn.innerHTML = 'View Details <span>&rarr;</span>';
                 actionBtn.addEventListener('click', () => {
-                    openCourseDetailModal(res.title, res.categoryName, res.duration, res.desc);
+                    openCourseDetailModal(res.title, res.categoryName, res.duration, res.desc, res.image_url, res.icon);
                 });
 
                 footer.appendChild(actionBtn);
