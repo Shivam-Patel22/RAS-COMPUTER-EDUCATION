@@ -464,6 +464,12 @@ class Command(BaseCommand):
         contact_content.address = "C-DAC Computer Class, Sector 11, Gandhinagar, Gujarat 382011, India"
         contact_content.working_hours = "Monday - Saturday: 8:00 AM - 8:00 PM (Sunday Closed)"
         contact_content.map_embed_url = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d471.09!2d72.6320823!3d23.1852315!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395c2b921555555d%3A0x50e94504c763b697!2sCDAC%20Computer%20Class!5e0!3m2!1sen!2sin!4v1722593000000!5m2!1sen!2sin"
+        if not contact_content.instagram_url:
+            contact_content.instagram_url = "https://www.instagram.com/ras_computer_education/"
+            contact_content.instagram_username = "ras_computer_education"
+        if not contact_content.facebook_url:
+            contact_content.facebook_url = "https://www.facebook.com/RASeducationgnr/"
+            contact_content.facebook_name = "RASeducationgnr"
         contact_content.save()
         self.stdout.write(self.style.SUCCESS("[OK] Contact Details Content seeded/updated."))
 
