@@ -144,5 +144,25 @@
 
     </div>
 
+    <!-- Card 3: Two-Factor Authentication (2FA) -->
+    <div class="card" style="margin-top: 2rem; padding: 2rem; border-left: 4px solid var(--primary);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                    <span style="font-size: 1.4rem;">🛡️</span>
+                    <h3 style="margin: 0; color: var(--gray-900);">Two-Factor Authentication (2FA)</h3>
+                </div>
+                <p style="color: var(--gray-600); font-size: 0.88rem; margin: 0; max-width: 650px;">
+                    Protect your administrator account with Time-based One-Time Passwords (Google Authenticator, Microsoft Authenticator) and single-use emergency backup codes.
+                </p>
+            </div>
+            <div>
+                <a href="{% url 'dashboard:two_factor_setup' %}" class="btn btn-primary" style="padding: 0.65rem 1.25rem; font-weight: 600;">
+                    Manage 2FA Settings &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+
 </div>
 {% endblock %}

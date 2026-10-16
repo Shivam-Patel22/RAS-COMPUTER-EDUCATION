@@ -23,6 +23,34 @@ class AdminLoginForm(forms.Form):
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password', 'required': 'required'})
     )
 
+class TwoFactorVerifyForm(forms.Form):
+    otp_token = forms.CharField(
+        max_length=16,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '6-digit code or 16-character backup code',
+            'required': 'required',
+            'autocomplete': 'one-time-code',
+            'autofocus': 'autofocus',
+        }),
+        label="Two-Factor Authentication Code",
+    )
+
+class TwoFactorSetupForm(forms.Form):
+    token = forms.CharField(
+        max_length=6,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter 6-digit code from authenticator app',
+            'required': 'required',
+            'autocomplete': 'one-time-code',
+            'autofocus': 'autofocus',
+            'inputmode': 'numeric',
+            'pattern': '[0-9]{6}',
+        }),
+        label="Verification Code",
+    )
+
 class AdminCourseForm(forms.ModelForm):
     remove_image = forms.BooleanField(
         required=False,

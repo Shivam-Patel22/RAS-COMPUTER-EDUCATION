@@ -1,0 +1,130 @@
+{% extends 'dashboard/admin_base.html' %}
+
+{% block title %}Two-Factor Authentication Setup | Admin Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <!-- Page Header -->
+    <div style="background: var(--dark-surface); color: white; border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="font-size: 1.8rem; color: white;">🛡️ Staff Two-Factor Authentication</h1>
+            <p style="color: var(--gray-400); margin-top: 0.25rem;">
+                Harden your staff account security with Time-based One-Time Passwords (TOTP).
+            </p>
+        </div>
+        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+            <div style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: var(--radius-md); padding: 0.5rem 1rem; font-size: 0.85rem; color: var(--gray-200);">
+                Active User: <strong style="color: #fff;">{{ request.user.username }}</strong>
+            </div>
+            <a href="{% url 'dashboard:index' %}" class="btn btn-outline btn-sm">Dashboard Overview</a>
+        </div>
+    </div>
+
+    {% if backup_codes %}
+    <!-- Step Complete: Backup Codes Display -->
+    <div class="card" style="max-width: 680px; margin: 0 auto; padding: 2.5rem;">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎉</div>
+            <h2 style="font-size: 1.5rem; color: var(--gray-900); margin-bottom: 0.5rem;">2FA Successfully Enabled!</h2>
+            <p style="color: var(--gray-600); font-size: 0.9rem; line-height: 1.5;">
+                Below are your <strong>10 single-use emergency backup codes</strong>. If you ever lose access to your authenticator app, each code can be used exactly once to log in.
+            </p>
+        </div>
+
+        <div style="background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: var(--radius-md, 8px); padding: 1.5rem; margin-bottom: 1.5rem;">
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
+                {% for code in backup_codes %}
+                <div style="font-family: monospace; font-size: 1.1rem; font-weight: 700; color: #0f172a; background: #ffffff; padding: 0.5rem 1rem; border-radius: 4px; border: 1px solid #e2e8f0; text-align: center;">
+                    {{ code }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="{% url 'dashboard:index' %}" class="btn btn-primary" style="padding: 0.75rem 2rem; font-weight: 600;">
+                Continue to Admin Dashboard &rarr;
+            </a>
+        </div>
+    </div>
+
+    {% elif is_enrolled %}
+    <!-- Enrolled Status Card -->
+    <div class="card" style="max-width: 680px; margin: 0 auto; padding: 2.5rem;">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div style="font-size: 2.5rem; color: var(--success); margin-bottom: 0.5rem;">✓</div>
+            <h2 style="font-size: 1.5rem; color: var(--gray-900); margin-bottom: 0.5rem;">Two-Factor Authentication is Active</h2>
+            <p style="color: var(--gray-600); font-size: 0.9rem; line-height: 1.5;">
+                Your staff account is protected with TOTP Two-Factor Authentication. You will be prompted for a 6-digit code or backup code whenever you log in.
+            </p>
+        </div>
+
+        <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; color: #065f46; font-size: 0.9rem;">
+            Status: <strong>Enrolled &amp; Protected</strong>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+            <a href="{% url 'dashboard:index' %}" class="btn btn-outline-dark">Back to Dashboard</a>
+            {% if not request.user.is_superuser and not require_2fa %}
+            <form method="post" action="{% url 'dashboard:two_factor_disable' %}" onsubmit="return confirm('Are you sure you want to disable Two-Factor Authentication?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm">Disable 2FA</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Enrollment Flow Card -->
+    <div class="card" style="max-width: 680px; margin: 0 auto; padding: 2.5rem;">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📲</div>
+            <h2 style="font-size: 1.5rem; color: var(--gray-900); margin-bottom: 0.5rem;">Set Up Authenticator App</h2>
+            <p style="color: var(--gray-600); font-size: 0.9rem; line-height: 1.5;">
+                Scan the QR code below using your mobile authenticator app (Google Authenticator, Microsoft Authenticator, Authy, or 1Password).
+            </p>
+        </div>
+
+        <!-- QR Code Display -->
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div style="display: inline-block; padding: 1rem; background: #ffffff; border: 2px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                <img src="data:image/png;base64,{{ qr_b64 }}" alt="2FA QR Code" style="display: block; width: 200px; height: 200px;">
+            </div>
+            <div style="margin-top: 1rem;">
+                <span style="font-size: 0.8rem; color: var(--gray-500);">Can't scan? Manual entry secret key:</span>
+                <div style="font-family: monospace; font-size: 1rem; font-weight: 700; color: var(--primary); letter-spacing: 1px; margin-top: 0.25rem;">
+                    {{ secret_key }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation Form -->
+        <form method="post" action="{% url 'dashboard:two_factor_setup' %}" data-validate="true">
+            {% csrf_token %}
+
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label for="{{ form.token.id_for_label }}" style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">
+                    Enter the 6-Digit Verification Code *
+                </label>
+                {{ form.token }}
+                {% if form.token.errors %}
+                    <div class="form-error">{{ form.token.errors.0 }}</div>
+                {% endif %}
+                <small style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.35rem;">
+                    Enter the current 6-digit code displayed in your authenticator app to complete enrollment.
+                </small>
+            </div>
+
+            <div style="display: flex; gap: 1rem; align-items: center; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1; padding: 0.85rem; font-weight: 600;">
+                    Confirm &amp; Enable 2FA &rarr;
+                </button>
+                <a href="{% url 'dashboard:index' %}" class="btn btn-outline-dark">Cancel</a>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

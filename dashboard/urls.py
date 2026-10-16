@@ -46,5 +46,7 @@ urlpatterns = [
     path('settings/', views.account_settings, name='account_settings'),
     path('settings/change-username/', views.change_username, name='change_username'),
     path('settings/change-password/', views.change_password, name='change_password'),
+    path('2fa/setup/', views.two_factor_setup, name='two_factor_setup'),
+    path('2fa/disable/', views.two_factor_disable, name='two_factor_disable'),
     path('beacon-logout/', views.beacon_logout, name='beacon_logout'),
 ]

@@ -56,12 +56,22 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
+    # Security packages
+    'axes',
+    'django_otp',
+    'django_otp.plugins.otp_totp',
+    'django_otp.plugins.otp_static',
+
     # Project apps
     'core',
     'courses',
     'certificates',
     'accounts',
     'dashboard',
+]
+
+AUTHENTICATION_BACKENDS = [
+    'core.backends.SafeAxesBackend',
 ]
 
 MIDDLEWARE = [
@@ -71,9 +81,12 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django_otp.middleware.OTPMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'core.middleware.AdminSessionSecurityMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'axes.middleware.AxesMiddleware',
+    'csp.middleware.CSPMiddleware',
 ]
 
 SESSION_COOKIE_AGE = 3600
@@ -81,11 +94,26 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_SAVE_EVERY_REQUEST = False
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Lax'
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
+SECURE_REFERRER_POLICY = 'same-origin'
+
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 3600  # Initial test period (raise to 31536000 for 1 year once verified)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+else:
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SECURE_SSL_REDIRECT = False
+    SECURE_HSTS_SECONDS = 0
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
 
 ROOT_URLCONF = 'computer_class_site.urls'
 
@@ -122,6 +150,16 @@ DATABASES = {
 }
 
 
+# Password Hashing with Argon2 as Primary Hasher
+# Old hashes (PBKDF2, BCrypt, Scrypt) remain supported and upgrade automatically on next successful login
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'django.contrib.auth.hashers.ScryptPasswordHasher',
+]
+
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
@@ -131,6 +169,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 10,
+        }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -195,5 +236,105 @@ JUSTDIAL_PAGE_URL = getattr(
 # Certificate Verification Base URL Configuration
 # --------------------------------------------------------------------------
 SITE_BASE_URL = os.environ.get("SITE_BASE_URL", "http://localhost:8000")
+
+# --------------------------------------------------------------------------
+# Admin Login Path Configuration
+# --------------------------------------------------------------------------
+ADMIN_LOGIN_PATH = os.environ.get("ADMIN_LOGIN_PATH", "cdac-admin").strip('/')
+
+# --------------------------------------------------------------------------
+# Brute-Force Protection (django-axes)
+# --------------------------------------------------------------------------
+AXES_FAILURE_LIMIT = 5
+from datetime import timedelta
+AXES_COOLOFF_TIME = timedelta(minutes=30)
+AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
+AXES_RESET_ON_SUCCESS = True
+AXES_LOCKOUT_CALLABLE = 'dashboard.views.axes_lockout_handler'
+AXES_LOCK_OUT_AT_FAILURE = False
+AXES_VERBOSE = False
+
+# --------------------------------------------------------------------------
+# Staff Two-Factor Authentication (TOTP 2FA)
+# --------------------------------------------------------------------------
+# Enforced for superusers/admins; optional for other staff unless set to True.
+# Defaults to False so administrators can enroll before enforcement is enabled.
+REQUIRE_2FA_FOR_STAFF = os.environ.get('REQUIRE_2FA_FOR_STAFF', 'False').lower() in ('true', '1', 't')
+
+# --------------------------------------------------------------------------
+# Content Security Policy (django-csp, Report-Only Mode)
+# --------------------------------------------------------------------------
+CSP_REPORT_ONLY = True
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_STYLE_SRC = (
+    "'self'",
+    "'unsafe-inline'",
+    "https://fonts.googleapis.com",
+    "https://cdnjs.cloudflare.com",
+    "https://cdn.jsdelivr.net",
+)
+CSP_FONT_SRC = (
+    "'self'",
+    "https://fonts.gstatic.com",
+    "https://cdnjs.cloudflare.com",
+    "data:",
+)
+CSP_SCRIPT_SRC = (
+    "'self'",
+    "'unsafe-inline'",
+    "'unsafe-eval'",
+    "https://cdnjs.cloudflare.com",
+    "https://cdn.jsdelivr.net",
+)
+CSP_IMG_SRC = ("'self'", "data:", "https:", "http:")
+CSP_CONNECT_SRC = ("'self'",)
+CSP_FRAME_ANCESTORS = ("'none'",)
+
+# --------------------------------------------------------------------------
+# Security Logging & Audit Trail
+# --------------------------------------------------------------------------
+LOGS_DIR = BASE_DIR / 'logs'
+LOGS_DIR.mkdir(parents=True, exist_ok=True)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} {name}: {message}',
+            'style': '{',
+        },
+        'security_format': {
+            'format': '[{asctime}] {levelname} [STAFF_AUTH] {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'security_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs' / 'admin_access.log',
+            'formatter': 'security_format',
+            'encoding': 'utf-8',
+        },
+    },
+    'loggers': {
+        'admin_security': {
+            'handlers': ['console', 'security_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'axes': {
+            'handlers': ['console', 'security_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
 
 

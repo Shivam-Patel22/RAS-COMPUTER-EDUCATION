@@ -23,7 +23,8 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.db import transaction, IntegrityError
 from .decorators import staff_required
 from .forms import (
-    AdminLoginForm, AdminCourseForm, AdminCertificateForm, AdminOfferForm,
+    AdminLoginForm, TwoFactorVerifyForm, TwoFactorSetupForm,
+    AdminCourseForm, AdminCertificateForm, AdminOfferForm,
     AdminStudentForm, AdminAboutForm, AdminContactForm,
     AdminChangeUsernameForm, AdminChangePasswordForm
 )
@@ -53,14 +54,32 @@ from django.db.models import Q
 from django.core.mail import send_mail
 from django.conf import settings
 
+from axes.models import AccessAttempt
+from django_otp.plugins.otp_totp.models import TOTPDevice
+from django_otp.plugins.otp_static.models import StaticDevice, StaticToken
+from django.contrib.auth.hashers import check_password, make_password
+import qrcode
+import base64
+
 logger = logging.getLogger(__name__)
+security_logger = logging.getLogger('admin_security')
+
+# Pre-computed dummy hash to guarantee constant-time execution on invalid usernames
+DUMMY_PASSWORD_HASH = make_password("DJANGO_TIMING_ATTACK_MITIGATION_PHANTOM_PASSWORD_987654")
+
+def get_client_ip(request):
+    """Extracts client IP address safely considering proxies."""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        return x_forwarded_for.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR', '')
 
 def get_safe_redirect(request, default_endpoint, **kwargs):
     """
     Validates that redirect URLs are safe relative paths on the current host.
     Rejects external domains, protocol-relative (//) URLs, and dangerous schemes.
     """
-    next_url = request.POST.get('next') or request.GET.get('next') or request.META.get('HTTP_REFERER')
+    next_url = request.POST.get('next') or request.GET.get('next') or request.session.get('pre_2fa_next')
     if next_url and url_has_allowed_host_and_scheme(
         url=next_url,
         allowed_hosts={request.get_host()},
@@ -69,74 +88,386 @@ def get_safe_redirect(request, default_endpoint, **kwargs):
         return redirect(next_url)
     return redirect(default_endpoint, **kwargs)
 
-def check_login_rate_limit(ip_address, username):
+def check_login_post_rate_limit(ip_address):
     """
-    Checks if IP or username has exceeded failed login attempts (max 5 in 5 minutes).
+    Burst rate limiter: Max 10 login POST requests per minute per IP address.
+    Returns True if rate limited, False otherwise.
     """
-    ip_key = f"rl:ip:{ip_address}"
-    user_key = f"rl:user:{username.lower().strip()}"
-    return (cache.get(ip_key, 0) >= 5) or (cache.get(user_key, 0) >= 5)
+    key = f"rate_limit:login_post:{ip_address}"
+    current_count = cache.get(key, 0)
+    if current_count >= 10:
+        return True
+    cache.set(key, current_count + 1, timeout=60)
+    return False
 
-def record_failed_login(ip_address, username):
-    ip_key = f"rl:ip:{ip_address}"
-    user_key = f"rl:user:{username.lower().strip()}"
-    ip_attempts = cache.get(ip_key, 0) + 1
-    user_attempts = cache.get(user_key, 0) + 1
-    cache.set(ip_key, ip_attempts, timeout=300)
-    cache.set(user_key, user_attempts, timeout=300)
-    logger.warning(f"Failed admin login attempt for '{username}' from IP '{ip_address}'. Attempt #{max(ip_attempts, user_attempts)}")
+def is_axes_locked_out(request, username=None, ip_address=None):
+    """
+    Checks whether the combination of username and/or IP is locked out by django-axes.
+    Locks out after 5 failures within 30 minutes.
+    """
+    from datetime import timedelta
+    now = timezone.now()
+    threshold = now - timedelta(minutes=30)
+    
+    qs = AccessAttempt.objects.filter(failures_since_start__gte=5, attempt_time__gte=threshold)
+    clean_user = (username or '').strip().lower()
 
-def clear_failed_logins(ip_address, username):
-    cache.delete(f"rl:ip:{ip_address}")
-    cache.delete(f"rl:user:{username.lower().strip()}")
+    if ip_address and clean_user:
+        if qs.filter(ip_address=ip_address, username__iexact=clean_user).exists():
+            return True
+    if ip_address:
+        if qs.filter(ip_address=ip_address).exists():
+            return True
+    if clean_user:
+        if qs.filter(username__iexact=clean_user).exists():
+            return True
+
+    return False
+
+def record_axes_failure(request, username, ip_address):
+    """
+    Records a failed login attempt in django-axes AccessAttempt table.
+    Locks out after 5 failures for 30 minutes.
+    """
+    clean_user = (username or '').strip().lower()
+    user_agent = request.META.get('HTTP_USER_AGENT', '')[:255]
+    http_accept = request.META.get('HTTP_ACCEPT', '')[:1025]
+    path_info = request.path_info[:255]
+    now = timezone.now()
+    from datetime import timedelta
+
+    attempt = AccessAttempt.objects.filter(username=clean_user, ip_address=ip_address).first()
+    if not attempt:
+        AccessAttempt.objects.create(
+            username=clean_user,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            http_accept=http_accept,
+            path_info=path_info,
+            attempt_time=now,
+            failures_since_start=1,
+            post_data='',
+            get_data='',
+        )
+    else:
+        if attempt.attempt_time < now - timedelta(minutes=30):
+            attempt.failures_since_start = 1
+        else:
+            attempt.failures_since_start += 1
+        attempt.attempt_time = now
+        attempt.user_agent = user_agent
+        attempt.path_info = path_info
+        attempt.save(update_fields=['failures_since_start', 'attempt_time', 'user_agent', 'path_info'])
+
+def clear_axes_records(username, ip_address):
+    """Clears failed login attempts upon successful login."""
+    if username:
+        AccessAttempt.objects.filter(username__iexact=username.strip().lower()).delete()
+    if ip_address:
+        AccessAttempt.objects.filter(ip_address=ip_address).delete()
+
+def axes_lockout_handler(request, *args, **kwargs):
+    """
+    Callable invoked by django-axes when a lockout occurs.
+    """
+    form = AdminLoginForm()
+    ip_address = get_client_ip(request)
+    username = request.POST.get('username', '')
+    user_agent = request.META.get('HTTP_USER_AGENT', 'Unknown')
+    security_logger.warning(f"LOCKOUT_BLOCKED: IP={ip_address} | Username={username} | UserAgent={user_agent} | Status=Blocked 30 mins")
+    messages.error(request, "Too many failed attempts. Try again in 30 minutes.")
+    return render(request, 'dashboard/login.html', {'form': form}, status=429)
 
 def admin_login(request):
     if request.user.is_authenticated and request.user.is_staff:
         return redirect('dashboard:index')
 
-    ip_address = request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip() or request.META.get('REMOTE_ADDR', '')
+    ip_address = get_client_ip(request)
+    user_agent = request.META.get('HTTP_USER_AGENT', 'Unknown')
+    next_url = request.POST.get('next') or request.GET.get('next') or ''
 
+    # --------------------------------------------------------------------------
+    # Step 2: 2FA Verification Submission
+    # --------------------------------------------------------------------------
+    if request.method == 'POST' and request.POST.get('step') == '2fa':
+        pre_user_id = request.session.get('pre_2fa_user_id')
+        pre_timestamp = request.session.get('pre_2fa_timestamp', 0)
+
+        # Enforce 5-minute timeout window for 2FA completion
+        if not pre_user_id or (time.time() - pre_timestamp > 300):
+            request.session.pop('pre_2fa_user_id', None)
+            request.session.pop('pre_2fa_timestamp', None)
+            messages.error(request, "Your verification session has timed out. Please enter your credentials again.")
+            return redirect('dashboard:login')
+
+        target_user = User.objects.filter(pk=pre_user_id, is_active=True, is_staff=True).first()
+        if not target_user:
+            request.session.pop('pre_2fa_user_id', None)
+            messages.error(request, "Invalid username/email or password.")
+            return redirect('dashboard:login')
+
+        # Check brute-force lockout before verifying 2FA code
+        if is_axes_locked_out(request, username=target_user.username, ip_address=ip_address):
+            security_logger.warning(f"LOCKOUT_BLOCKED_2FA: IP={ip_address} | User={target_user.username}")
+            messages.error(request, "Too many failed attempts. Try again in 30 minutes.")
+            return render(request, 'dashboard/login.html', {'step': '2fa', 'two_factor_form': TwoFactorVerifyForm()}, status=429)
+
+        # Per-IP burst rate limit
+        if check_login_post_rate_limit(ip_address):
+            security_logger.warning(f"RATE_LIMITED_2FA: IP={ip_address} exceeded 10 POSTs/min")
+            messages.error(request, "Too many requests. Please wait a minute before trying again.")
+            return render(request, 'dashboard/login.html', {'step': '2fa', 'two_factor_form': TwoFactorVerifyForm()}, status=429)
+
+        two_factor_form = TwoFactorVerifyForm(request.POST)
+        if two_factor_form.is_valid():
+            token = two_factor_form.cleaned_data['otp_token'].strip()
+
+            # 1. Check TOTP Device (Google Authenticator / Microsoft Authenticator)
+            totp_device = TOTPDevice.objects.filter(user=target_user, confirmed=True).first()
+            verified = False
+            if totp_device and totp_device.verify_token(token):
+                verified = True
+
+            # 2. Check Static Backup Codes (Single-use)
+            if not verified:
+                static_device = StaticDevice.objects.filter(user=target_user, confirmed=True).first()
+                if static_device and static_device.verify_token(token):
+                    verified = True
+
+            if verified:
+                # Clear pre-auth session data
+                saved_next = request.session.pop('pre_2fa_next', '')
+                request.session.pop('pre_2fa_user_id', None)
+                request.session.pop('pre_2fa_timestamp', None)
+
+                # Reset lockout attempts on success
+                clear_axes_records(target_user.username, ip_address)
+
+                # Log user in (session is regenerated automatically)
+                auth_login(request, target_user)
+                now = time.time()
+                request.session['admin_login_time'] = now
+                request.session['admin_last_activity'] = now
+
+                security_logger.info(f"SUCCESS_2FA_LOGIN: User='{target_user.username}' | IP={ip_address} | UserAgent={user_agent}")
+                messages.success(request, f"Logged in as staff administrator ({target_user.username}).")
+                if saved_next:
+                    return redirect(saved_next)
+                return get_safe_redirect(request, 'dashboard:index')
+            else:
+                record_axes_failure(request, username=target_user.username, ip_address=ip_address)
+                security_logger.warning(f"FAILED_2FA: User='{target_user.username}' | IP={ip_address} | UserAgent={user_agent}")
+
+                if is_axes_locked_out(request, username=target_user.username, ip_address=ip_address):
+                    messages.error(request, "Too many failed attempts. Try again in 30 minutes.")
+                    return render(request, 'dashboard/login.html', {'step': '2fa', 'two_factor_form': two_factor_form}, status=429)
+
+                messages.error(request, "Invalid verification code.")
+                return render(request, 'dashboard/login.html', {'step': '2fa', 'two_factor_form': two_factor_form})
+        else:
+            return render(request, 'dashboard/login.html', {'step': '2fa', 'two_factor_form': two_factor_form})
+
+    # --------------------------------------------------------------------------
+    # Step 1: Username/Email + Password Authentication
+    # --------------------------------------------------------------------------
     if request.method == 'POST':
+        # Burst rate limiter: max 10 requests per minute per IP
+        if check_login_post_rate_limit(ip_address):
+            security_logger.warning(f"RATE_LIMITED: IP={ip_address} exceeded 10 POSTs/min")
+            messages.error(request, "Too many requests. Please wait a minute before trying again.")
+            return render(request, 'dashboard/login.html', {'form': AdminLoginForm(), 'next': next_url}, status=429)
+
+        raw_username = request.POST.get('username', '').strip()
+        if is_axes_locked_out(request, username=raw_username, ip_address=ip_address):
+            security_logger.warning(f"LOCKOUT_BLOCKED: Attempt for '{raw_username}' from IP '{ip_address}'")
+            messages.error(request, "Too many failed attempts. Try again in 30 minutes.")
+            return render(request, 'dashboard/login.html', {'form': AdminLoginForm(), 'next': next_url}, status=429)
+
         form = AdminLoginForm(request.POST)
         if form.is_valid():
-            username_or_email = form.cleaned_data['username']
+            username_or_email = form.cleaned_data['username'].strip()
             password = form.cleaned_data['password']
 
-            # Rate limit check (Max 5 attempts per 5 minutes)
-            if check_login_rate_limit(ip_address, username_or_email):
-                logger.warning(f"Rate limit exceeded on admin login for '{username_or_email}' from IP '{ip_address}'.")
-                messages.error(request, "Too many failed login attempts. Access is temporarily rate-limited for 5 minutes.")
-                return render(request, 'dashboard/login.html', {'form': form}, status=429)
+            # Check if user/IP is locked out by Axes
+            if is_axes_locked_out(request, username=username_or_email, ip_address=ip_address):
+                security_logger.warning(f"LOCKOUT_BLOCKED: Attempt for '{username_or_email}' from IP '{ip_address}'")
+                messages.error(request, "Too many failed attempts. Try again in 30 minutes.")
+                return render(request, 'dashboard/login.html', {'form': form, 'next': next_url}, status=429)
 
-            # Lookup by email or username
-            try:
-                user_obj = User.objects.get(email__iexact=username_or_email)
-                username = user_obj.username
-            except User.DoesNotExist:
-                username = username_or_email
+            # Look up candidate user by email or username
+            found_user = User.objects.filter(
+                Q(email__iexact=username_or_email) | Q(username__iexact=username_or_email)
+            ).first()
 
-            user = authenticate(request, username=username, password=password)
+            if found_user is None:
+                # Constant-time dummy hash verification prevents timing-based user enumeration
+                check_password(password, DUMMY_PASSWORD_HASH)
+                record_axes_failure(request, username=username_or_email, ip_address=ip_address)
+                security_logger.warning(f"FAILED_LOGIN_UNKNOWN_USER: Username='{username_or_email}' | IP={ip_address} | UserAgent={user_agent}")
+                messages.error(request, "Invalid username/email or password.")
+                return render(request, 'dashboard/login.html', {'form': form, 'next': next_url})
 
-            if user is not None:
-                if not user.is_staff:
-                    record_failed_login(ip_address, username_or_email)
-                    messages.error(request, "Invalid staff credentials.")
-                    return redirect('dashboard:login')
-                
-                clear_failed_logins(ip_address, username_or_email)
+            # Check eligibility: must be active and staff
+            if not found_user.is_active or not found_user.is_staff:
+                # Constant-time password check so timing matches valid users
+                found_user.check_password(password)
+                record_axes_failure(request, username=found_user.username, ip_address=ip_address)
+                security_logger.warning(f"FAILED_LOGIN_NON_STAFF: User='{found_user.username}' (active={found_user.is_active}, staff={found_user.is_staff}) | IP={ip_address}")
+                messages.error(request, "Invalid username/email or password.")
+                return render(request, 'dashboard/login.html', {'form': form, 'next': next_url})
+
+            # Authenticate credentials against backend
+            user = authenticate(request, username=found_user.username, password=password)
+
+            if user is None:
+                # Incorrect password (axes handler automatically logs failure via authenticate signal)
+                security_logger.warning(f"FAILED_LOGIN_BAD_PASSWORD: User='{found_user.username}' | IP={ip_address} | UserAgent={user_agent}")
+                messages.error(request, "Invalid username/email or password.")
+                return render(request, 'dashboard/login.html', {'form': form, 'next': next_url})
+
+            # Check 2FA requirement / enrollment
+            totp_device = TOTPDevice.objects.filter(user=user, confirmed=True).first()
+            static_device = StaticDevice.objects.filter(user=user, confirmed=True).first()
+            is_2fa_enrolled = bool(totp_device or static_device)
+            is_2fa_required = user.is_superuser or getattr(settings, 'REQUIRE_2FA_FOR_STAFF', False)
+
+            if is_2fa_enrolled:
+                # Challenge user for 2FA code
+                request.session['pre_2fa_user_id'] = user.pk
+                request.session['pre_2fa_timestamp'] = time.time()
+                request.session['pre_2fa_next'] = next_url
+                security_logger.info(f"PRE_AUTH_2FA_CHALLENGE: User='{user.username}' | IP={ip_address}")
+                return render(request, 'dashboard/login.html', {
+                    'step': '2fa',
+                    'two_factor_form': TwoFactorVerifyForm(),
+                    'username': user.username,
+                    'next': next_url,
+                })
+
+            if is_2fa_required and not is_2fa_enrolled:
+                # 2FA is required by policy but not yet configured: log in and direct to setup
+                clear_axes_records(user.username, ip_address)
                 auth_login(request, user)
                 now = time.time()
                 request.session['admin_login_time'] = now
                 request.session['admin_last_activity'] = now
-                messages.success(request, f"Logged in as staff administrator ({user.username}).")
-                return redirect('dashboard:index')
-            else:
-                record_failed_login(ip_address, username_or_email)
-                messages.error(request, "Invalid staff credentials.")
+                security_logger.info(f"SUCCESS_LOGIN_SETUP_2FA_REQUIRED: User='{user.username}' | IP={ip_address}")
+                messages.warning(request, "Two-factor authentication is required for your account. Please complete setup now.")
+                return redirect('dashboard:two_factor_setup')
+
+            # 2FA not required and not enrolled: complete login
+            clear_axes_records(user.username, ip_address)
+            auth_login(request, user)
+            now = time.time()
+            request.session['admin_login_time'] = now
+            request.session['admin_last_activity'] = now
+
+            security_logger.info(f"SUCCESS_LOGIN: User='{user.username}' | IP={ip_address} | UserAgent={user_agent}")
+            messages.success(request, f"Logged in as staff administrator ({user.username}).")
+            return get_safe_redirect(request, 'dashboard:index')
+
     else:
+        # Check if pre-auth 2FA session is active on GET
+        if 'pre_2fa_user_id' in request.session:
+            pre_timestamp = request.session.get('pre_2fa_timestamp', 0)
+            if time.time() - pre_timestamp <= 300:
+                user_id = request.session['pre_2fa_user_id']
+                target_user = User.objects.filter(pk=user_id, is_active=True, is_staff=True).first()
+                if target_user:
+                    return render(request, 'dashboard/login.html', {
+                        'step': '2fa',
+                        'two_factor_form': TwoFactorVerifyForm(),
+                        'username': target_user.username,
+                        'next': next_url,
+                    })
+            else:
+                request.session.pop('pre_2fa_user_id', None)
+                request.session.pop('pre_2fa_timestamp', None)
+
         form = AdminLoginForm()
 
-    return render(request, 'dashboard/login.html', {'form': form})
+    return render(request, 'dashboard/login.html', {'form': form, 'next': next_url})
+
+@staff_required
+def two_factor_setup(request):
+    """
+    Setup page for Staff Two-Factor Authentication (TOTP).
+    Displays QR code for scanning in Google Authenticator / Microsoft Authenticator,
+    and upon confirmation generates 10 single-use hashed backup codes.
+    """
+    confirmed_totp = TOTPDevice.objects.filter(user=request.user, confirmed=True).first()
+    device = TOTPDevice.objects.filter(user=request.user, confirmed=False).first()
+    if not device:
+        device = TOTPDevice.objects.create(user=request.user, name='default', confirmed=False)
+
+    backup_codes = None
+
+    if request.method == 'POST':
+        form = TwoFactorSetupForm(request.POST)
+        if form.is_valid():
+            token = form.cleaned_data['token'].strip()
+            if device.verify_token(token):
+                TOTPDevice.objects.filter(user=request.user, confirmed=True).delete()
+                device.confirmed = True
+                device.save()
+
+                # Generate 10 single-use backup codes via StaticDevice
+                s_device, _ = StaticDevice.objects.get_or_create(
+                    user=request.user, name='backup', defaults={'confirmed': True}
+                )
+                s_device.confirmed = True
+                s_device.save()
+                s_device.token_set.all().delete()
+                backup_codes = []
+                for _ in range(10):
+                    code = StaticToken.random_token()
+                    s_device.token_set.create(token=code)
+                    backup_codes.append(code)
+
+                security_logger.info(f"2FA_ENROLLED: Staff '{request.user.username}' successfully enabled 2FA")
+                messages.success(request, "Two-Factor Authentication has been successfully enabled! Save your backup codes below.")
+                return render(request, 'dashboard/two_factor_setup.html', {
+                    'title': 'Two-Factor Authentication Setup',
+                    'is_enrolled': True,
+                    'backup_codes': backup_codes,
+                })
+            else:
+                messages.error(request, "Invalid verification code. Please check your authenticator app and try again.")
+    else:
+        form = TwoFactorSetupForm()
+
+    # Generate QR Code image base64
+    qr = qrcode.QRCode(version=1, box_size=6, border=2)
+    qr.add_data(device.config_url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    qr_b64 = base64.b64encode(buf.getvalue()).decode('ascii')
+
+    return render(request, 'dashboard/two_factor_setup.html', {
+        'title': 'Two-Factor Authentication Setup',
+        'form': form,
+        'qr_b64': qr_b64,
+        'secret_key': device.key,
+        'is_enrolled': bool(confirmed_totp),
+        'backup_codes': backup_codes,
+        'require_2fa': getattr(settings, 'REQUIRE_2FA_FOR_STAFF', False),
+    })
+
+@staff_required
+@require_POST
+def two_factor_disable(request):
+    """Allows staff to disable 2FA if not enforced by policy."""
+    if request.user.is_superuser or getattr(settings, 'REQUIRE_2FA_FOR_STAFF', False):
+        messages.error(request, "Two-Factor Authentication is enforced by institute security policy and cannot be disabled.")
+        return redirect('dashboard:two_factor_setup')
+
+    TOTPDevice.objects.filter(user=request.user).delete()
+    StaticDevice.objects.filter(user=request.user).delete()
+    security_logger.info(f"2FA_DISABLED: Staff '{request.user.username}' disabled 2FA")
+    messages.success(request, "Two-Factor Authentication has been disabled.")
+    return redirect('dashboard:two_factor_setup')
 
 @require_POST
 @staff_required

@@ -16,7 +16,13 @@ class AdminSessionSecurityMiddleware:
 
     def __call__(self, request):
         path = request.path_info
-        is_admin_path = path.startswith('/cdac-admin/') or path.startswith('/django-admin/')
+        from django.conf import settings
+        admin_path = getattr(settings, 'ADMIN_LOGIN_PATH', 'cdac-admin').strip('/')
+        is_admin_path = (
+            path.startswith('/cdac-admin/') or 
+            path.startswith(f'/{admin_path}/') or 
+            path.startswith('/django-admin/')
+        )
 
         if is_admin_path:
             # Check 1-hour absolute session timeout for authenticated staff users

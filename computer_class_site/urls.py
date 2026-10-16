@@ -3,14 +3,20 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.views.static import serve
 
+admin_path = getattr(settings, 'ADMIN_LOGIN_PATH', 'cdac-admin').strip('/')
+
 urlpatterns = [
     path('django-admin/', admin.site.urls),
     path('', include('core.urls')),
     path('courses/', include('courses.urls')),
     path('', include('certificates.urls')),
     path('accounts/', include('accounts.urls')),
-    path('cdac-admin/', include('dashboard.urls')),
+    path(f'{admin_path}/', include('dashboard.urls')),
 ]
+
+# If ADMIN_LOGIN_PATH is configured to a custom hidden path, keep cdac-admin/ active as well
+if admin_path != 'cdac-admin':
+    urlpatterns.append(path('cdac-admin/', include('dashboard.urls')))
 
 # Serve media files
 urlpatterns += [
