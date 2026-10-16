@@ -261,7 +261,7 @@
     <div class="print-toolbar no-print">
         <div>
             <h2>Statement of Marks (CCC)</h2>
-            <span style="font-size: 0.82rem; color: #64748b;">Registration No: <strong>{{ certificate.registration_number|default:certificate.certificate_id }}</strong></span>
+            <span style="font-size: 0.82rem; color: #64748b;">Registration No: <strong>{{ certificate.certificate_id|default:certificate.registration_number }}</strong></span>
         </div>
         <div class="print-toolbar-btns">
             <a href="?format=pdf" class="btn btn-success" style="padding: 0.45rem 1rem; font-size: 0.88rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">📥 Download PDF</a>
@@ -333,7 +333,7 @@
                 </div>
 
                 <div class="ms-reg-line">
-                    Student Registration No : {{ certificate.registration_number|default:certificate.certificate_id }}
+                    Student Registration No : {{ certificate.certificate_id|default:certificate.registration_number }}
                 </div>
             </div>
 

@@ -806,62 +806,120 @@ def generate_citi_ccc_certificate_pdf(cert):
     c.setLineWidth(0.8)
     c.rect(photo_x, photo_y, photo_w, photo_h, fill=False, stroke=True)
 
-    # 3. Serial Number (right side, x 83% centered, y 14.5% from top)
+    # 3. Serial Number (right edge at about 87.7% of page width, y 14.4% from top, bold, ~12 pt)
     serial_val = (cert.serial_number or '').strip()
     if not serial_val and cert.certificate_id and '-' in cert.certificate_id:
         serial_val = cert.certificate_id.split('-')[-1]
     if serial_val:
         c.setFillColor(colors.black)
-        c.setFont('Helvetica-Bold', 12.5)
-        c.drawCentredString(width * 0.83, height * (1 - 0.145), serial_val)
+        c.setFont('Helvetica-Bold', 12)
+        c.drawRightString(width * 0.877, height * (1 - 0.144) - (12 * 0.35), serial_val)
 
-    # 4. Student Name (x 51% centered, y 51% from top, UPPERCASE, underlined, max width ~62%)
-    student_name = (cert.student_name or '').strip().upper()
-    font_size = 17
-    max_name_w = width * 0.62
-    while c.stringWidth(student_name, 'Helvetica-Bold', font_size) > max_name_w and font_size > 7:
-        font_size -= 0.5
-    c.setFont('Helvetica-Bold', font_size)
+    # Center axis: x = 51% of page width
+    center_x = width * 0.51
+
+    # a. "This is to certify that Mr./ Ms./ Mrs." (y 49.1%, regular, ~13.5 pt)
+    c.setFont('Helvetica', 13.5)
     c.setFillColor(colors.black)
-    name_y = height * (1 - 0.510)
-    c.drawCentredString(width * 0.51, name_y, student_name)
-    nw = c.stringWidth(student_name, 'Helvetica-Bold', font_size)
-    c.setLineWidth(1)
-    c.setStrokeColor(colors.black)
-    c.line(width * 0.51 - nw / 2, name_y - 2, width * 0.51 + nw / 2, name_y - 2)
+    c.drawCentredString(center_x, height * (1 - 0.491) - (13.5 * 0.35), "This is to certify that Mr./ Ms./ Mrs.")
 
-    # 5. Grade letter (x 58.8%, y 65.5%, bold and underlined, inside "He / She has obtained __ Grade.")
-    grade_val = (cert.grade or 'A').strip().upper()
+    # b. Student Name (y 51.8%, bold + underline, ~19 pt, UPPERCASE, max width 70%)
+    student_name = (cert.student_name or '').strip().upper()
+    name_font = 19.0
+    max_name_w = width * 0.70
+    while c.stringWidth(student_name, 'Helvetica-Bold', name_font) > max_name_w and name_font > 8.0:
+        name_font -= 0.5
+    name_y = height * (1 - 0.518) - (name_font * 0.35)
+    c.setFont('Helvetica-Bold', name_font)
+    c.setFillColor(colors.black)
+    c.drawCentredString(center_x, name_y, student_name)
+    nw = c.stringWidth(student_name, 'Helvetica-Bold', name_font)
+    c.setLineWidth(1.2)
+    c.setStrokeColor(colors.black)
+    c.line(center_x - nw / 2.0, name_y - 2.5, center_x + nw / 2.0, name_y - 2.5)
+
+    # c. "has successfully completed" (y 54.9%, regular, ~13.5 pt)
+    c.setFont('Helvetica', 13.5)
+    c.setFillColor(colors.black)
+    c.drawCentredString(center_x, height * (1 - 0.549) - (13.5 * 0.35), "has successfully completed")
+
+    # d. "CERTIFICATE COURSE ON COMPUTER CONCEPTS (CCC)" (y 57.6%, bold, ~13.5 pt)
     c.setFont('Helvetica-Bold', 13.5)
-    grade_y = height * (1 - 0.655)
-    c.drawCentredString(width * 0.588, grade_y, grade_val)
-    gw = c.stringWidth(grade_val, 'Helvetica-Bold', 13.5)
-    c.setLineWidth(1)
+    c.setFillColor(colors.black)
+    c.drawCentredString(center_x, height * (1 - 0.576) - (13.5 * 0.35), "CERTIFICATE COURSE ON COMPUTER CONCEPTS (CCC)")
+
+    # e. "as per govt. GR. No. CRR-10-2007-120320-G5, Dated:13/08/08" (y 60.6%, regular, ~13.5 pt)
+    c.setFont('Helvetica', 13.5)
+    c.setFillColor(colors.black)
+    c.drawCentredString(center_x, height * (1 - 0.606) - (13.5 * 0.35), "as per govt. GR. No. CRR-10-2007-120320-G5, Dated:13/08/08")
+
+    # f. "(Exploring in MS Office Indic 2003 - Gujarati)" (y 63.7%, regular, ~13.5 pt)
+    c.setFont('Helvetica', 13.5)
+    c.setFillColor(colors.black)
+    c.drawCentredString(center_x, height * (1 - 0.637) - (13.5 * 0.35), "(Exploring in MS Office Indic 2003 - Gujarati)")
+
+    # g. "He / She has obtained  <GRADE>  Grade." (y 66.6%, regular, ~13.5 pt, grade bold + underlined inside line)
+    grade_val = (cert.grade or 'A').strip().upper()
+    g_y = height * (1 - 0.666) - (13.5 * 0.35)
+    pre_txt = "He / She has obtained  "
+    grade_txt = f"{grade_val}"
+    post_txt = "  Grade."
+    w_pre = c.stringWidth(pre_txt, 'Helvetica', 13.5)
+    w_grade = c.stringWidth(grade_txt, 'Helvetica-Bold', 13.5)
+    w_post = c.stringWidth(post_txt, 'Helvetica', 13.5)
+    underline_pad = 4.0
+    total_g_w = w_pre + w_grade + (underline_pad * 2) + w_post
+    start_g_x = center_x - (total_g_w / 2.0)
+
+    c.setFont('Helvetica', 13.5)
+    c.setFillColor(colors.black)
+    c.drawString(start_g_x, g_y, pre_txt)
+
+    gx = start_g_x + w_pre + underline_pad
+    c.setFont('Helvetica-Bold', 13.5)
+    c.drawString(gx, g_y, grade_txt)
+    c.setLineWidth(1.2)
     c.setStrokeColor(colors.black)
-    c.line(width * 0.588 - max(gw, 16) / 2, grade_y - 2, width * 0.588 + max(gw, 16) / 2, grade_y - 2)
+    c.line(gx - underline_pad, g_y - 2.5, gx + w_grade + underline_pad, g_y - 2.5)
 
-    # 6. Student registration No.: <reg no> (centered, y 70.3%, bold)
-    reg_val = cert.registration_number or cert.certificate_id
-    c.setFont('Helvetica-Bold', 10.5)
-    c.drawCentredString(width * 0.50, height * (1 - 0.703), f"Student registration No. : {reg_val}")
+    c.setFont('Helvetica', 13.5)
+    c.drawString(gx + w_grade + underline_pad, g_y, post_txt)
 
-    # 7. Verification line (in blank space between address and grade legend, y 75.5%)
+    # h. "Student registration No.: <REG NO>" (y 71.4%, bold, ~13.5 pt)
+    reg_val = cert.certificate_id or cert.registration_number
+    reg_line = f"Student registration No.: {reg_val}"
+    reg_font = 13.5
+    while c.stringWidth(reg_line, 'Helvetica-Bold', reg_font) > width * 0.8 and reg_font > 8:
+        reg_font -= 0.5
+    c.setFont('Helvetica-Bold', reg_font)
+    c.setFillColor(colors.black)
+    c.drawCentredString(center_x, height * (1 - 0.714) - (reg_font * 0.35), reg_line)
+
+    # i. "Exam was conducted at" (y 74.5%, bold, ~13.5 pt)
+    c.setFont('Helvetica-Bold', 13.5)
+    c.setFillColor(colors.black)
+    c.drawCentredString(center_x, height * (1 - 0.745) - (13.5 * 0.35), "Exam was conducted at")
+
+    # j. "F-5, 2nd Floor, Surbhi Complex, Sector - 22, Gandhinagar - 382022." (y 77.4%, regular, ~13.5 pt)
+    c.setFont('Helvetica', 13.5)
+    c.setFillColor(colors.black)
+    c.drawCentredString(center_x, height * (1 - 0.774) - (13.5 * 0.35), "F-5, 2nd Floor, Surbhi Complex, Sector - 22, Gandhinagar - 382022.")
+
+    # verify line (y 81.5%, ~8.5-9 pt, dark gray)
     verify_url = get_certificate_verify_url()
     verify_line = f"This Certificate can be verified on {verify_url}"
-    c.setFillColor(colors.HexColor('#1E293B'))
-    v_font_size = 8
-    max_vw = width * 0.85
-    while c.stringWidth(verify_line, 'Helvetica', v_font_size) > max_vw and v_font_size > 5:
-        v_font_size -= 0.5
-    c.setFont('Helvetica', v_font_size)
-    c.drawCentredString(width * 0.50, height * (1 - 0.755), verify_line)
+    c.setFont('Helvetica', 8.5)
+    c.setFillColor(colors.HexColor('#334155'))
+    c.drawCentredString(center_x, height * (1 - 0.815) - (8.5 * 0.35), verify_line)
 
-    # 8. Date (DD.MM.YYYY, x 40%, y 89.2% from top, after printed "Date :" label)
-    if cert.issue_date:
-        date_str = cert.issue_date.strftime('%d.%m.%Y')
-        c.setFont('Helvetica-Bold', 11)
-        c.setFillColor(colors.black)
-        c.drawString(width * 0.40, height * (1 - 0.892), date_str)
+    # Bottom-left Date / Place block (left edge x 27.4%, Date at y 90.8%, Place at y 92.9%, bold, ~14 pt)
+    left_dp_x = width * 0.274
+    date_str = cert.issue_date.strftime('%d.%m.%Y') if cert.issue_date else ''
+    c.setFont('Helvetica-Bold', 14)
+    c.setFillColor(colors.black)
+    if date_str:
+        c.drawString(left_dp_x, height * (1 - 0.908) - (14 * 0.35), f"Date  : {date_str}")
+    c.drawString(left_dp_x, height * (1 - 0.929) - (14 * 0.35), "Place: Gandhinagar")
 
     c.save()
     buf.seek(0)
@@ -986,7 +1044,7 @@ def generate_citi_marksheet_pdf(cert):
 
     reg_y = gr_y - 32
     c.setFont('Helvetica-Bold', 10)
-    reg_no = cert.registration_number or cert.certificate_id
+    reg_no = cert.certificate_id or cert.registration_number
     c.drawString(left_m, reg_y, f"Student's Registration No.: {reg_no}")
 
     # 6. Side-by-side Section: GRADE LEGEND (Left) & Obtained Summary (Right)
