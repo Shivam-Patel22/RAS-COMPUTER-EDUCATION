@@ -259,11 +259,11 @@ class CoreTestCase(TestCase):
         self.assertNotContains(response, "<script>alert('xss')</script>")
         self.assertContains(response, "&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;")
 
-    def test_navbar_reviews_link(self):
+    def test_navbar_reviews_link_not_in_header(self):
         response = self.client.get(reverse('core:home'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'href="/#reviews"')
-        self.assertContains(response, '>Reviews<')
+        self.assertNotContains(response, 'class="nav-link">Reviews<')
+
 
     def test_homepage_reviews_section_renders(self):
         from core.models import JustdialReview
