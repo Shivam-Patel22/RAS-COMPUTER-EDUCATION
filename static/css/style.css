@@ -772,6 +772,16 @@ textarea.form-control {
     text-align: left;
 }
 
+.cert-verify-line {
+    font-size: clamp(0.72rem, 1.2cqw, 0.85rem);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+    color: var(--gray-600, #475569);
+    font-family: var(--font-main, sans-serif);
+}
+
 /* Footer */
 .footer {
     background: var(--dark-surface);

@@ -457,6 +457,26 @@ def _format_ordinal_date(d):
     return f"{day}{suffix} {d.strftime('%b')}."
 
 
+def get_certificate_verify_url():
+    """
+    Returns the absolute URL for the Certificate Verification page.
+    Configured via settings.SITE_BASE_URL (or os.environ.get('SITE_BASE_URL')).
+    Guarantees no double slashes.
+    """
+    import os
+    from django.conf import settings
+    from django.urls import reverse
+    base = getattr(settings, 'SITE_BASE_URL', os.environ.get('SITE_BASE_URL', 'http://localhost:8000'))
+    if not base:
+        base = 'http://localhost:8000'
+    base = str(base).strip().rstrip('/')
+    try:
+        path = reverse('certificates:verify')
+    except Exception:
+        path = '/verify-certificate/'
+    return f"{base}/{path.lstrip('/')}"
+
+
 def generate_ras_certificate_pdf(cert):
     """
     Generates a high-quality A4 landscape PDF in memory for an RAS institute certificate
@@ -538,6 +558,17 @@ def generate_ras_certificate_pdf(cert):
         date_str = cert.issue_date.strftime('%d.%m.%Y')
         c.setFont('Helvetica', 11)
         c.drawCentredString(page_w * 0.235, page_h * (1 - 0.713), date_str)
+
+    # 8. Certificate Verification Line (dynamic text between Date/Signatory row and grade scale)
+    verify_url = get_certificate_verify_url()
+    verify_line = f"This Certificate can be verified on {verify_url}"
+    c.setFillColor(colors.HexColor('#1E293B'))
+    font_size = 9
+    max_w = page_w * 0.85
+    while c.stringWidth(verify_line, 'Helvetica', font_size) > max_w and font_size > 5:
+        font_size -= 0.5
+    c.setFont('Helvetica', font_size)
+    c.drawCentredString(page_w * 0.50, page_h * (1 - 0.782), verify_line)
 
     # Authority Signatory: left empty per requirements
 
@@ -662,6 +693,17 @@ def generate_ccc_certificate_pdf(cert):
     c.setFillColor(colors.HexColor('#64748B'))
     c.setFont('Helvetica', 8)
     c.drawCentredString(width * 0.76, 116, 'Director of Academic Affairs')
+
+    # 5. Certificate Verification Line
+    verify_url = get_certificate_verify_url()
+    verify_line = f"This Certificate can be verified on {verify_url}"
+    c.setFillColor(colors.HexColor('#475569'))
+    font_size = 8
+    max_w = width - 120
+    while c.stringWidth(verify_line, 'Helvetica', font_size) > max_w and font_size > 5:
+        font_size -= 0.5
+    c.setFont('Helvetica', font_size)
+    c.drawCentredString(width / 2, 48, verify_line)
 
     c.save()
     buf.seek(0)
@@ -826,6 +868,17 @@ def generate_certificate_pdf(cert):
     c.setFillColor(colors.HexColor('#64748B'))
     c.setFont('Helvetica', 8)
     c.drawRightString(width - 60, 135, 'Director of Academic Affairs')
+
+    # Verification Line (centered above metadata bar)
+    verify_url = get_certificate_verify_url()
+    verify_line = f"This Certificate can be verified on {verify_url}"
+    c.setFillColor(colors.HexColor('#475569'))
+    font_size = 8.5
+    max_w = width - 120
+    while c.stringWidth(verify_line, 'Helvetica', font_size) > max_w and font_size > 5:
+        font_size -= 0.5
+    c.setFont('Helvetica', font_size)
+    c.drawCentredString(width / 2, 82, verify_line)
 
     # Metadata Bar at Bottom
     c.setFillColor(colors.HexColor('#F8FAFC'))

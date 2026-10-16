@@ -1117,6 +1117,147 @@ class CertificateSequenceAndRandomCodeTestCase(TestCase):
         self.assertEqual(reg.status, 'active')
 
 
+class CertificateVerificationUrlTests(TestCase):
+    def setUp(self):
+        self.course = Course.objects.create(
+            name='Mastering Python & Django',
+            duration='3 Months',
+            fee=5000.00
+        )
+        self.ccc_course = Course.objects.create(
+            name='Course on Computer Concepts (CCC)',
+            duration='3 Months (80 Hours)',
+            fee=3500.00
+        )
+        self.admin = User.objects.create_superuser(
+            username='admin_test',
+            email='admin@test.com',
+            password='Password123!'
+        )
+
+        # Standard layout certificate
+        self.cert_standard = Certificate.objects.create(
+            certificate_id='CITI-2026-10-JS-582914-1001',
+            student_name='Jane Student',
+            course=self.course,
+            issue_date=date(2026, 10, 1),
+            grade='A'
+        )
+
+        # RAS layout certificate
+        self.cert_ras = Certificate.objects.create(
+            certificate_id='RAS-2026-10-DV-482716-1001',
+            student_name='Divyaraj Vihol',
+            course=self.course,
+            course_start_date=date(2026, 6, 1),
+            course_end_date=date(2026, 9, 1),
+            issue_date=date(2026, 10, 1),
+            grade='A+'
+        )
+
+        # CCC layout certificate
+        self.cert_ccc = Certificate.objects.create(
+            certificate_id='CITI-2026-10-RP-392817-1002',
+            student_name='Rahul Patel',
+            course=self.ccc_course,
+            course_start_date=date(2026, 6, 1),
+            course_end_date=date(2026, 9, 1),
+            issue_date=date(2026, 10, 1),
+            grade='A'
+        )
+
+    def test_get_certificate_verify_url_helper(self):
+        from certificates.utils import get_certificate_verify_url
+        from django.test import override_settings
+
+        # Default localhost
+        with override_settings(SITE_BASE_URL='http://localhost:8000'):
+            url = get_certificate_verify_url()
+            self.assertEqual(url, 'http://localhost:8000/verify-certificate/')
+            self.assertNotIn('//verify', url)
+
+        # Trailing slash handled properly (no double slashes)
+        with override_settings(SITE_BASE_URL='http://localhost:8000/'):
+            url = get_certificate_verify_url()
+            self.assertEqual(url, 'http://localhost:8000/verify-certificate/')
+            self.assertNotIn('http://localhost:8000//', url)
+
+        # Production live URL
+        with override_settings(SITE_BASE_URL='https://www.rascomputer.com'):
+            url = get_certificate_verify_url()
+            self.assertEqual(url, 'https://www.rascomputer.com/verify-certificate/')
+
+    def test_verification_line_in_public_result_page(self):
+        url = reverse('certificates:verify')
+
+        # 1. Standard certificate
+        resp = self.client.post(url, {'certificate_id': self.cert_standard.certificate_id})
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'This Certificate can be verified on')
+        self.assertContains(resp, 'http://localhost:8000/verify-certificate/')
+
+        # 2. RAS certificate
+        resp = self.client.post(url, {'certificate_id': self.cert_ras.certificate_id})
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'This Certificate can be verified on')
+        self.assertContains(resp, 'ras-verify-line')
+        self.assertContains(resp, 'http://localhost:8000/verify-certificate/')
+
+        # 3. CCC certificate
+        resp = self.client.post(url, {'certificate_id': self.cert_ccc.certificate_id})
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'This Certificate can be verified on')
+        self.assertContains(resp, 'http://localhost:8000/verify-certificate/')
+
+    def test_verification_line_in_admin_print_page(self):
+        self.client.login(username='admin_test', password='Password123!')
+
+        # 1. Standard certificate
+        url = reverse('dashboard:print_certificate', args=[self.cert_standard.id])
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'This Certificate can be verified on')
+        self.assertContains(resp, 'http://localhost:8000/verify-certificate/')
+
+        # 2. RAS certificate
+        url = reverse('dashboard:print_certificate', args=[self.cert_ras.id])
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'This Certificate can be verified on')
+        self.assertContains(resp, 'ras-verify-line')
+        self.assertContains(resp, 'http://localhost:8000/verify-certificate/')
+
+        # 3. CCC certificate
+        url = reverse('dashboard:print_certificate', args=[self.cert_ccc.id])
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'This Certificate can be verified on')
+        self.assertContains(resp, 'ccc-verify-line')
+        self.assertContains(resp, 'http://localhost:8000/verify-certificate/')
+
+    def test_pdf_generators_include_verification_line(self):
+        from certificates.utils import (
+            generate_ras_certificate_pdf,
+            generate_ccc_certificate_pdf,
+            generate_certificate_pdf,
+        )
+
+        # 1. RAS PDF
+        ras_pdf = generate_ras_certificate_pdf(self.cert_ras)
+        self.assertTrue(ras_pdf.startswith(b'%PDF'))
+        self.assertGreater(len(ras_pdf), 1000)
+
+        # 2. CCC PDF
+        ccc_pdf = generate_ccc_certificate_pdf(self.cert_ccc)
+        self.assertTrue(ccc_pdf.startswith(b'%PDF'))
+        self.assertGreater(len(ccc_pdf), 1000)
+
+        # 3. Standard C-DAC PDF
+        std_pdf = generate_certificate_pdf(self.cert_standard)
+        self.assertTrue(std_pdf.startswith(b'%PDF'))
+        self.assertGreater(len(std_pdf), 1000)
+
+
 
 
 

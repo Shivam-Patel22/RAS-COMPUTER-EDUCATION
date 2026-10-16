@@ -100,6 +100,10 @@
             </div>
         </div>
 
+        <div class="cert-verify-line" style="text-align: center; font-size: 0.85rem; color: #475569; margin-top: 1.25rem; font-family: var(--font-main, sans-serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            This Certificate can be verified on {{ certificate_verify_url }}
+        </div>
+
         <div style="margin-top: 2rem; padding-top: 1.25rem; border-top: 1px dashed var(--gray-200); display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
             <a href="{% url 'dashboard:admin_verify_search' %}" class="btn btn-outline-dark">&larr; Verify Another Certificate</a>
             <a href="{% url 'dashboard:print_certificate' certificate.id %}" target="_blank" class="btn btn-primary">🖨️ Print / Save Certificate</a>

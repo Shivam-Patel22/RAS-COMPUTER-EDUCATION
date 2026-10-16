@@ -102,6 +102,7 @@ TEMPLATES = [
                 'dashboard.context_processors.inquiry_notifications',
                 'courses.context_processors.latest_offers',
                 'core.context_processors.site_content',
+                'certificates.context_processors.certificate_settings',
             ],
         },
     },
@@ -189,5 +190,10 @@ JUSTDIAL_PAGE_URL = getattr(
     'JUSTDIAL_PAGE_URL',
     'https://www.justdial.com/Gandhinagar-Gujarat/Ras-Computer-Education-Near-Gh-5-Gandhinagar-Sector-22/9999PXX79-XX79-121008204400-M3T4_BZDET'
 )
+
+# --------------------------------------------------------------------------
+# Certificate Verification Base URL Configuration
+# --------------------------------------------------------------------------
+SITE_BASE_URL = os.environ.get("SITE_BASE_URL", "http://localhost:8000")
 
 

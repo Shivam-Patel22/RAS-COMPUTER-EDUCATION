@@ -113,6 +113,19 @@
         font-size: 1.4cqw;
     }
 
+    .ras-verify-line {
+        left: 50%;
+        top: 78%;
+        font-weight: 500;
+        font-size: 11px;
+        font-size: 1.15cqw;
+        color: #1e293b;
+        letter-spacing: 0.2px;
+        max-width: 90%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
     @page {
         size: A4 landscape;
         margin: 0mm;
@@ -173,6 +186,7 @@
         .ras-period-from, .ras-period-to, .ras-year { font-size: 12pt !important; }
         .ras-grade { font-size: 14pt !important; }
         .ras-issue-date { font-size: 12pt !important; }
+        .ras-verify-line { font-size: 9.5pt !important; }
     }
 </style>
 <script>
@@ -225,6 +239,9 @@
 
             <!-- 7. Issue Date: x 23.5%, y 70.5% -->
             <div class="ras-field ras-issue-date">{{ certificate.issue_date|date:"d.m.Y" }}</div>
+
+            <!-- 8. Verification Line: x 50%, y 78% -->
+            <div class="ras-field cert-verify-line ras-verify-line">This Certificate can be verified on {{ certificate_verify_url }}</div>
         </div>
     </div>
     {% elif certificate.is_ccc %}
@@ -274,6 +291,10 @@
                 <strong style="font-size: 1.05rem; color: var(--success);">Valid & Active</strong>
             </div>
         </div>
+
+        <div class="cert-verify-line" style="text-align: center; font-size: 0.85rem; color: #475569; margin-top: 1.25rem; font-family: var(--font-main, sans-serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            This Certificate can be verified on {{ certificate_verify_url }}
+        </div>
     </div>
     {% else %}
     <!-- Official Certificate Render Box (Standard C-DAC layout for other courses) -->
@@ -319,6 +340,10 @@
                 <span style="font-size: 0.8rem; color: var(--gray-500); display: block; text-transform: uppercase;">Status</span>
                 <strong style="font-size: 1.05rem; color: var(--success);">Valid & Active</strong>
             </div>
+        </div>
+
+        <div class="cert-verify-line" style="text-align: center; font-size: 0.85rem; color: #475569; margin-top: 1.25rem; font-family: var(--font-main, sans-serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            This Certificate can be verified on {{ certificate_verify_url }}
         </div>
     </div>
     {% endif %}

@@ -5,7 +5,7 @@ from django.views.decorators.cache import never_cache
 from django.utils.text import slugify
 from .forms import CertificateVerificationForm
 from .models import Certificate
-from .utils import generate_certificate_pdf
+from .utils import generate_certificate_pdf, get_certificate_verify_url
 
 @csrf_exempt
 @never_cache
@@ -38,7 +38,8 @@ def verify(request):
     if certificate:
         return render(request, 'certificates/result.html', {
             'certificate': certificate,
-            'form': form
+            'form': form,
+            'certificate_verify_url': get_certificate_verify_url(),
         })
 
     return render(request, 'certificates/verify.html', {

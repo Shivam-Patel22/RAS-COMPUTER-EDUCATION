@@ -36,6 +36,7 @@ from certificates.utils import (
     get_next_certificate_sequence,
     peek_next_certificate_sequence,
     generate_certificate_pdf,
+    get_certificate_verify_url,
     build_safe_certificate_filename,
     FilenameDeduplicator,
     parse_date_input,
@@ -752,6 +753,7 @@ def print_certificate(request, pk):
     context = {
         'certificate': cert,
         'verification_url': verification_url,
+        'certificate_verify_url': get_certificate_verify_url(),
     }
     return render(request, 'dashboard/print_certificate.html', context)
 
@@ -804,6 +806,7 @@ def admin_verify_search(request):
         'certificate': certificate,
         'cert_id': cert_id,
         'error_message': error_message,
+        'certificate_verify_url': get_certificate_verify_url(),
     }
     return render(request, 'dashboard/admin_verify_certificate.html', context)
 

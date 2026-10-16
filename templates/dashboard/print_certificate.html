@@ -533,6 +533,42 @@
             font-size: 1.4cqw;
         }
 
+        .cert-verify-line {
+            font-size: clamp(0.72rem, 1.2cqw, 0.85rem);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+        }
+
+        .ras-verify-line {
+            left: 50%;
+            top: 78%;
+            font-weight: 500;
+            font-size: 11px;
+            font-size: 1.15cqw;
+            color: #1e293b;
+            letter-spacing: 0.2px;
+            max-width: 90%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ccc-verify-line {
+            position: absolute;
+            bottom: 5.5%;
+            left: 5%;
+            width: 90%;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #475569;
+            font-family: var(--font-main, sans-serif);
+            z-index: 2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         /* Print Media Queries */
         {% if certificate.prefix == 'RAS' %}
         @page {
@@ -650,6 +686,12 @@
             .ras-issue-date {
                 font-size: 12pt !important;
             }
+            .ras-verify-line {
+                font-size: 9.5pt !important;
+            }
+            .ccc-verify-line {
+                font-size: 8pt !important;
+            }
         }
     </style>
 </head>
@@ -699,6 +741,9 @@
 
             <!-- 7. Issue Date: x 23.5%, y 70.5% -->
             <div class="ras-field ras-issue-date">{{ certificate.issue_date|date:"d.m.Y" }}</div>
+
+            <!-- 8. Verification Line: x 50%, y 78% -->
+            <div class="ras-field cert-verify-line ras-verify-line">This Certificate can be verified on {{ certificate_verify_url }}</div>
         </div>
     </div>
     {% elif certificate.is_ccc %}
@@ -747,6 +792,9 @@
                 <div class="ccc-sig-line">Dr. P. K. Sharma</div>
                 <div class="ccc-sig-title">Director of Academic Affairs</div>
             </div>
+
+            <!-- 5. Verification Line -->
+            <div class="cert-verify-line ccc-verify-line">This Certificate can be verified on {{ certificate_verify_url }}</div>
         </div>
     </div>
     {% else %}
@@ -807,6 +855,11 @@
                     <div class="cert-sig-title">Authorized Signatory</div>
                     <div class="cert-sig-sub">Director of Academic Affairs</div>
                 </div>
+            </div>
+
+            <!-- Verification Line -->
+            <div class="cert-verify-line" style="margin: 1.25rem auto 0.75rem; text-align: center; font-size: 0.82rem; color: #475569; font-family: var(--font-main, sans-serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                This Certificate can be verified on {{ certificate_verify_url }}
             </div>
 
             <!-- Metadata Bar -->
