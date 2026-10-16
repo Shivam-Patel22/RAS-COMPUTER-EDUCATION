@@ -21,14 +21,24 @@ def main():
 
         try:
             # Ensure official social media links are populated for local development
+            social_code = (
+                "from core.models import ContactContent\n"
+                "c = ContactContent.get_solo()\n"
+                "changed = False\n"
+                "if not c.instagram_url:\n"
+                "    c.instagram_url = 'https://www.instagram.com/ras_computer_education/'\n"
+                "    c.instagram_username = 'ras_computer_education'\n"
+                "    changed = True\n"
+                "if not c.facebook_url:\n"
+                "    c.facebook_url = 'https://www.facebook.com/RASeducationgnr/'\n"
+                "    c.facebook_name = 'RASeducationgnr'\n"
+                "    changed = True\n"
+                "if changed:\n"
+                "    c.save()\n"
+                "    print('[Auto-Config] Official Instagram & Facebook links initialized.')\n"
+            )
             subprocess.run([
-                sys.executable, sys.argv[0], "shell", "-c",
-                "from core.models import ContactContent; "
-                "c = ContactContent.get_solo(); "
-                "changed = False; "
-                "if not c.instagram_url: c.instagram_url = 'https://www.instagram.com/ras_computer_education/'; c.instagram_username = 'ras_computer_education'; changed = True; "
-                "if not c.facebook_url: c.facebook_url = 'https://www.facebook.com/RASeducationgnr/'; c.facebook_name = 'RASeducationgnr'; changed = True; "
-                "if changed: c.save(); print('[Auto-Config] Official Instagram & Facebook links initialized.')"
+                sys.executable, sys.argv[0], "shell", "-c", social_code
             ], check=False)
         except Exception:
             pass
