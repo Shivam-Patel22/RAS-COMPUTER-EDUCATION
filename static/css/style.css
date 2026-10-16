@@ -1377,8 +1377,39 @@ textarea.form-control {
     border-bottom-color: #3A3B3E;
 }
 
-[data-theme="dark"] .custom-table tr:hover td {
-    background: #3A3B3E;
+/* CITI CCC Dedicated Admin Fields - Theme Support */
+#citi-fields-container {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+}
+
+[data-theme="dark"] #citi-fields-container {
+    background: #2a2b2e !important;
+    border-color: #4a4b4e !important;
+}
+
+[data-theme="dark"] #citi-fields-container h4 {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #citi-fields-container label {
+    color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] #citi-fields-container small {
+    color: #cbd5e1 !important;
+}
+
+#citi-marks-summary {
+    background: var(--card-bg, #ffffff);
+    border: 1px dashed var(--gray-300, #94a3b8);
+    color: var(--gray-800, #334155);
+}
+
+[data-theme="dark"] #citi-marks-summary {
+    background: #211F1C !important;
+    border-color: #5a5b5e !important;
+    color: #e2e8f0 !important;
 }
 
 .category-badge {
