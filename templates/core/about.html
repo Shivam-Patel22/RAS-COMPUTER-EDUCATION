@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container">
-    <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+    <div class="page-header animate__animated animate__fadeInDown" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
         <div>
             <h1 class="page-title">
                 {% if about_content and about_content.heading %}{{ about_content.heading }}{% else %}About C-DAC{% endif %}
@@ -13,7 +13,7 @@
         </div>
     </div>
 
-    <div class="card" style="margin-bottom: 2.5rem; padding: 2.5rem;">
+    <div class="card animate__animated animate__fadeInUp" style="margin-bottom: 2.5rem; padding: 2.5rem;">
         <h2 style="margin-bottom: 1rem; color: var(--primary);">{% if about_content and about_content.mission_title %}{{ about_content.mission_title }}{% else %}Our Mission{% endif %}</h2>
         <p style="font-size: 1.1rem; color: var(--gray-700); line-height: 1.8; margin-bottom: 1.5rem;">
             {% if about_content and about_content.description %}{{ about_content.description }}{% else %}At the Centre for Development of Advanced Computing (C-DAC), our mission is to carry out R&D in IT, Electronics and associated areas, empowering students and professionals with high-end IT education.{% endif %}
@@ -35,7 +35,7 @@
         </div>
     </div>
 
-    <div class="grid grid-2">
+    <div class="grid grid-2 animate__animated animate__fadeInUp anim-delay-2">
         <div class="card">
             <h3>🏢 Campus Facilities</h3>
             <ul style="margin-top: 1rem; line-height: 2;">

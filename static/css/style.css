@@ -2515,6 +2515,32 @@ textarea.form-control {
     transform: translateY(-1px);
 }
 
+/* ==========================================================================
+   Animate.css Custom Tuning & Accessibility
+   ========================================================================== */
+:root {
+    --animate-duration: 0.5s;
+    --animate-delay: 0.15s;
+}
+
+/* Subtle, snappy stagger animation delay helper classes */
+.anim-delay-1 { animation-delay: 0.08s !important; }
+.anim-delay-2 { animation-delay: 0.16s !important; }
+.anim-delay-3 { animation-delay: 0.24s !important; }
+.anim-delay-4 { animation-delay: 0.32s !important; }
+.anim-delay-5 { animation-delay: 0.40s !important; }
+.anim-delay-6 { animation-delay: 0.48s !important; }
+
+/* Strictly Respect Reduced-Motion Preferences & Print */
+@media (prefers-reduced-motion: reduce), print {
+    .animate__animated {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+    }
+}
+
+
 
 
 

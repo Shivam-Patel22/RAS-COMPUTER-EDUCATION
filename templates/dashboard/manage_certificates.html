@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div class="animate__animated animate__fadeInDown" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
         <div>
             <h1 class="page-title" style="text-align: left; margin-bottom: 0.25rem;">Manage Certificates</h1>
             <p class="page-subtitle" style="text-align: left;">Issue, edit, verify, print, and manage verified student certificates.</p>
@@ -16,7 +16,7 @@
     </div>
 
     <!-- Date Range Filter & Excel Export Bar -->
-    <div class="card" style="margin-bottom: 1.75rem; padding: 1.25rem 1.5rem; background: var(--card-bg, #ffffff); border-radius: var(--radius-md, 10px); border: 1px solid var(--gray-200, #e2e8f0);">
+    <div class="card animate__animated animate__fadeInUp" style="margin-bottom: 1.75rem; padding: 1.25rem 1.5rem; background: var(--card-bg, #ffffff); border-radius: var(--radius-md, 10px); border: 1px solid var(--gray-200, #e2e8f0);">
         <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1.5rem;">
             <!-- Filter Search Form -->
             <form method="GET" action="{% url 'dashboard:manage_certificates' %}" style="display: flex; align-items: flex-end; gap: 1rem; flex-wrap: wrap;">
@@ -64,7 +64,7 @@
     {% endif %}
 
     {% if certificates %}
-    <div class="table-container">
+    <div class="table-container animate__animated animate__fadeInUp anim-delay-1">
         <table class="custom-table">
             <thead>
                 <tr>

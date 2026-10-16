@@ -190,7 +190,7 @@
 
 {% block content %}
 <div class="container">
-    <div class="no-print" style="text-align: center; margin-bottom: 2rem;">
+    <div class="no-print animate__animated animate__fadeInDown" style="text-align: center; margin-bottom: 2rem;">
         <span class="badge badge-success" style="font-size: 1rem; padding: 0.5rem 1.25rem; margin-bottom: 1rem;">
             ✓ VERIFIED AUTHENTIC CERTIFICATE
         </span>
@@ -323,7 +323,7 @@
     </div>
     {% endif %}
 
-    <div class="no-print" style="text-align: center; margin-top: 2.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+    <div class="no-print animate__animated animate__fadeInUp anim-delay-1" style="text-align: center; margin-top: 2.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
         <a href="{% url 'certificates:verify' %}" class="btn btn-outline-dark">&larr; Verify Another Certificate</a>
         <a href="{% url 'certificates:download_certificate_pdf' certificate.certificate_id %}" class="btn btn-success" style="display: inline-flex; align-items: center; gap: 0.4rem;">📥 Download PDF</a>
         <button onclick="window.print();" class="btn btn-primary">🖨️ Print / Save Certificate</button>

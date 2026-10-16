@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container">
-    <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+    <div class="page-header animate__animated animate__fadeInDown" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
         <div>
             <h1 class="page-title">
                 Contact C-DAC
@@ -14,7 +14,7 @@
     </div>
 
     <div class="grid grid-2" style="align-items: stretch; margin-bottom: 2.5rem;">
-        <div class="form-card" style="margin: 0; max-width: 100%;">
+        <div class="form-card animate__animated animate__fadeInUp" style="margin: 0; max-width: 100%;">
             <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Inquiry Form</h2>
             <form method="post" action="{% url 'core:contact' %}" data-validate="true">
                 {% csrf_token %}
@@ -71,7 +71,7 @@
 
         </div>
 
-        <div style="display: flex; flex-direction: column; justify-content: space-between; height: 100%; gap: 1.5rem;">
+        <div class="animate__animated animate__fadeInUp anim-delay-1" style="display: flex; flex-direction: column; justify-content: space-between; height: 100%; gap: 1.5rem;">
             <div class="card">
                 <h3 style="margin-bottom: 1rem;">📍 Location &amp; Address</h3>
                 <p style="color: var(--gray-600); line-height: 1.7;">
@@ -272,7 +272,7 @@
          JUSTDIAL REVIEWS SECTION
     ════════════════════════════════════════════════ -->
     {% if reviews %}
-    <section class="ras-reviews-section" style="margin-top: 1rem; margin-bottom: 3rem;">
+    <section class="ras-reviews-section animate__animated animate__fadeInUp" style="margin-top: 1rem; margin-bottom: 3rem;">
         <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--gray-200); padding-bottom: 0.75rem;">
             <div>
                 <span style="display: inline-block; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #ff5a00; margin-bottom: 0.25rem;">Student Feedback</span>
@@ -293,7 +293,7 @@
 
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem;">
             {% for review in reviews %}
-            <div class="card ras-review-card" style="display: flex; flex-direction: column; justify-content: space-between; height: 100%; border: 1px solid var(--gray-200); border-radius: 12px; padding: 1.25rem; background: var(--card-bg, #ffffff); box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: transform 0.2s ease, box-shadow 0.2s ease;">
+            <div class="card ras-review-card animate__animated animate__fadeInUp anim-delay-{{ forloop.counter }}" style="display: flex; flex-direction: column; justify-content: space-between; height: 100%; border: 1px solid var(--gray-200); border-radius: 12px; padding: 1.25rem; background: var(--card-bg, #ffffff); box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: transform 0.2s ease, box-shadow 0.2s ease;">
                 <div>
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.5rem;">
                         <div>
