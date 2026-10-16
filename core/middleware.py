@@ -1,0 +1,54 @@
+import time
+from django.shortcuts import redirect
+from django.contrib import messages
+from django.contrib.auth import logout as auth_logout
+from django.urls import reverse
+
+class AdminSessionSecurityMiddleware:
+    """
+    Middleware providing strict session security exclusively for the Admin Panel:
+    1. Enforces an absolute 1-hour (3600s) timeout limit from initial login.
+    2. Attaches strict no-cache headers to prevent bfcache / history reloads.
+    3. Leaves public website and student authentication completely unaffected.
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        path = request.path_info
+        is_admin_path = path.startswith('/cdac-admin/') or path.startswith('/django-admin/')
+
+        if is_admin_path:
+            # Check 1-hour absolute session timeout for authenticated staff users
+            user = getattr(request, 'user', None)
+            if user and user.is_authenticated and user.is_staff:
+                try:
+                    login_path = reverse('dashboard:login')
+                    logout_path = reverse('dashboard:logout')
+                    beacon_path = reverse('dashboard:beacon_logout')
+                    excluded_paths = {login_path, logout_path, beacon_path}
+                except Exception:
+                    excluded_paths = {'/cdac-admin/', '/cdac-admin/logout/', '/cdac-admin/beacon-logout/'}
+
+                if path not in excluded_paths:
+                    login_time = request.session.get('admin_login_time')
+                    now = time.time()
+                    if login_time:
+                        if now - login_time > 3600:
+                            request.session.flush()
+                            auth_logout(request)
+                            messages.warning(request, "Your admin session has expired after 1 hour. Please log in again.", fail_silently=True)
+                            return redirect('dashboard:login')
+                    else:
+                        # Initialize login_time if missing (e.g. established sessions or automated tests)
+                        request.session['admin_login_time'] = now
+
+        response = self.get_response(request)
+
+        # Invalidate browser cache on all admin pages to prevent back/forward cache (bfcache) leakage
+        if is_admin_path:
+            response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+            response['Pragma'] = 'no-cache'
+            response['Expires'] = '0'
+
+        return response

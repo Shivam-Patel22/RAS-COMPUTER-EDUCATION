@@ -194,3 +194,77 @@ class AdminAccountSettingsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context['password_form'].has_error('new_password'))
 
+
+import time
+from django.conf import settings
+
+class AdminAutoLogoutSecurityTestCase(TestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_user(
+            username='admin_security_test',
+            email='security@cdac.test',
+            password='StrongSecurityPassword123!',
+            is_staff=True
+        )
+
+    def test_security_settings_configured(self):
+        self.assertTrue(settings.SESSION_EXPIRE_AT_BROWSER_CLOSE)
+        self.assertEqual(settings.SESSION_COOKIE_AGE, 3600)
+        self.assertFalse(settings.SESSION_SAVE_EVERY_REQUEST)
+        self.assertTrue(settings.SESSION_COOKIE_HTTPONLY)
+        self.assertEqual(settings.SESSION_COOKIE_SAMESITE, 'Lax')
+
+    def test_no_cache_headers_on_admin_pages(self):
+        self.client.login(username='admin_security_test', password='StrongSecurityPassword123!')
+        response = self.client.get(reverse('dashboard:index'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('no-store', response.headers.get('Cache-Control', ''))
+        self.assertIn('no-cache', response.headers.get('Cache-Control', ''))
+        self.assertEqual(response.headers.get('Pragma'), 'no-cache')
+        self.assertEqual(response.headers.get('Expires'), '0')
+
+    def test_no_cache_headers_not_on_public_pages(self):
+        response = self.client.get(reverse('core:home'))
+        self.assertEqual(response.status_code, 200)
+        cache_control = response.headers.get('Cache-Control', '')
+        self.assertNotIn('no-store', cache_control)
+
+    def test_beacon_logout_endpoint(self):
+        self.client.login(username='admin_security_test', password='StrongSecurityPassword123!')
+        url = reverse('dashboard:beacon_logout')
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 204)
+
+        # Subsequent dashboard request must be redirected to login
+        dash_response = self.client.get(reverse('dashboard:index'))
+        self.assertRedirects(dash_response, reverse('dashboard:login'))
+
+    def test_absolute_one_hour_timeout(self):
+        self.client.login(username='admin_security_test', password='StrongSecurityPassword123!')
+        
+        # Set session admin_login_time to 3601 seconds ago (exceeded 1 hour)
+        session = self.client.session
+        session['admin_login_time'] = time.time() - 3601
+        session.save()
+
+        # Next request must be logged out and redirected to login
+        response = self.client.get(reverse('dashboard:index'))
+        self.assertRedirects(response, reverse('dashboard:login'))
+
+        # Check session was invalidated
+        dash_response = self.client.get(reverse('dashboard:index'))
+        self.assertRedirects(dash_response, reverse('dashboard:login'))
+
+    def test_active_session_under_one_hour_not_logged_out(self):
+        self.client.login(username='admin_security_test', password='StrongSecurityPassword123!')
+        
+        # Set session admin_login_time to 1800 seconds ago (30 minutes)
+        session = self.client.session
+        session['admin_login_time'] = time.time() - 1800
+        session.save()
+
+        # Request succeeds
+        response = self.client.get(reverse('dashboard:index'))
+        self.assertEqual(response.status_code, 200)
+
+

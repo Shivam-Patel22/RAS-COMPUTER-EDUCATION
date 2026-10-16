@@ -220,29 +220,65 @@
     {% if request.user.is_authenticated and request.user.is_staff and request.resolver_match.url_name != 'login' %}
     <script>
         (function() {
-            const ONE_HOUR_MS = 3600000; // 1 hour (3600 seconds)
+            // 1. bfcache handler: Force a reload if page is restored from Back/Forward cache
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) {
+                    window.location.reload();
+                }
+            });
 
-            // Track session timestamp in sessionStorage (cleared when browser/tab is closed)
+            // 2. Track internal navigation to avoid sending beacon when navigating between admin pages
+            let isInternalNavigation = false;
+
+            document.addEventListener('click', function(e) {
+                const link = e.target.closest('a');
+                if (link && link.href) {
+                    const href = link.getAttribute('href');
+                    // Only treat valid page transitions (not hash anchors or JS links) as internal navigation
+                    if (href && !href.startsWith('#') && !href.startsWith('javascript:') && link.target !== '_blank') {
+                        isInternalNavigation = true;
+                    }
+                }
+            }, true);
+
+            document.addEventListener('submit', function() {
+                isInternalNavigation = true;
+            }, true);
+
+            // 3. Tab/window close handler via pagehide & sendBeacon
+            window.addEventListener('pagehide', function() {
+                if (!isInternalNavigation) {
+                    const beaconUrl = "{% url 'dashboard:beacon_logout' %}";
+                    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+                    const csrfToken = csrfInput ? csrfInput.value : "{{ csrf_token }}";
+                    if (navigator.sendBeacon && beaconUrl) {
+                        const formData = new FormData();
+                        formData.append('csrfmiddlewaretoken', csrfToken);
+                        navigator.sendBeacon(beaconUrl, formData);
+                    }
+                }
+            });
+
+            // 4. Absolute 1-hour auto-logout timer
+            const ONE_HOUR_MS = 3600000; // 1 hour (3600 seconds)
             if (!sessionStorage.getItem('admin_login_timestamp')) {
                 sessionStorage.setItem('admin_login_timestamp', Date.now().toString());
             }
 
-            const loginTimestamp = parseInt(sessionStorage.getItem('admin_login_timestamp') || '0', 10);
+            const loginTimestamp = parseInt(sessionStorage.getItem('admin_login_timestamp') || Date.now().toString(), 10);
             const elapsed = Date.now() - loginTimestamp;
+            const remaining = Math.max(0, ONE_HOUR_MS - elapsed);
 
-            function triggerLogout() {
+            function triggerTimeoutLogout() {
                 sessionStorage.removeItem('admin_login_timestamp');
+                isInternalNavigation = true;
                 submitPostAction("{% url 'dashboard:logout' %}");
             }
 
-            // If 1 hour has elapsed, log out
             if (elapsed >= ONE_HOUR_MS) {
-                triggerLogout();
+                triggerTimeoutLogout();
             } else {
-                // Auto-logout after remaining time of 1 hour
-                setTimeout(() => {
-                    triggerLogout();
-                }, ONE_HOUR_MS - elapsed);
+                setTimeout(triggerTimeoutLogout, remaining);
             }
         })();
     </script>

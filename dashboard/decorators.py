@@ -20,16 +20,18 @@ def staff_required(view_func):
             return redirect('dashboard:login')
 
         now = time.time()
-        last_activity = request.session.get('admin_last_activity')
+        login_time = request.session.get('admin_login_time') or request.session.get('admin_last_activity')
 
-        # 1-hour (3600 seconds) session timeout limit
-        if last_activity and (now - last_activity > 3600):
+        # 1-hour (3600 seconds) absolute session timeout limit from login time
+        if login_time and (now - login_time > 3600):
             request.session.flush()
             auth_logout(request)
             messages.warning(request, "Your admin session has expired after 1 hour. Please log in again.")
             return redirect('dashboard:login')
 
-        request.session['admin_last_activity'] = now
+        if not request.session.get('admin_login_time'):
+            request.session['admin_login_time'] = now
+
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 

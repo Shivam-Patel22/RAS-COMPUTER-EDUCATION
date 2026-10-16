@@ -118,7 +118,9 @@ def admin_login(request):
                 
                 clear_failed_logins(ip_address, username_or_email)
                 auth_login(request, user)
-                request.session['admin_last_activity'] = time.time()
+                now = time.time()
+                request.session['admin_login_time'] = now
+                request.session['admin_last_activity'] = now
                 messages.success(request, f"Logged in as staff administrator ({user.username}).")
                 return redirect('dashboard:index')
             else:
@@ -132,9 +134,21 @@ def admin_login(request):
 @require_POST
 @staff_required
 def admin_logout(request):
+    request.session.flush()
     auth_logout(request)
     messages.success(request, "Logged out successfully.")
     return redirect('dashboard:login')
+
+@require_POST
+def beacon_logout(request):
+    """
+    Lightweight endpoint for navigator.sendBeacon when admin tab/window is closed.
+    Logs out the user and clears session immediately with HTTP 204.
+    """
+    if request.user.is_authenticated and request.user.is_staff:
+        request.session.flush()
+        auth_logout(request)
+    return HttpResponse(status=204)
 
 from core.models import Inquiry
 
