@@ -15,24 +15,44 @@
         </div>
     </div>
 
-    <!-- Date Range Filter Bar -->
+    <!-- Date Range Filter & Excel Export Bar -->
     <div class="card" style="margin-bottom: 1.75rem; padding: 1.25rem 1.5rem; background: var(--card-bg, #ffffff); border-radius: var(--radius-md, 10px); border: 1px solid var(--gray-200, #e2e8f0);">
-        <form method="GET" action="{% url 'dashboard:manage_certificates' %}" style="display: flex; align-items: flex-end; gap: 1rem; flex-wrap: wrap;">
-            <div style="display: flex; flex-direction: column; gap: 0.35rem;">
-                <label for="start_date" style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Starting Date</label>
-                <input type="date" id="start_date" name="start_date" value="{{ start_date }}" class="form-control" style="padding: 0.45rem 0.75rem; font-size: 0.88rem; border-radius: var(--radius-sm, 6px); border: 1px solid var(--gray-300, #cbd5e1); min-width: 160px;">
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 0.35rem;">
-                <label for="end_date" style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Ending Date</label>
-                <input type="date" id="end_date" name="end_date" value="{{ end_date }}" class="form-control" style="padding: 0.45rem 0.75rem; font-size: 0.88rem; border-radius: var(--radius-sm, 6px); border: 1px solid var(--gray-300, #cbd5e1); min-width: 160px;">
-            </div>
-            <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <button type="submit" class="btn btn-primary" style="padding: 0.48rem 1.25rem; font-size: 0.88rem;">🔍 Search / Filter</button>
-                {% if has_searched or start_date or end_date %}
-                    <a href="{% url 'dashboard:manage_certificates' %}" class="btn btn-outline-dark" style="padding: 0.48rem 1rem; font-size: 0.88rem;">Clear Filter</a>
-                {% endif %}
-            </div>
-        </form>
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1.5rem;">
+            <!-- Filter Search Form -->
+            <form method="GET" action="{% url 'dashboard:manage_certificates' %}" style="display: flex; align-items: flex-end; gap: 1rem; flex-wrap: wrap;">
+                <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                    <label for="start_date" style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Starting Date</label>
+                    <input type="date" id="start_date" name="start_date" value="{{ start_date }}" class="form-control" style="padding: 0.45rem 0.75rem; font-size: 0.88rem; border-radius: var(--radius-sm, 6px); border: 1px solid var(--gray-300, #cbd5e1); min-width: 150px;">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                    <label for="end_date" style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Ending Date</label>
+                    <input type="date" id="end_date" name="end_date" value="{{ end_date }}" class="form-control" style="padding: 0.45rem 0.75rem; font-size: 0.88rem; border-radius: var(--radius-sm, 6px); border: 1px solid var(--gray-300, #cbd5e1); min-width: 150px;">
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <button type="submit" class="btn btn-primary" style="padding: 0.48rem 1.25rem; font-size: 0.88rem;">🔍 Filter List</button>
+                    {% if has_searched or start_date or end_date %}
+                        <a href="{% url 'dashboard:manage_certificates' %}" class="btn btn-outline-dark" style="padding: 0.48rem 1rem; font-size: 0.88rem;">Clear</a>
+                    {% endif %}
+                </div>
+            </form>
+
+            <!-- Excel Export Form -->
+            <form method="GET" action="{% url 'dashboard:export_certificates_excel' %}" style="display: flex; align-items: flex-end; gap: 0.75rem; flex-wrap: wrap;">
+                <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                    <label for="export_start_date" style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">From Date *</label>
+                    <input type="date" id="export_start_date" name="start_date" value="{{ start_date }}" required class="form-control" style="padding: 0.45rem 0.75rem; font-size: 0.88rem; border-radius: var(--radius-sm, 6px); border: 1px solid var(--gray-300, #cbd5e1); min-width: 150px;">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                    <label for="export_end_date" style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">To Date *</label>
+                    <input type="date" id="export_end_date" name="end_date" value="{{ end_date }}" required class="form-control" style="padding: 0.45rem 0.75rem; font-size: 0.88rem; border-radius: var(--radius-sm, 6px); border: 1px solid var(--gray-300, #cbd5e1); min-width: 150px;">
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-success" style="padding: 0.48rem 1.25rem; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 0.35rem;">
+                        📊 Download Excel
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- Error Validation Alert -->

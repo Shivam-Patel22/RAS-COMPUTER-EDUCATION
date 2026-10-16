@@ -7,6 +7,9 @@ import secrets
 import tempfile
 import logging
 import urllib.parse
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.utils import get_column_letter
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse, FileResponse
 from django.urls import reverse
@@ -408,6 +411,121 @@ def download_certificates_zip(request):
     return response
 
 
+@staff_required
+def export_certificates_excel(request):
+    """
+    Exports certificate data as an Excel (.xlsx) file filtered by issue_date range.
+    Ensures input validation, sanitized cell values against formula injection,
+    and returns a formatted openpyxl workbook as an attachment.
+    """
+    start_date_str = (request.GET.get('start_date') or request.POST.get('start_date') or '').strip()
+    end_date_str = (request.GET.get('end_date') or request.POST.get('end_date') or '').strip()
+
+    if not start_date_str or not end_date_str:
+        messages.error(request, "Both 'From date' and 'To date' are required to download Excel.")
+        return redirect('dashboard:manage_certificates')
+
+    start_date = parse_date_input(start_date_str)
+    end_date = parse_date_input(end_date_str)
+
+    if not start_date or not end_date:
+        messages.error(request, "Invalid date format. Please select valid From and To dates.")
+        return redirect('dashboard:manage_certificates')
+
+    if start_date > end_date:
+        messages.error(request, "Starting date cannot be later than ending date.")
+        return redirect('dashboard:manage_certificates')
+
+    certificates = Certificate.objects.select_related('course', 'student').filter(
+        issue_date__range=(start_date, end_date)
+    ).order_by('issue_date', 'certificate_id')
+
+    if not certificates.exists():
+        messages.error(
+            request,
+            f"No certificate records found between {start_date.strftime('%d-%m-%Y')} and {end_date.strftime('%d-%m-%Y')}."
+        )
+        return redirect('dashboard:manage_certificates')
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Certificates"
+
+    headers = [
+        "Certificate ID",
+        "Student Name",
+        "Course Name",
+        "Course Start Date",
+        "Course End Date",
+        "Issue Date",
+        "Grade",
+        "Linked Account",
+        "Verification Token"
+    ]
+    ws.append(headers)
+
+    header_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="1E293B", end_color="1E293B", fill_type="solid")
+    header_alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+    for col_idx in range(1, len(headers) + 1):
+        cell = ws.cell(row=1, column=col_idx)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+
+    def sanitize_cell(val):
+        """Sanitizes text cells starting with =, +, -, or @ to prevent formula execution in Excel."""
+        if val is None:
+            return ""
+        s = str(val).strip()
+        if s and s[0] in ('=', '+', '-', '@'):
+            return f"'{s}"
+        return s
+
+    for cert in certificates.iterator(chunk_size=500):
+        start_dt = cert.course_start_date.strftime('%d-%m-%Y') if cert.course_start_date else "—"
+        end_dt = cert.course_end_date.strftime('%d-%m-%Y') if cert.course_end_date else "—"
+        issue_dt = cert.issue_date.strftime('%d-%m-%Y') if cert.issue_date else "—"
+        student_email = cert.student.email if cert.student else "Unlinked"
+
+        row = [
+            sanitize_cell(cert.certificate_id),
+            sanitize_cell(cert.student_name),
+            sanitize_cell(cert.course.name if cert.course else ""),
+            start_dt,
+            end_dt,
+            issue_dt,
+            sanitize_cell(cert.grade or "—"),
+            sanitize_cell(student_email),
+            sanitize_cell(cert.verification_token or "—"),
+        ]
+        ws.append(row)
+
+    # Auto-fit column widths
+    for col in ws.columns:
+        col_letter = get_column_letter(col[0].column)
+        max_len = 0
+        for cell in col:
+            val_str = str(cell.value or '')
+            if len(val_str) > max_len:
+                max_len = len(val_str)
+        ws.column_dimensions[col_letter].width = max(max_len + 4, 12)
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    start_str_fmt = start_date.strftime('%d-%m-%Y')
+    end_str_fmt = end_date.strftime('%d-%m-%Y')
+    filename = f"certificates_{start_str_fmt}_to_{end_str_fmt}.xlsx"
+
+    response = HttpResponse(
+        output.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
 
 
 @staff_required

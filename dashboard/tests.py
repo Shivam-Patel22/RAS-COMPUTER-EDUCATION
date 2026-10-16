@@ -268,3 +268,165 @@ class AdminAutoLogoutSecurityTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
+import io
+import datetime
+import openpyxl
+from courses.models import Course
+from certificates.models import Certificate
+
+class CertificateExcelExportTestCase(TestCase):
+    def setUp(self):
+        self.staff_admin = User.objects.create_user(
+            username='admin_excel_tester',
+            email='exceladmin@cdac.test',
+            password='StrongPassword123!',
+            is_staff=True
+        )
+        self.student = User.objects.create_user(
+            username='student_cert_user',
+            email='student_cert@cdac.test',
+            password='StudentPass123!',
+            is_staff=False
+        )
+        self.course = Course.objects.create(
+            name="Python Web Frameworks",
+            category="web-development",
+            duration="3 Months",
+            description="Django full stack development"
+        )
+        # Create certificates with distinct dates
+        self.cert1 = Certificate.objects.create(
+            certificate_id="RAS-2026-PY-001",
+            first_name="Alice",
+            last_name="Smith",
+            student_name="Alice Smith",
+            course=self.course,
+            student=self.student,
+            course_start_date=datetime.date(2026, 1, 10),
+            course_end_date=datetime.date(2026, 4, 10),
+            issue_date=datetime.date(2026, 5, 1),
+            grade="A+"
+        )
+        self.cert2 = Certificate.objects.create(
+            certificate_id="RAS-2026-PY-002",
+            first_name="Bob",
+            last_name="Johnson",
+            student_name="Bob Johnson",
+            course=self.course,
+            issue_date=datetime.date(2026, 5, 15),
+            grade="A"
+        )
+        self.cert_outside = Certificate.objects.create(
+            certificate_id="RAS-2026-PY-003",
+            first_name="Charlie",
+            last_name="Brown",
+            student_name="Charlie Brown",
+            course=self.course,
+            issue_date=datetime.date(2026, 8, 20),
+            grade="B+"
+        )
+
+    def test_unauthenticated_or_non_staff_export_blocked(self):
+        url = reverse('dashboard:export_certificates_excel')
+        # Unauthenticated
+        response = self.client.get(url, {'start_date': '2026-05-01', 'end_date': '2026-05-31'})
+        self.assertRedirects(response, reverse('dashboard:login'))
+
+        # Non-staff student
+        self.client.login(username='student_cert_user', password='StudentPass123!')
+        student_response = self.client.get(url, {'start_date': '2026-05-01', 'end_date': '2026-05-31'})
+        self.assertRedirects(student_response, reverse('dashboard:login'))
+
+    def test_export_valid_date_range_downloads_xlsx(self):
+        self.client.login(username='admin_excel_tester', password='StrongPassword123!')
+        url = reverse('dashboard:export_certificates_excel')
+        response = self.client.get(url, {'start_date': '2026-05-01', 'end_date': '2026-05-20'})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.headers.get('Content-Type'),
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        self.assertIn('certificates_01-05-2026_to_20-05-2026.xlsx', response.headers.get('Content-Disposition', ''))
+
+        # Inspect workbook content
+        wb = openpyxl.load_workbook(io.BytesIO(response.content))
+        ws = wb.active
+        self.assertEqual(ws.title, "Certificates")
+
+        # Check headers are present and bold
+        header_vals = [cell.value for cell in ws[1]]
+        self.assertIn("Certificate ID", header_vals)
+        self.assertIn("Student Name", header_vals)
+        self.assertIn("Course Name", header_vals)
+        self.assertIn("Issue Date", header_vals)
+        self.assertTrue(ws.cell(row=1, column=1).font.bold)
+
+        # cert1 and cert2 should be included (rows 2 and 3), cert_outside should NOT be included
+        data_rows = list(ws.iter_rows(min_row=2, values_only=True))
+        self.assertEqual(len(data_rows), 2)
+
+        cert_ids = [row[0] for row in data_rows]
+        self.assertIn("RAS-2026-PY-001", cert_ids)
+        self.assertIn("RAS-2026-PY-002", cert_ids)
+        self.assertNotIn("RAS-2026-PY-003", cert_ids)
+
+        # Verify date format DD-MM-YYYY
+        row1 = data_rows[0]
+        issue_date_idx = header_vals.index("Issue Date")
+        self.assertEqual(row1[issue_date_idx], "01-05-2026")
+
+    def test_export_start_date_after_end_date_rejected(self):
+        self.client.login(username='admin_excel_tester', password='StrongPassword123!')
+        url = reverse('dashboard:export_certificates_excel')
+        response = self.client.get(url, {'start_date': '2026-05-20', 'end_date': '2026-05-01'})
+
+        # Redirects back with error message
+        self.assertRedirects(response, reverse('dashboard:manage_certificates'))
+
+    def test_export_no_records_in_range_shows_message(self):
+        self.client.login(username='admin_excel_tester', password='StrongPassword123!')
+        url = reverse('dashboard:export_certificates_excel')
+        response = self.client.get(url, {'start_date': '2020-01-01', 'end_date': '2020-01-31'})
+
+        # Redirects with friendly error message rather than blank file
+        self.assertRedirects(response, reverse('dashboard:manage_certificates'))
+
+    def test_export_missing_dates_rejected(self):
+        self.client.login(username='admin_excel_tester', password='StrongPassword123!')
+        url = reverse('dashboard:export_certificates_excel')
+
+        # No dates provided
+        response = self.client.get(url)
+        self.assertRedirects(response, reverse('dashboard:manage_certificates'))
+
+        # Only one date provided
+        response2 = self.client.get(url, {'start_date': '2026-05-01'})
+        self.assertRedirects(response2, reverse('dashboard:manage_certificates'))
+
+    def test_formula_injection_sanitization(self):
+        self.client.login(username='admin_excel_tester', password='StrongPassword123!')
+        # Create certificate with potential formula strings
+        dangerous_cert = Certificate.objects.create(
+            certificate_id="RAS-2026-INJ-001",
+            first_name="=cmd",
+            last_name="|' /C calc'!A0",
+            student_name="=cmd|' /C calc'!A0",
+            course=self.course,
+            issue_date=datetime.date(2026, 5, 5),
+            grade="+A"
+        )
+        url = reverse('dashboard:export_certificates_excel')
+        response = self.client.get(url, {'start_date': '2026-05-04', 'end_date': '2026-05-06'})
+        self.assertEqual(response.status_code, 200)
+
+        wb = openpyxl.load_workbook(io.BytesIO(response.content))
+        ws = wb.active
+        data_rows = list(ws.iter_rows(min_row=2, values_only=True))
+        student_names = [row[1] for row in data_rows]
+
+        # Value should be prefixed with apostrophe so spreadsheet engines treat it strictly as text
+        self.assertTrue(any(name.startswith("'=") for name in student_names if name))
+
+
+
