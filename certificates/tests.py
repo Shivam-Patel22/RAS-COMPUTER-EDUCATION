@@ -479,6 +479,13 @@ class CertificatesTestCase(TestCase):
         self.assertContains(response_ras, '10.09.2026')
         self.assertContains(response_ras, 'A4 landscape')
 
+        # Test format=pdf returns raw PDF without any HTML/browser headers
+        response_pdf = self.client.get(reverse('dashboard:print_certificate', kwargs={'pk': ras_cert.pk}) + '?format=pdf')
+        self.assertEqual(response_pdf.status_code, 200)
+        self.assertEqual(response_pdf['Content-Type'], 'application/pdf')
+        self.assertTrue(response_pdf.content.startswith(b'%PDF'))
+        self.assertGreater(len(response_pdf.content), 1000)
+
 
     def test_ccc_public_verification_view(self):
         """Test public verify result page shows CCC branding for CCC certificate."""

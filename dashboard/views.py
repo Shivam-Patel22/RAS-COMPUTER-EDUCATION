@@ -737,6 +737,14 @@ def print_certificate(request, pk):
     cert.printed_at = timezone.now()
     cert.save(update_fields=['printed_at', 'verification_hash', 'verification_token'])
 
+    if request.GET.get('format') == 'pdf':
+        from django.utils.text import slugify
+        pdf_bytes = generate_certificate_pdf(cert)
+        filename = f"{cert.certificate_id}_{slugify(cert.student_name or 'student')}.pdf"
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
+        return response
+
     verification_url = request.build_absolute_uri(
         reverse('certificates:verify') + f"?certificate_id={cert.certificate_id}"
     )
