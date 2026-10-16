@@ -428,6 +428,124 @@ def is_ccc_certificate(cert):
     )
 
 
+def is_ras_certificate(cert):
+    """
+    Returns True if the certificate belongs to the RAS institute prefix.
+    """
+    if not cert:
+        return False
+    if hasattr(cert, 'prefix') and cert.prefix:
+        return cert.prefix.upper() == 'RAS'
+    cert_id = getattr(cert, 'certificate_id', '') or ''
+    if cert_id and '-' in cert_id:
+        return cert_id.split('-')[0].upper() == 'RAS'
+    return False
+
+
+def _format_ordinal_date(d):
+    """
+    Formats a date object as day with ordinal suffix + abbreviated month with dot,
+    e.g., 15th Jun. or 31st Aug.
+    """
+    if not d:
+        return ""
+    day = d.day
+    if 11 <= (day % 100) <= 13:
+        suffix = 'th'
+    else:
+        suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(day % 10, 'th')
+    return f"{day}{suffix} {d.strftime('%b')}."
+
+
+def generate_ras_certificate_pdf(cert):
+    """
+    Generates a high-quality A4 landscape PDF in memory for an RAS institute certificate
+    using the official RAS Computer Education template background.
+    Dynamic fields are positioned as exact percentages of page width/height:
+    - Student name: x 62%, y 39% (UPPERCASE, Bold)
+    - Course name: x 64%, y 44% (UPPERCASE, Bold, in curly quotes “...”)
+    - Period from: x 34%, y 50% (Ordinal day + abbreviated month, e.g. 15th Jun.)
+    - Period to: x 44.5%, y 50% (Ordinal day + abbreviated month, e.g. 31st Aug.)
+    - Year: x 58.5%, y 50% (4 digits, e.g. 2026)
+    - Grade: x 35%, y 59.5% (in curly quotes, e.g. “A”)
+    - Issue date: x 23.5%, y 70.5% (DD.MM.YYYY, e.g. 10.09.2026)
+    - Authority Signatory: left empty.
+    """
+    import io
+    import os
+    from django.conf import settings
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.pdfgen import canvas
+    from reportlab.lib import colors
+
+    buf = io.BytesIO()
+    page_w, page_h = landscape(A4)  # 841.89 x 595.27 points
+    c = canvas.Canvas(buf, pagesize=(page_w, page_h))
+
+    template_candidates = [
+        os.path.join(settings.BASE_DIR, 'static', 'certificates', 'ras_template.jpg'),
+        os.path.join(settings.BASE_DIR, 'static', 'images', 'ras_template.jpg'),
+    ]
+    template_path = None
+    for cand in template_candidates:
+        if os.path.exists(cand):
+            template_path = cand
+            break
+
+    if template_path:
+        c.drawImage(template_path, 0, 0, width=page_w, height=page_h)
+
+    # 1. Student Name (x 62%, y 39% from top)
+    student_name = (cert.student_name or '').strip().upper()
+    c.setFillColor(colors.HexColor('#000000'))
+    c.setFont('Helvetica-Bold', 18)
+    c.drawCentredString(page_w * 0.62, page_h * (1 - 0.398), student_name)
+
+    # 2. Course Name (x 64%, y 44% from top)
+    course_name = (cert.course.name if cert.course else '').strip().upper()
+    c.setFont('Helvetica-Bold', 15)
+    c.drawCentredString(page_w * 0.64, page_h * (1 - 0.446), f'“{course_name}”')
+
+    # 3. Period From (x 34%, y 50% from top)
+    c.setFont('Helvetica', 12)
+    from_str = _format_ordinal_date(cert.course_start_date)
+    if from_str:
+        c.drawCentredString(page_w * 0.34, page_h * (1 - 0.503), from_str)
+
+    # 4. Period To (x 44.5%, y 50% from top)
+    to_str = _format_ordinal_date(cert.course_end_date)
+    if to_str:
+        c.drawCentredString(page_w * 0.445, page_h * (1 - 0.503), to_str)
+
+    # 5. Year (x 58.5%, y 50% from top)
+    if cert.course_end_date:
+        year_str = str(cert.course_end_date.year)
+    elif cert.issue_date:
+        year_str = str(cert.issue_date.year)
+    else:
+        year_str = ''
+    if year_str:
+        c.drawCentredString(page_w * 0.585, page_h * (1 - 0.503), year_str)
+
+    # 6. Grade (x 35%, y 59.5% from top)
+    if cert.grade:
+        grade_str = f'“{cert.grade.strip()}”'
+        c.setFont('Helvetica-Bold', 13)
+        c.drawCentredString(page_w * 0.35, page_h * (1 - 0.598), grade_str)
+
+    # 7. Issue Date (x 23.5%, y 70.5% from top)
+    if cert.issue_date:
+        date_str = cert.issue_date.strftime('%d.%m.%Y')
+        c.setFont('Helvetica', 11)
+        c.drawCentredString(page_w * 0.235, page_h * (1 - 0.713), date_str)
+
+    # Authority Signatory: left empty per requirements
+
+    c.save()
+    buf.seek(0)
+    return buf.getvalue()
+
+
 def generate_ccc_certificate_pdf(cert):
     """
     Generates high-resolution PDF for CCC (Course on Computer Concepts)
@@ -553,9 +671,13 @@ def generate_ccc_certificate_pdf(cert):
 def generate_certificate_pdf(cert):
     """
     Generates a high-quality PDF in memory for a given Certificate instance.
+    For RAS institute certificates, it uses the official RAS template image.
     For CCC courses, it uses the official CCC certificate template.
     For all other courses, it retains the standard C-DAC certificate layout.
     """
+    if is_ras_certificate(cert):
+        return generate_ras_certificate_pdf(cert)
+
     if is_ccc_certificate(cert):
         return generate_ccc_certificate_pdf(cert)
 

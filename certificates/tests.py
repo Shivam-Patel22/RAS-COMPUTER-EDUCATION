@@ -417,6 +417,67 @@ class CertificatesTestCase(TestCase):
         self.assertEqual(response_std.status_code, 200)
         self.assertContains(response_std, 'certificate-card-printable')
         self.assertNotContains(response_std, 'CCCCerty')
+        self.assertNotContains(response_std, 'ras_template.jpg')
+
+    def test_ras_certificate_detection_and_pdf_generation(self):
+        """Test is_ras_certificate helper and PDF byte generation for RAS certificates."""
+        from certificates.utils import is_ras_certificate, generate_certificate_pdf, _format_ordinal_date
+
+        self.assertEqual(_format_ordinal_date(date(2026, 6, 15)), "15th Jun.")
+        self.assertEqual(_format_ordinal_date(date(2026, 8, 31)), "31st Aug.")
+        self.assertEqual(_format_ordinal_date(date(2026, 1, 1)), "1st Jan.")
+        self.assertEqual(_format_ordinal_date(date(2026, 2, 2)), "2nd Feb.")
+        self.assertEqual(_format_ordinal_date(date(2026, 3, 3)), "3rd Mar.")
+
+        ras_cert = Certificate.objects.create(
+            certificate_id='RAS-2026-10-AP-482716-1001',
+            first_name='Ankit',
+            last_name='Parihar',
+            student_name='Ankit Parihar',
+            course=self.course,
+            course_start_date=date(2026, 6, 15),
+            course_end_date=date(2026, 8, 31),
+            issue_date=date(2026, 9, 10),
+            grade='A'
+        )
+
+        self.assertEqual(ras_cert.prefix, 'RAS')
+        self.assertTrue(is_ras_certificate(ras_cert))
+        self.assertFalse(is_ras_certificate(self.valid_cert))
+
+        ras_pdf = generate_certificate_pdf(ras_cert)
+        self.assertIsInstance(ras_pdf, bytes)
+        self.assertTrue(ras_pdf.startswith(b'%PDF'))
+        self.assertGreater(len(ras_pdf), 1000)
+
+    def test_ras_print_certificate_view(self):
+        """Test print view renders RAS landscape template for prefix RAS and keeps standard/CCC for others."""
+        self.client.login(username='certadmin', password='adminpassword123')
+
+        ras_cert = Certificate.objects.create(
+            certificate_id='RAS-2026-10-AP-482716-1002',
+            first_name='Ankit',
+            last_name='Parihar',
+            student_name='Ankit Parihar',
+            course=self.course,
+            course_start_date=date(2026, 6, 15),
+            course_end_date=date(2026, 8, 31),
+            issue_date=date(2026, 9, 10),
+            grade='A'
+        )
+
+        response_ras = self.client.get(reverse('dashboard:print_certificate', kwargs={'pk': ras_cert.pk}))
+        self.assertEqual(response_ras.status_code, 200)
+        self.assertContains(response_ras, 'ras-mode-container')
+        self.assertContains(response_ras, 'ras-certificate-card')
+        self.assertContains(response_ras, 'ras_template.jpg')
+        self.assertContains(response_ras, 'ANKIT PARIHAR')
+        self.assertContains(response_ras, '15th Jun.')
+        self.assertContains(response_ras, '31st Aug.')
+        self.assertContains(response_ras, '2026')
+        self.assertContains(response_ras, '“A”')
+        self.assertContains(response_ras, '10.09.2026')
+        self.assertContains(response_ras, 'A4 landscape')
 
 
     def test_ccc_public_verification_view(self):
