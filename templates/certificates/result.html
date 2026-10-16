@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Certificate Verification Result | {% if certificate.prefix == 'RAS' %}RAS Computer Education{% elif certificate.is_ccc %}CCC Certificate{% else %}Centre for Development of Advanced Computing (C-DAC){% endif %}{% endblock %}
+{% block title %}Certificate Verification Result | {% if certificate.prefix == 'RAS' %}RAS Computer Education{% elif certificate.prefix == 'CITI' %}CITI Computer Education{% elif certificate.is_ccc %}CCC Certificate{% else %}Centre for Development of Advanced Computing (C-DAC){% endif %}{% endblock %}
 
 {% block extra_head %}
 {% if certificate.prefix == 'RAS' %}
@@ -199,6 +199,223 @@
         document.title = originalDocTitle;
     });
 </script>
+{% elif certificate.prefix == 'CITI' %}
+<style>
+    /* CITI Portrait Certificate in Public Verification Result */
+    .citi-result-wrapper {
+        max-width: 750px;
+        margin: 1.5rem auto 2.5rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .citi-certificate-card {
+        position: relative;
+        width: 100%;
+        max-width: 750px;
+        aspect-ratio: 2469 / 3520;
+        background: #ffffff;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0, 0, 0, 0.08);
+        border-radius: 6px;
+        overflow: hidden;
+        container-type: inline-size;
+        box-sizing: border-box;
+        user-select: none;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .citi-bg-template {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: fill;
+        z-index: 1;
+        pointer-events: none;
+        display: block;
+    }
+
+    .citi-photo-box {
+        position: absolute;
+        top: 8.3%;
+        left: 10.5%;
+        width: 12.7%;
+        height: 11.8%;
+        z-index: 2;
+        overflow: hidden;
+        border: 1px solid #000000;
+        background: #ffffff;
+    }
+
+    .citi-student-photo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .citi-serial {
+        position: absolute;
+        left: 83%;
+        top: 14.5%;
+        transform: translate(-50%, -50%);
+        font-weight: 700;
+        font-size: 1.3cqw;
+        color: #000000;
+        z-index: 2;
+        font-family: Arial, Helvetica, sans-serif;
+        white-space: nowrap;
+    }
+
+    .citi-student-name {
+        position: absolute;
+        left: 51%;
+        top: 51%;
+        transform: translate(-50%, -50%);
+        font-weight: 800;
+        font-size: 1.9cqw;
+        color: #000000;
+        z-index: 2;
+        text-transform: uppercase;
+        text-decoration: underline;
+        white-space: nowrap;
+        max-width: 62%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-family: Arial, Helvetica, sans-serif;
+        text-align: center;
+    }
+
+    .citi-grade {
+        position: absolute;
+        left: 58.8%;
+        top: 65.5%;
+        transform: translate(-50%, -50%);
+        font-weight: 800;
+        font-size: 1.5cqw;
+        color: #000000;
+        z-index: 2;
+        text-transform: uppercase;
+        text-decoration: underline;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .citi-reg-no {
+        position: absolute;
+        left: 50%;
+        top: 70.3%;
+        transform: translate(-50%, -50%);
+        font-weight: 700;
+        font-size: 1.2cqw;
+        color: #000000;
+        z-index: 2;
+        white-space: nowrap;
+        font-family: Arial, Helvetica, sans-serif;
+        text-align: center;
+    }
+
+    .citi-verify-line {
+        position: absolute;
+        left: 50%;
+        top: 75.5%;
+        transform: translate(-50%, -50%);
+        font-weight: 500;
+        font-size: 0.9cqw;
+        color: #1e293b;
+        z-index: 2;
+        white-space: nowrap;
+        max-width: 85%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: center;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .citi-date {
+        position: absolute;
+        left: 40%;
+        top: 89.2%;
+        transform: translateY(-50%);
+        font-weight: 700;
+        font-size: 1.15cqw;
+        color: #000000;
+        z-index: 2;
+        white-space: nowrap;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    @page {
+        size: A4 portrait;
+        margin: 0mm;
+    }
+
+    @media print {
+        @page { size: A4 portrait; margin: 0mm; }
+        @page :left { margin: 0mm; }
+        @page :right { margin: 0mm; }
+        @page :first { margin: 0mm; }
+
+        html, body {
+            background: #ffffff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .container {
+            max-width: 100% !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .citi-result-wrapper {
+            max-width: 100% !important;
+            width: 100% !important;
+            height: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        .citi-certificate-card {
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            width: 100vw !important;
+            max-width: 100% !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            margin: 0 !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .citi-serial { font-size: 11pt !important; }
+        .citi-student-name { font-size: 16pt !important; }
+        .citi-grade { font-size: 13pt !important; }
+        .citi-reg-no { font-size: 10pt !important; }
+        .citi-verify-line { font-size: 7.5pt !important; }
+        .citi-date { font-size: 10.5pt !important; }
+    }
+</style>
+<script>
+    let originalDocTitle = document.title;
+    window.addEventListener('beforeprint', () => {
+        originalDocTitle = document.title;
+        document.title = "";
+    });
+    window.addEventListener('afterprint', () => {
+        document.title = originalDocTitle;
+    });
+</script>
 {% endif %}
 {% endblock %}
 
@@ -242,6 +459,39 @@
 
             <!-- 8. Verification Line: x 50%, y 78% -->
             <div class="ras-field cert-verify-line ras-verify-line">This Certificate can be verified on {{ certificate_verify_url }}</div>
+        </div>
+    </div>
+    {% elif certificate.prefix == 'CITI' %}
+    <!-- Official CITI Computer Education Certificate Render Box (A4 Portrait) -->
+    <div class="citi-result-wrapper">
+        <div class="citi-certificate-card">
+            <!-- Background Template -->
+            <img src="{% static 'certificates/citi_ccc_template.jpg' %}" alt="CITI CCC Certificate Background Template" class="citi-bg-template">
+
+            <!-- 1. Student Photo: x 10.5%, y 8.3%, w 12.7%, h 11.8% -->
+            <div class="citi-photo-box">
+                {% if certificate.student_photo %}
+                    <img src="{{ certificate.student_photo.url }}" alt="Student Photo" class="citi-student-photo">
+                {% endif %}
+            </div>
+
+            <!-- 2. Serial Number (x 83%, y 14.5%) -->
+            <div class="citi-serial">{{ certificate.serial_number|default:"" }}</div>
+
+            <!-- 3. Student Name (x 51%, y 51%) -->
+            <div class="citi-student-name">{{ certificate.student_name }}</div>
+
+            <!-- 4. Grade Letter (x 58.8%, y 65.5%) -->
+            <div class="citi-grade">{{ certificate.grade|default:"A"|upper }}</div>
+
+            <!-- 5. Student Registration No. (x 50%, y 70.3%) -->
+            <div class="citi-reg-no">Student registration No. : {{ certificate.registration_number|default:certificate.certificate_id }}</div>
+
+            <!-- 6. Verification Line (x 50%, y 75.5%) -->
+            <div class="citi-verify-line">This Certificate can be verified on {{ certificate_verify_url }}</div>
+
+            <!-- 7. Issue Date (x 40%, y 89.2%) -->
+            <div class="citi-date">{% if certificate.issue_date %}{{ certificate.issue_date|date:"d.m.Y" }}{% endif %}</div>
         </div>
     </div>
     {% elif certificate.is_ccc %}

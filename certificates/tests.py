@@ -1258,6 +1258,229 @@ class CertificateVerificationUrlTests(TestCase):
         self.assertGreater(len(std_pdf), 1000)
 
 
+class CitiCccWorkflowTestCase(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_superuser(
+            username='citiadmin',
+            email='citiadmin@test.com',
+            password='Password123!'
+        )
+        self.ccc_course = Course.objects.create(
+            name='Certificate Course on Computer Concepts (CCC)',
+            description='CCC training program',
+            duration='3 Months',
+            fee=3000.00
+        )
+        self.other_course = Course.objects.create(
+            name='Java Programming',
+            description='Core Java',
+            duration='6 Months',
+            fee=5000.00
+        )
+
+    def _create_dummy_image(self):
+        import io
+        from PIL import Image
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        buf = io.BytesIO()
+        img = Image.new('RGB', (100, 120), color=(73, 109, 137))
+        img.save(buf, format='JPEG')
+        buf.seek(0)
+        return SimpleUploadedFile('student_test.jpg', buf.getvalue(), content_type='image/jpeg')
+
+    def test_citi_ccc_creation_and_calculations(self):
+        photo = self._create_dummy_image()
+        cert = Certificate.objects.create(
+            certificate_id='CITI-2026-10-SP-100000-5001',
+            first_name='Shivam',
+            middle_name='Kumar',
+            last_name='Patel',
+            student_name='Shivam Kumar Patel',
+            course=self.ccc_course,
+            course_start_date=date(2026, 1, 1),
+            course_end_date=date(2026, 3, 31),
+            issue_date=date(2026, 4, 15),
+            student_photo=photo,
+            theory_marks=42,
+            practical_marks=43,
+            course_duration='3 Months',
+            serial_number='4327',
+        )
+        self.assertEqual(cert.total_marks, 85)
+        self.assertEqual(cert.percentage, 85.0)
+        self.assertEqual(cert.grade, 'S')
+        self.assertEqual(cert.registration_number, 'CITI/GNR/2026-27/4327')
+
+    def test_citi_ccc_grade_scale(self):
+        self.assertEqual(Certificate.calculate_citi_grade(85), 'S')
+        self.assertEqual(Certificate.calculate_citi_grade(90), 'S')
+        self.assertEqual(Certificate.calculate_citi_grade(75), 'A')
+        self.assertEqual(Certificate.calculate_citi_grade(84), 'A')
+        self.assertEqual(Certificate.calculate_citi_grade(65), 'B')
+        self.assertEqual(Certificate.calculate_citi_grade(74), 'B')
+        self.assertEqual(Certificate.calculate_citi_grade(55), 'C')
+        self.assertEqual(Certificate.calculate_citi_grade(64), 'C')
+        self.assertEqual(Certificate.calculate_citi_grade(50), 'D')
+        self.assertEqual(Certificate.calculate_citi_grade(54), 'D')
+        self.assertIsNone(Certificate.calculate_citi_grade(49))
+
+    def test_citi_form_fails_when_below_50(self):
+        from dashboard.forms import AdminCertificateForm
+        photo = self._create_dummy_image()
+        data = {
+            'prefix': 'CITI',
+            'first_name': 'Rahul',
+            'middle_name': 'Kumar',
+            'last_name': 'Patel',
+            'course': self.ccc_course.id,
+            'course_start_date': '2026-01-01',
+            'course_end_date': '2026-03-31',
+            'issue_date': '2026-04-15',
+            'theory_marks': '20',
+            'practical_marks': '25',  # Total 45 < 50
+            'course_duration': '3 Months',
+        }
+        form = AdminCertificateForm(data=data, files={'student_photo': photo})
+        self.assertFalse(form.is_valid())
+        self.assertTrue(any('Not Eligible' in str(e) or 'below 50%' in str(e) for e in form.non_field_errors()))
+
+    def test_citi_form_requires_photo(self):
+        from dashboard.forms import AdminCertificateForm
+        data = {
+            'prefix': 'CITI',
+            'first_name': 'Rahul',
+            'middle_name': 'Kumar',
+            'last_name': 'Patel',
+            'course': self.ccc_course.id,
+            'course_start_date': '2026-01-01',
+            'course_end_date': '2026-03-31',
+            'issue_date': '2026-04-15',
+            'theory_marks': '35',
+            'practical_marks': '35',
+            'course_duration': '3 Months',
+        }
+        form = AdminCertificateForm(data=data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('student_photo', form.errors)
+
+    def test_citi_form_requires_ccc_course(self):
+        from dashboard.forms import AdminCertificateForm
+        photo = self._create_dummy_image()
+        data = {
+            'prefix': 'CITI',
+            'first_name': 'Rahul',
+            'middle_name': 'Kumar',
+            'last_name': 'Patel',
+            'course': self.other_course.id,
+            'course_start_date': '2026-01-01',
+            'course_end_date': '2026-03-31',
+            'issue_date': '2026-04-15',
+            'theory_marks': '35',
+            'practical_marks': '35',
+            'course_duration': '3 Months',
+        }
+        form = AdminCertificateForm(data=data, files={'student_photo': photo})
+        self.assertFalse(form.is_valid())
+        self.assertIn('course', form.errors)
+
+    def test_citi_bundle_zip_download(self):
+        photo = self._create_dummy_image()
+        cert = Certificate.objects.create(
+            certificate_id='CITI-2026-10-SP-100000-5002',
+            first_name='Shivam',
+            middle_name='Kumar',
+            last_name='Patel',
+            student_name='Shivam Kumar Patel',
+            course=self.ccc_course,
+            course_start_date=date(2026, 1, 1),
+            course_end_date=date(2026, 3, 31),
+            issue_date=date(2026, 4, 15),
+            student_photo=photo,
+            theory_marks=38,
+            practical_marks=40,
+            course_duration='3 Months',
+            serial_number='4328',
+        )
+        self.client.login(username='citiadmin', password='Password123!')
+        url = reverse('dashboard:download_citi_bundle', args=[cert.id])
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp['Content-Type'], 'application/zip')
+
+        import io
+        import zipfile
+        zip_buf = io.BytesIO(resp.content)
+        with zipfile.ZipFile(zip_buf, 'r') as zf:
+            file_names = zf.namelist()
+            self.assertEqual(len(file_names), 2)
+            self.assertTrue(any('Certificate.pdf' in fn for fn in file_names))
+            self.assertTrue(any('Marksheet.pdf' in fn for fn in file_names))
+
+    def test_citi_marksheet_view_and_pdf(self):
+        photo = self._create_dummy_image()
+        cert = Certificate.objects.create(
+            certificate_id='CITI-2026-10-SP-100000-5003',
+            first_name='Shivam',
+            middle_name='Kumar',
+            last_name='Patel',
+            student_name='Shivam Kumar Patel',
+            course=self.ccc_course,
+            course_start_date=date(2026, 1, 1),
+            course_end_date=date(2026, 3, 31),
+            issue_date=date(2026, 4, 15),
+            student_photo=photo,
+            theory_marks=38,
+            practical_marks=40,
+            course_duration='3 Months',
+            serial_number='4329',
+        )
+        self.client.login(username='citiadmin', password='Password123!')
+        url = reverse('dashboard:print_citi_marksheet', args=[cert.id])
+        resp_html = self.client.get(url)
+        self.assertEqual(resp_html.status_code, 200)
+        self.assertContains(resp_html, 'STATEMENT OF MARKS')
+        self.assertContains(resp_html, 'SHIVAM KUMAR PATEL')
+
+        resp_pdf = self.client.get(url + '?format=pdf')
+        self.assertEqual(resp_pdf.status_code, 200)
+        self.assertEqual(resp_pdf['Content-Type'], 'application/pdf')
+        self.assertTrue(resp_pdf.content.startswith(b'%PDF'))
+
+    def test_verify_by_registration_number(self):
+        photo = self._create_dummy_image()
+        cert = Certificate.objects.create(
+            certificate_id='CITI-2026-10-SP-100000-5004',
+            first_name='Shivam',
+            middle_name='Kumar',
+            last_name='Patel',
+            student_name='Shivam Kumar Patel',
+            course=self.ccc_course,
+            course_start_date=date(2026, 1, 1),
+            course_end_date=date(2026, 3, 31),
+            issue_date=date(2026, 4, 15),
+            student_photo=photo,
+            theory_marks=38,
+            practical_marks=40,
+            course_duration='3 Months',
+            serial_number='4330',
+        )
+        reg_no = cert.registration_number
+        self.assertTrue(reg_no.startswith('CITI/GNR/'))
+
+        # Public verification with registration_number
+        verify_url = reverse('certificates:verify')
+        resp = self.client.post(verify_url, {'certificate_id': reg_no})
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'Shivam Kumar Patel')
+
+        # Admin search verification with registration_number
+        self.client.login(username='citiadmin', password='Password123!')
+        admin_search_url = reverse('dashboard:admin_verify_search')
+        resp = self.client.post(admin_search_url, {'certificate_id': reg_no})
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'Shivam Kumar Patel')
+
+
 
 
 

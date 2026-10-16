@@ -1,3 +1,4 @@
+import re
 import time
 import datetime
 import io
@@ -36,6 +37,8 @@ from certificates.utils import (
     get_next_certificate_sequence,
     peek_next_certificate_sequence,
     generate_certificate_pdf,
+    generate_citi_ccc_certificate_pdf,
+    generate_citi_marksheet_pdf,
     get_certificate_verify_url,
     build_safe_certificate_filename,
     FilenameDeduplicator,
@@ -532,7 +535,7 @@ def export_certificates_excel(request):
 @staff_required
 def add_certificate(request):
     if request.method == 'POST':
-        form = AdminCertificateForm(request.POST)
+        form = AdminCertificateForm(request.POST, request.FILES)
         try:
             if form.is_valid():
                 cert = form.save(commit=False)
@@ -593,7 +596,7 @@ def add_certificate(request):
 def edit_certificate(request, pk):
     cert = get_object_or_404(Certificate, pk=pk)
     if request.method == 'POST':
-        form = AdminCertificateForm(request.POST, instance=cert)
+        form = AdminCertificateForm(request.POST, request.FILES, instance=cert)
         if form.is_valid():
             form.save()
             messages.success(request, f"Certificate '{cert.certificate_id}' updated successfully.")
@@ -758,10 +761,55 @@ def print_certificate(request, pk):
     return render(request, 'dashboard/print_certificate.html', context)
 
 @staff_required
+def download_citi_bundle(request, pk):
+    """
+    Downloads both CITI CCC Certificate and Statement of Marks (marksheet) in a single ZIP bundle.
+    Filenames: <StudentName>_CCC_Certificate.pdf and <StudentName>_CCC_Marksheet.pdf
+    """
+    cert = get_object_or_404(Certificate.objects.select_related('course', 'student'), pk=pk)
+
+    raw_name = cert.student_name or 'Student'
+    clean_name = re.sub(r'[^a-zA-Z0-9_-]+', '_', raw_name).strip('_') or 'Student'
+
+    cert_pdf = generate_citi_ccc_certificate_pdf(cert)
+    marksheet_pdf = generate_citi_marksheet_pdf(cert)
+
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        zip_file.writestr(f"{clean_name}_CCC_Certificate.pdf", cert_pdf)
+        zip_file.writestr(f"{clean_name}_CCC_Marksheet.pdf", marksheet_pdf)
+
+    zip_buffer.seek(0)
+    response = HttpResponse(zip_buffer.getvalue(), content_type='application/zip')
+    response['Content-Disposition'] = f'attachment; filename="{clean_name}_CCC_Bundle.zip"'
+    return response
+
+@staff_required
+def print_citi_marksheet(request, pk):
+    """
+    Renders official CITI CCC Statement of Marks preview or downloads PDF.
+    """
+    cert = get_object_or_404(Certificate.objects.select_related('course', 'student'), pk=pk)
+
+    if request.GET.get('format') == 'pdf':
+        raw_name = cert.student_name or 'Student'
+        clean_name = re.sub(r'[^a-zA-Z0-9_-]+', '_', raw_name).strip('_') or 'Student'
+        marksheet_pdf = generate_citi_marksheet_pdf(cert)
+        response = HttpResponse(marksheet_pdf, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="{clean_name}_CCC_Marksheet.pdf"'
+        return response
+
+    context = {
+        'certificate': cert,
+        'certificate_verify_url': get_certificate_verify_url(),
+    }
+    return render(request, 'dashboard/print_citi_marksheet.html', context)
+
+@staff_required
 def admin_verify_search(request):
     """
     Admin panel certificate verification lookup page.
-    Allows staff to enter any Certificate ID directly within the admin panel
+    Allows staff to enter any Certificate ID or Registration Number directly within the admin panel
     without navigating to the public user panel.
     """
     cert_id = None
@@ -773,7 +821,11 @@ def admin_verify_search(request):
         if form.is_valid():
             cert_id = form.cleaned_data['certificate_id']
             try:
-                certificate = Certificate.objects.select_related('course', 'student').get(certificate_id__iexact=cert_id)
+                certificate = Certificate.objects.select_related('course', 'student').filter(
+                    Q(certificate_id__iexact=cert_id) | Q(registration_number__iexact=cert_id)
+                ).first()
+                if not certificate:
+                    raise Certificate.DoesNotExist
                 certificate.last_verified_at = timezone.now()
                 if not certificate.verification_hash:
                     certificate.verification_hash = certificate.generate_verification_hash()
@@ -782,13 +834,17 @@ def admin_verify_search(request):
                 else:
                     certificate.save(update_fields=['last_verified_at'])
             except Certificate.DoesNotExist:
-                error_message = f"No valid certificate found matching Certificate ID '{cert_id}'."
+                error_message = f"No valid certificate found matching Certificate ID / Registration No '{cert_id}'."
     else:
-        cert_id = request.GET.get('certificate_id', '').strip().lower()
+        cert_id = request.GET.get('certificate_id', '').strip()
         if cert_id:
             form = CertificateVerificationForm(initial={'certificate_id': cert_id})
             try:
-                certificate = Certificate.objects.select_related('course', 'student').get(certificate_id__iexact=cert_id)
+                certificate = Certificate.objects.select_related('course', 'student').filter(
+                    Q(certificate_id__iexact=cert_id) | Q(registration_number__iexact=cert_id)
+                ).first()
+                if not certificate:
+                    raise Certificate.DoesNotExist
                 certificate.last_verified_at = timezone.now()
                 if not certificate.verification_hash:
                     certificate.verification_hash = certificate.generate_verification_hash()
@@ -797,7 +853,7 @@ def admin_verify_search(request):
                 else:
                     certificate.save(update_fields=['last_verified_at'])
             except Certificate.DoesNotExist:
-                error_message = f"No valid certificate found matching Certificate ID '{cert_id}'."
+                error_message = f"No valid certificate found matching Certificate ID / Registration No '{cert_id}'."
         else:
             form = CertificateVerificationForm()
 

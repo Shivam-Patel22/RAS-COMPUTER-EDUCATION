@@ -710,15 +710,370 @@ def generate_ccc_certificate_pdf(cert):
     return buf.getvalue()
 
 
+def get_next_citi_serial():
+    """
+    Returns the next sequential serial number for CITI CCC certificates.
+    Finds the highest numeric serial_number among CITI certificates, defaulting to 4327 if none exist.
+    """
+    from .models import Certificate
+    citi_certs = Certificate.objects.filter(certificate_id__startswith='CITI').exclude(serial_number='')
+    max_serial = 4326  # default so next is 4327
+    for cert in citi_certs:
+        s = (cert.serial_number or '').strip()
+        if s.isdigit():
+            val = int(s)
+            if val > max_serial:
+                max_serial = val
+    return str(max_serial + 1)
+
+
+def generate_citi_ccc_certificate_pdf(cert):
+    """
+    Generates high-resolution A4 portrait PDF for CITI CCC Certificate
+    using the official blank CITI CCC template image as background.
+    Dynamic values printed on top (exact % coordinates from requirements):
+    - Student photo: left 10.5%, top 8.3%, width 12.7%, height 11.8%, thin black border, object-fit cover
+    - Serial number: right side, x 83% (centered), y 14.5%
+    - Student name: x 51% (centered), y 51%, UPPERCASE, underlined, max width ~62%
+    - Grade letter: x 58.8%, y 65.5%, bold and underlined
+    - Student registration No.: x 50% (centered), y 70.3%, bold
+    - Date (DD.MM.YYYY): x 40%, y 89.2%
+    - Verification URL: centered in blank space between address and grade legend (y 75.5%)
+    """
+    import io
+    import os
+    from django.conf import settings
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+    from reportlab.lib import colors
+    from reportlab.lib.utils import ImageReader
+    from PIL import Image
+
+    buf = io.BytesIO()
+    width, height = A4  # 595.27 x 841.89 points
+    c = canvas.Canvas(buf, pagesize=A4)
+
+    # 1. Background Template Image
+    template_candidates = [
+        os.path.join(settings.BASE_DIR, 'static', 'certificates', 'citi_ccc_template.jpg'),
+        os.path.join(settings.BASE_DIR, 'static', 'images', 'citi_ccc_template.jpg'),
+        os.path.join(settings.BASE_DIR, 'static', 'images', 'CCCCerty copy.jpg.jpeg'),
+    ]
+    template_path = None
+    for cand in template_candidates:
+        if os.path.exists(cand):
+            template_path = cand
+            break
+
+    if template_path:
+        c.drawImage(template_path, 0, 0, width=width, height=height)
+
+    # 2. Student Photo (left 10.5%, top 8.3%, width 12.7%, height 11.8%)
+    photo_x = width * 0.105
+    photo_w = width * 0.127
+    photo_h = height * 0.118
+    photo_y = height * (1 - 0.083 - 0.118)
+
+    if cert.student_photo:
+        try:
+            photo_file = cert.student_photo
+            photo_file.open('rb')
+            img = Image.open(photo_file)
+            if img.mode not in ('RGB', 'L'):
+                img = img.convert('RGB')
+            
+            # Crop to aspect ratio photo_w / photo_h
+            target_ratio = photo_w / photo_h
+            img_ratio = img.width / img.height
+            if img_ratio > target_ratio:
+                crop_w = int(img.height * target_ratio)
+                offset = (img.width - crop_w) // 2
+                img_cropped = img.crop((offset, 0, offset + crop_w, img.height))
+            else:
+                crop_h = int(img.width / target_ratio)
+                offset = (img.height - crop_h) // 2
+                img_cropped = img.crop((0, offset, img.width, offset + crop_h))
+            
+            img_buf = io.BytesIO()
+            img_cropped.save(img_buf, format='JPEG', quality=90)
+            img_buf.seek(0)
+            c.drawImage(ImageReader(img_buf), photo_x, photo_y, width=photo_w, height=photo_h)
+        except Exception:
+            pass
+
+    # Thin black border around student photo
+    c.setStrokeColor(colors.black)
+    c.setLineWidth(0.8)
+    c.rect(photo_x, photo_y, photo_w, photo_h, fill=False, stroke=True)
+
+    # 3. Serial Number (right side, x 83% centered, y 14.5% from top)
+    serial_val = (cert.serial_number or '').strip()
+    if not serial_val and cert.certificate_id and '-' in cert.certificate_id:
+        serial_val = cert.certificate_id.split('-')[-1]
+    if serial_val:
+        c.setFillColor(colors.black)
+        c.setFont('Helvetica-Bold', 12.5)
+        c.drawCentredString(width * 0.83, height * (1 - 0.145), serial_val)
+
+    # 4. Student Name (x 51% centered, y 51% from top, UPPERCASE, underlined, max width ~62%)
+    student_name = (cert.student_name or '').strip().upper()
+    font_size = 17
+    max_name_w = width * 0.62
+    while c.stringWidth(student_name, 'Helvetica-Bold', font_size) > max_name_w and font_size > 7:
+        font_size -= 0.5
+    c.setFont('Helvetica-Bold', font_size)
+    c.setFillColor(colors.black)
+    name_y = height * (1 - 0.510)
+    c.drawCentredString(width * 0.51, name_y, student_name)
+    nw = c.stringWidth(student_name, 'Helvetica-Bold', font_size)
+    c.setLineWidth(1)
+    c.setStrokeColor(colors.black)
+    c.line(width * 0.51 - nw / 2, name_y - 2, width * 0.51 + nw / 2, name_y - 2)
+
+    # 5. Grade letter (x 58.8%, y 65.5%, bold and underlined, inside "He / She has obtained __ Grade.")
+    grade_val = (cert.grade or 'A').strip().upper()
+    c.setFont('Helvetica-Bold', 13.5)
+    grade_y = height * (1 - 0.655)
+    c.drawCentredString(width * 0.588, grade_y, grade_val)
+    gw = c.stringWidth(grade_val, 'Helvetica-Bold', 13.5)
+    c.setLineWidth(1)
+    c.setStrokeColor(colors.black)
+    c.line(width * 0.588 - max(gw, 16) / 2, grade_y - 2, width * 0.588 + max(gw, 16) / 2, grade_y - 2)
+
+    # 6. Student registration No.: <reg no> (centered, y 70.3%, bold)
+    reg_val = cert.registration_number or cert.certificate_id
+    c.setFont('Helvetica-Bold', 10.5)
+    c.drawCentredString(width * 0.50, height * (1 - 0.703), f"Student registration No. : {reg_val}")
+
+    # 7. Verification line (in blank space between address and grade legend, y 75.5%)
+    verify_url = get_certificate_verify_url()
+    verify_line = f"This Certificate can be verified on {verify_url}"
+    c.setFillColor(colors.HexColor('#1E293B'))
+    v_font_size = 8
+    max_vw = width * 0.85
+    while c.stringWidth(verify_line, 'Helvetica', v_font_size) > max_vw and v_font_size > 5:
+        v_font_size -= 0.5
+    c.setFont('Helvetica', v_font_size)
+    c.drawCentredString(width * 0.50, height * (1 - 0.755), verify_line)
+
+    # 8. Date (DD.MM.YYYY, x 40%, y 89.2% from top, after printed "Date :" label)
+    if cert.issue_date:
+        date_str = cert.issue_date.strftime('%d.%m.%Y')
+        c.setFont('Helvetica-Bold', 11)
+        c.setFillColor(colors.black)
+        c.drawString(width * 0.40, height * (1 - 0.892), date_str)
+
+    c.save()
+    buf.seek(0)
+    return buf.getvalue()
+
+
+def generate_citi_marksheet_pdf(cert):
+    """
+    Generates high-resolution A4 portrait Statement of Marks PDF for CITI CCC
+    matching the layout and tables of CCC_marksheet.docx using citi_marksheet_bg.jpg.
+    """
+    import io
+    import os
+    from django.conf import settings
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+    from reportlab.lib import colors
+    from reportlab.platypus import Table, TableStyle, Paragraph
+    from reportlab.lib.styles import ParagraphStyle
+
+    buf = io.BytesIO()
+    width, height = A4  # 595.27 x 841.89 points
+    c = canvas.Canvas(buf, pagesize=A4)
+
+    # 1. Background Letterhead Template
+    bg_candidates = [
+        os.path.join(settings.BASE_DIR, 'static', 'certificates', 'citi_marksheet_bg.jpg'),
+        os.path.join(settings.BASE_DIR, 'static', 'images', 'citi_marksheet_bg.jpg'),
+    ]
+    bg_path = None
+    for cand in bg_candidates:
+        if os.path.exists(cand):
+            bg_path = cand
+            break
+    if bg_path:
+        c.drawImage(bg_path, 0, 0, width=width, height=height)
+
+    # Content margins
+    left_m = 48
+    usable_w = width - (left_m * 2)  # ~499.27
+
+    # 2. Document Title (Centered, Bold, ~15.5% from top)
+    c.setFillColor(colors.black)
+    c.setFont('Helvetica-Bold', 15)
+    c.drawCentredString(width / 2, 712, "STATEMENT OF MARKS")
+
+    # 3. Student & Course Information Header
+    c.setFont('Helvetica-Bold', 10)
+    c.drawString(left_m, 680, "Student's Name :")
+    c.setFont('Helvetica-Bold', 10.5)
+    c.drawString(left_m + 105, 680, (cert.student_name or '').upper())
+
+    c.setFont('Helvetica-Bold', 10)
+    c.drawString(left_m, 660, "Course Name :")
+    c.setFont('Helvetica', 10)
+    c.drawString(left_m + 105, 660, "CERTIFICATE COURSE ON COMPUTER CONCEPTS (CCC)")
+
+    c.setFont('Helvetica-Bold', 10)
+    c.drawString(left_m, 640, "Course Duration :")
+    c.setFont('Helvetica', 10)
+    duration_val = (cert.course_duration or '').strip() or (cert.course.duration if cert.course else '') or "3 Months"
+    c.drawString(left_m + 105, 640, duration_val)
+
+    # 4. Main Examination Marks Table (Matching docx Table 0)
+    subject_style = ParagraphStyle(
+        'SubjectStyle',
+        fontName='Helvetica',
+        fontSize=8.5,
+        leading=11.5,
+        alignment=0,
+        textColor=colors.black
+    )
+    exact_subject_text = (
+        "MS-Office 2003 with Indic Version (Word, Excel, PowerPoint, Outlook Express and "
+        "Indic 2003 (Gujarati), Computer Fundamentals, Operating System Concepts, "
+        "System Utility, Networks and Internet, Installation, Troubleshooting, PDF File Concepts."
+    )
+    subj_para = Paragraph(exact_subject_text, subject_style)
+
+    th_m = str(cert.theory_marks) if cert.theory_marks is not None else "0"
+    pr_m = str(cert.practical_marks) if cert.practical_marks is not None else "0"
+    tot_m = str(cert.total_marks) if cert.total_marks is not None else "0"
+
+    table_data = [
+        ["Subject", "Max. Marks", "", "Marks Obtained", ""],
+        ["", "Theory", "Practical", "Theory", "Practical"],
+        [subj_para, "50", "50", th_m, pr_m],
+        ["Total Marks", "100", "", tot_m, ""]
+    ]
+
+    col_widths = [249, 62, 62, 63, 63]  # Total: 499 pt
+    t = Table(table_data, colWidths=col_widths)
+    t.setStyle(TableStyle([
+        ('SPAN', (0, 0), (0, 1)),   # Subject title across row 0 & 1
+        ('SPAN', (1, 0), (2, 0)),   # Max. Marks across col 1 & 2
+        ('SPAN', (3, 0), (4, 0)),   # Marks Obtained across col 3 & 4
+        ('SPAN', (1, 3), (2, 3)),   # Total Max Marks across col 1 & 2
+        ('SPAN', (3, 3), (4, 3)),   # Total Obtained Marks across col 3 & 4
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('FONTNAME', (0, 0), (-1, 1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 1), 9),
+        ('ALIGN', (0, 0), (-1, 1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('FONTNAME', (0, 3), (-1, 3), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 3), (-1, 3), 9.5),
+        ('ALIGN', (1, 2), (-1, 3), 'CENTER'),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('LEFTPADDING', (0, 0), (-1, -1), 4),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+    ]))
+
+    w_t, h_t = t.wrapOn(c, usable_w, height)
+    t_y = 620 - h_t
+    t.drawOn(c, left_m, t_y)
+
+    # 5. G.R. line and Registration No.
+    gr_y = t_y - 20
+    c.setFont('Helvetica', 8.5)
+    c.drawString(left_m, gr_y, "Above Course contents are as per Govt. of Gujarat's")
+    c.drawString(left_m, gr_y - 12, "G.R. No.: CRR-10-2007-120320-G5, Dated: 13/08/08")
+
+    reg_y = gr_y - 32
+    c.setFont('Helvetica-Bold', 10)
+    reg_no = cert.registration_number or cert.certificate_id
+    c.drawString(left_m, reg_y, f"Student's Registration No.: {reg_no}")
+
+    # 6. Side-by-side Section: GRADE LEGEND (Left) & Obtained Summary (Right)
+    side_y = reg_y - 20
+
+    # Left: GRADE LEGEND Table
+    legend_data = [
+        ["GRADE LEGEND", ""],
+        ["Grade", "Percentage"],
+        ["S", "85% & Above"],
+        ["A", "75% to 84%"],
+        ["B", "65% to 74%"],
+        ["C", "55% to 64%"],
+        ["D", "50% to 54%"],
+    ]
+    t_legend = Table(legend_data, colWidths=[65, 120])
+    t_legend.setStyle(TableStyle([
+        ('SPAN', (0, 0), (1, 0)),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('FONTNAME', (0, 0), (-1, 1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 1), 8.5),
+        ('ALIGN', (0, 0), (-1, 1), 'CENTER'),
+        ('ALIGN', (0, 2), (0, -1), 'CENTER'),
+        ('ALIGN', (1, 2), (1, -1), 'CENTER'),
+        ('FONTNAME', (0, 2), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 2), (-1, -1), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 2),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    ]))
+    w_leg, h_leg = t_legend.wrapOn(c, 185, height)
+    leg_draw_y = side_y - h_leg
+    t_legend.drawOn(c, left_m, leg_draw_y)
+
+    # Right: Obtained Percentage and Grade Table
+    pct_val = f"{cert.percentage or 0}"
+    grade_val = cert.grade or "A"
+    summary_data = [
+        ["Obtained Percentage", f"  {pct_val}"],
+        ["Obtained Grade", f"  {grade_val}"],
+    ]
+    t_summary = Table(summary_data, colWidths=[130, 75])
+    t_summary.setStyle(TableStyle([
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9.5),
+        ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+        ('ALIGN', (1, 0), (1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    right_x = width - left_m - 205
+    w_sum, h_sum = t_summary.wrapOn(c, 205, height)
+    sum_draw_y = side_y - h_sum
+    t_summary.drawOn(c, right_x, sum_draw_y)
+
+    # Authorized Signatory on Right
+    sig_y = leg_draw_y + 12
+    c.setFont('Helvetica-Bold', 10)
+    c.drawCentredString(right_x + 102, sig_y, "Authorized Signatory")
+
+    # 7. Verification Line at Bottom
+    verify_url = get_certificate_verify_url()
+    c.setFont('Helvetica', 8)
+    c.setFillColor(colors.HexColor('#475569'))
+    c.drawCentredString(width / 2, 80, f"This Marksheet can be verified on {verify_url}")
+
+    c.save()
+    buf.seek(0)
+    return buf.getvalue()
+
+
 def generate_certificate_pdf(cert):
     """
     Generates a high-quality PDF in memory for a given Certificate instance.
     For RAS institute certificates, it uses the official RAS template image.
+    For CITI certificates, it uses the official CITI CCC template image with photo.
     For CCC courses, it uses the official CCC certificate template.
     For all other courses, it retains the standard C-DAC certificate layout.
     """
     if is_ras_certificate(cert):
         return generate_ras_certificate_pdf(cert)
+
+    if getattr(cert, 'prefix', '') == 'CITI':
+        return generate_citi_ccc_certificate_pdf(cert)
 
     if is_ccc_certificate(cert):
         return generate_ccc_certificate_pdf(cert)

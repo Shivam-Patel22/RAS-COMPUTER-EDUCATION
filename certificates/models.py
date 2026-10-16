@@ -20,6 +20,14 @@ class Certificate(models.Model):
     printed_at = models.DateTimeField(blank=True, null=True)
     last_verified_at = models.DateTimeField(blank=True, null=True)
 
+    # CITI CCC Specific Fields (Optional & Nullable for non-CITI certificates)
+    student_photo = models.ImageField(upload_to='student_photos/', null=True, blank=True)
+    theory_marks = models.PositiveSmallIntegerField(null=True, blank=True)
+    practical_marks = models.PositiveSmallIntegerField(null=True, blank=True)
+    course_duration = models.CharField(max_length=50, blank=True, default='3 Months')
+    serial_number = models.CharField(max_length=20, blank=True, default='')
+    registration_number = models.CharField(max_length=100, blank=True, default='', db_index=True)
+
     def generate_verification_hash(self):
         """Generates a SHA-256 hash for certificate data verification."""
         data_str = f"{self.certificate_id}|{self.student_name}|{self.course_id}|{self.issue_date}|{self.grade or ''}"
@@ -35,12 +43,74 @@ class Certificate(models.Model):
                 self.student_name = f"{fn} {mn} {ln}"
             else:
                 self.student_name = f"{fn} {ln}"
+
+        if self.prefix == 'CITI':
+            if self.serial_number and not self.registration_number:
+                self.registration_number = self.format_citi_registration_number(self.serial_number, self.issue_date)
+            if self.theory_marks is not None and self.practical_marks is not None:
+                calc_grade = self.calculate_citi_grade(self.theory_marks + self.practical_marks)
+                if calc_grade:
+                    self.grade = calc_grade
                 
         if not self.verification_hash:
             self.verification_hash = self.generate_verification_hash()
         if not self.verification_token:
             self.verification_token = self.verification_hash[:16].upper()
         super().save(*args, **kwargs)
+
+    @property
+    def total_marks(self):
+        if self.theory_marks is not None and self.practical_marks is not None:
+            return self.theory_marks + self.practical_marks
+        return None
+
+    @property
+    def percentage(self):
+        return self.total_marks
+
+    @classmethod
+    def calculate_citi_grade(cls, total):
+        """
+        Grade scale (from CCC marksheet):
+        S: 85% and above
+        A: 75% to 84%
+        B: 65% to 74%
+        C: 55% to 64%
+        D: 50% to 54%
+        Below 50%: None (Not Eligible)
+        """
+        if total is None:
+            return None
+        if total >= 85:
+            return 'S'
+        elif total >= 75:
+            return 'A'
+        elif total >= 65:
+            return 'B'
+        elif total >= 55:
+            return 'C'
+        elif total >= 50:
+            return 'D'
+        return None
+
+    @classmethod
+    def compute_financial_year(cls, d=None):
+        if d is None:
+            import datetime
+            d = datetime.date.today()
+        year = d.year
+        if d.month >= 4:
+            next_yr_short = str(year + 1)[-2:]
+            return f"{year}-{next_yr_short}"
+        else:
+            prev_yr = year - 1
+            yr_short = str(year)[-2:]
+            return f"{prev_yr}-{yr_short}"
+
+    @classmethod
+    def format_citi_registration_number(cls, serial, d=None):
+        fy = cls.compute_financial_year(d)
+        return f"CITI/GNR/{fy}/{serial}"
 
     @property
     def is_ccc(self):

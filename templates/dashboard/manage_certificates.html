@@ -82,6 +82,9 @@
                 <tr>
                     <td style="white-space: nowrap; padding-left: 0.85rem;">
                         <code class="cert-id-code">{{ cert.certificate_id }}</code>
+                        {% if cert.prefix == 'CITI' and cert.registration_number %}
+                            <div style="font-size: 0.72rem; color: var(--gray-500); font-family: monospace; margin-top: 2px;">{{ cert.registration_number }}</div>
+                        {% endif %}
                     </td>
                     <td style="white-space: nowrap; font-size: 0.88rem;"><strong>{{ cert.student_name }}</strong></td>
                     <td style="white-space: nowrap; font-size: 0.82rem;">
@@ -98,6 +101,10 @@
                     </td>
                     <td style="white-space: nowrap; text-align: right; padding-right: 0.85rem;">
                         <div style="display: inline-flex; gap: 0.25rem; align-items: center; justify-content: flex-end; white-space: nowrap;">
+                            {% if cert.prefix == 'CITI' %}
+                            <a href="{% url 'dashboard:download_citi_bundle' cert.id %}" class="btn btn-primary btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.78rem;" title="Download Certificate + Marksheet in 1 Click">📦 Cert + Marksheet</a>
+                            <a href="{% url 'dashboard:print_citi_marksheet' cert.id %}" target="_blank" class="btn btn-outline-dark btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.78rem;" title="View CCC Marksheet">📊 Marksheet</a>
+                            {% endif %}
                             <a href="{% url 'dashboard:print_certificate' cert.id %}" target="_blank" class="btn btn-outline-dark btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.78rem;" title="Print Certificate">🖨️ Print</a>
                             <a href="{% url 'dashboard:edit_certificate' cert.id %}" class="btn btn-outline-dark btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.78rem;">Edit</a>
                             <a href="{% url 'dashboard:revoke_certificate' cert.id %}" class="btn btn-danger btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.78rem;">Revoke</a>

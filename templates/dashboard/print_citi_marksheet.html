@@ -1,0 +1,407 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statement of Marks - {{ certificate.certificate_id }} | CITI</title>
+    <link rel="icon" type="image/png" href="{% static 'images/ras.png' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f1f5f9;
+            margin: 0;
+            padding: 20px 0;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #000000;
+        }
+
+        .print-toolbar {
+            max-width: 820px;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            font-family: var(--font-main, 'Plus Jakarta Sans', sans-serif);
+        }
+
+        .print-toolbar h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #211f1c;
+        }
+
+        .print-toolbar-btns {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .marksheet-outer {
+            max-width: 820px;
+            margin: 0 auto;
+            background: #ffffff;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            aspect-ratio: 2480 / 3508;
+            box-sizing: border-box;
+        }
+
+        .marksheet-bg-template {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+            z-index: 1;
+            pointer-events: none;
+            display: block;
+        }
+
+        .marksheet-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            padding: 15% 7.5% 8% 7.5%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .ms-title {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            margin: 0 0 1.25rem 0;
+            text-transform: uppercase;
+        }
+
+        .ms-meta-section {
+            margin-bottom: 1.25rem;
+            line-height: 1.8;
+            font-size: 0.92rem;
+        }
+
+        .ms-meta-row {
+            display: flex;
+            margin-bottom: 0.35rem;
+        }
+
+        .ms-meta-label {
+            width: 140px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .ms-meta-value {
+            font-weight: 700;
+        }
+
+        .ms-meta-value.normal {
+            font-weight: 500;
+        }
+
+        /* Marks Table */
+        .ms-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+            border: 1.5px solid #000000;
+            margin-bottom: 0.75rem;
+        }
+
+        .ms-table th, .ms-table td {
+            border: 1px solid #000000;
+            padding: 4px 6px;
+        }
+
+        .ms-table th {
+            font-weight: 700;
+            text-align: center;
+            background: #ffffff;
+        }
+
+        .ms-subject-text {
+            font-size: 0.78rem;
+            line-height: 1.35;
+            text-align: left;
+        }
+
+        .ms-gr-note {
+            font-size: 0.78rem;
+            font-weight: 500;
+            margin: 0.4rem 0 0.8rem 0;
+        }
+
+        .ms-reg-line {
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Bottom section with Legend, Summary Table and Signatory */
+        .ms-bottom-grid {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-top: auto;
+            margin-bottom: 2rem;
+            gap: 1.5rem;
+        }
+
+        .ms-legend-table {
+            border-collapse: collapse;
+            font-size: 0.75rem;
+            border: 1px solid #000000;
+            width: 42%;
+        }
+
+        .ms-legend-table th, .ms-legend-table td {
+            border: 1px solid #000000;
+            padding: 3px 6px;
+            text-align: center;
+        }
+
+        .ms-legend-table th {
+            font-weight: 700;
+        }
+
+        .ms-summary-table {
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            border: 1.5px solid #000000;
+            width: 48%;
+            margin-bottom: 2rem;
+        }
+
+        .ms-summary-table td {
+            border: 1px solid #000000;
+            padding: 6px 10px;
+            font-weight: 700;
+        }
+
+        .ms-signatory {
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-top: 2rem;
+        }
+
+        .ms-verify-line {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #475569;
+            margin-top: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @page {
+            size: A4 portrait;
+            margin: 0mm;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 0mm;
+            }
+            @page :left { margin: 0mm; }
+            @page :right { margin: 0mm; }
+            @page :first { margin: 0mm; }
+
+            html, body {
+                background: #ffffff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .marksheet-outer {
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                width: 100vw !important;
+                max-width: 100% !important;
+                height: 100vh !important;
+                max-height: 100vh !important;
+                margin: 0 !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Toolbar (Screen Only) -->
+    <div class="print-toolbar no-print">
+        <div>
+            <h2>Statement of Marks (CCC)</h2>
+            <span style="font-size: 0.82rem; color: #64748b;">Registration No: <strong>{{ certificate.registration_number|default:certificate.certificate_id }}</strong></span>
+        </div>
+        <div class="print-toolbar-btns">
+            <a href="?format=pdf" class="btn btn-success" style="padding: 0.45rem 1rem; font-size: 0.88rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">📥 Download PDF</a>
+            <button onclick="window.print();" class="btn btn-primary" style="padding: 0.45rem 1rem; font-size: 0.88rem; cursor: pointer;">🖨️ Print</button>
+            <button onclick="window.close();" class="btn btn-outline-dark" style="padding: 0.45rem 1rem; font-size: 0.88rem; cursor: pointer;">Close Window</button>
+        </div>
+    </div>
+
+    <!-- Marksheet Container (A4 Portrait) -->
+    <div class="marksheet-outer">
+        <!-- Background Template -->
+        <img src="{% static 'certificates/citi_marksheet_bg.jpg' %}" alt="CITI Marksheet Background" class="marksheet-bg-template">
+
+        <!-- Foreground Content -->
+        <div class="marksheet-content">
+            <div>
+                <h1 class="ms-title">STATEMENT OF MARKS</h1>
+
+                <div class="ms-meta-section">
+                    <div class="ms-meta-row">
+                        <span class="ms-meta-label">Student's Name :</span>
+                        <span class="ms-meta-value">{{ certificate.student_name|upper }}</span>
+                    </div>
+                    <div class="ms-meta-row">
+                        <span class="ms-meta-label">Course Name :</span>
+                        <span class="ms-meta-value normal">CERTIFICATE COURSE ON COMPUTER CONCEPTS (CCC)</span>
+                    </div>
+                    <div class="ms-meta-row">
+                        <span class="ms-meta-label">Course Duration :</span>
+                        <span class="ms-meta-value normal">{{ certificate.course_duration|default:"3 Months" }}</span>
+                    </div>
+                </div>
+
+                <!-- Marks Table -->
+                <table class="ms-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" style="width: 52%; text-align: left; padding-left: 8px;">Subject</th>
+                            <th colspan="2" style="width: 24%;">Max. Marks</th>
+                            <th colspan="2" style="width: 24%;">Marks Obtained</th>
+                        </tr>
+                        <tr>
+                            <th style="width: 12%;">Theory</th>
+                            <th style="width: 12%;">Practical</th>
+                            <th style="width: 12%;">Theory</th>
+                            <th style="width: 12%;">Practical</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="ms-subject-text">
+                                MS-Office 2003 with Indic Version (Word, Excel, PowerPoint, Outlook Express and Indic 2003 (Gujarati), Computer Fundamentals, Operating System Concepts, System Utility, Networks and Internet, Installation, Troubleshooting, PDF File Concepts.
+                            </td>
+                            <td style="text-align: center; vertical-align: middle; font-weight: 700;">50</td>
+                            <td style="text-align: center; vertical-align: middle; font-weight: 700;">50</td>
+                            <td style="text-align: center; vertical-align: middle; font-weight: 700;">{{ certificate.theory_marks|default:"0" }}</td>
+                            <td style="text-align: center; vertical-align: middle; font-weight: 700;">{{ certificate.practical_marks|default:"0" }}</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left; font-weight: 700; padding-left: 8px;">Total Marks : 100</td>
+                            <td colspan="2" style="text-align: center; font-weight: 700;">100</td>
+                            <td colspan="2" style="text-align: center; font-weight: 700;">{{ certificate.total_marks|default:"0" }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="ms-gr-note">
+                    G.R. : General Knowledge, Reading and Writing in Gujarati and Hindi are Included.
+                </div>
+
+                <div class="ms-reg-line">
+                    Student Registration No : {{ certificate.registration_number|default:certificate.certificate_id }}
+                </div>
+            </div>
+
+            <!-- Bottom Section -->
+            <div>
+                <div class="ms-bottom-grid">
+                    <!-- Left: Grade Legend -->
+                    <table class="ms-legend-table">
+                        <thead>
+                            <tr>
+                                <th colspan="2">GRADE LEGEND</th>
+                            </tr>
+                            <tr>
+                                <th>Grade</th>
+                                <th>Marks Range</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="font-weight: 700;">S</td>
+                                <td>85% and Above</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 700;">A</td>
+                                <td>75% to 84%</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 700;">B</td>
+                                <td>65% to 74%</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 700;">C</td>
+                                <td>55% to 64%</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 700;">D</td>
+                                <td>50% to 54%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Right: Summary Table and Authorized Signatory -->
+                    <div style="width: 48%; display: flex; flex-direction: column; align-items: center;">
+                        <table class="ms-summary-table">
+                            <tbody>
+                                <tr>
+                                    <td>Obtained Percentage</td>
+                                    <td style="text-align: center;">{{ certificate.percentage|default:"0" }}%</td>
+                                </tr>
+                                <tr>
+                                    <td>Obtained Grade</td>
+                                    <td style="text-align: center;">{{ certificate.grade|default:"A" }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="ms-signatory">
+                            Authorized Signatory
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ms-verify-line">
+                    This Marksheet can be verified on {{ certificate_verify_url }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

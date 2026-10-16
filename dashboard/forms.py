@@ -8,9 +8,11 @@ from certificates.utils import (
     get_student_initials,
     extract_recipient_initials,
     preview_certificate_id,
+    get_next_citi_serial,
     SequenceExhaustedError,
     RandomCodeExhaustedError,
 )
+import os
 from datetime import datetime
 
 class AdminLoginForm(forms.Form):
@@ -121,10 +123,41 @@ class AdminCertificateForm(forms.ModelForm):
         required=False,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'})
     )
+    student_photo = forms.ImageField(
+        required=False,
+        widget=forms.FileInput(attrs={'class': 'form-control', 'id': 'id_student_photo', 'accept': 'image/jpeg,image/png,image/jpg'})
+    )
+    theory_marks = forms.IntegerField(
+        required=False,
+        min_value=0,
+        max_value=50,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'id': 'id_theory_marks', 'placeholder': 'Theory Marks (0–50)', 'min': '0', 'max': '50'})
+    )
+    practical_marks = forms.IntegerField(
+        required=False,
+        min_value=0,
+        max_value=50,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'id': 'id_practical_marks', 'placeholder': 'Practical Marks (0–50)', 'min': '0', 'max': '50'})
+    )
+    course_duration = forms.CharField(
+        max_length=50,
+        required=False,
+        initial='3 Months',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'id': 'id_course_duration', 'placeholder': 'Course Duration (e.g. 3 Months)'})
+    )
+    serial_number = forms.CharField(
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'id': 'id_serial_number', 'placeholder': 'Serial No. (e.g. 4327)'})
+    )
 
     class Meta:
         model = Certificate
-        fields = ['prefix', 'certificate_id', 'first_name', 'middle_name', 'last_name', 'course', 'course_start_date', 'course_end_date', 'issue_date', 'grade']
+        fields = [
+            'prefix', 'certificate_id', 'first_name', 'middle_name', 'last_name',
+            'course', 'course_start_date', 'course_end_date', 'issue_date', 'grade',
+            'student_photo', 'theory_marks', 'practical_marks', 'course_duration', 'serial_number'
+        ]
         widgets = {
             'certificate_id': forms.TextInput(attrs={'class': 'form-control', 'id': 'id_certificate_id', 'readonly': 'readonly'}),
             'course': forms.Select(attrs={'class': 'form-control', 'required': 'required'}),
@@ -143,6 +176,14 @@ class AdminCertificateForm(forms.ModelForm):
                     self.initial['prefix'] = 'CITI'
                 elif cert_id_upper.startswith('RAS'):
                     self.initial['prefix'] = 'RAS'
+            if self.instance.serial_number:
+                self.initial['serial_number'] = self.instance.serial_number
+            if self.instance.course_duration:
+                self.initial['course_duration'] = self.instance.course_duration
+            if self.instance.theory_marks is not None:
+                self.initial['theory_marks'] = self.instance.theory_marks
+            if self.instance.practical_marks is not None:
+                self.initial['practical_marks'] = self.instance.practical_marks
             if not self.initial.get('first_name'):
                 if self.instance.first_name:
                     self.initial['first_name'] = self.instance.first_name
@@ -163,6 +204,8 @@ class AdminCertificateForm(forms.ModelForm):
                         self.initial['middle_name'] = ""
                         self.initial['last_name'] = ""
         else:
+            self.initial.setdefault('serial_number', get_next_citi_serial())
+            self.initial.setdefault('course_duration', '3 Months')
             current_prefix = self.initial.get('prefix', 'RAS')
             fn = self.initial.get('first_name', '')
             ln = self.initial.get('last_name', '')
@@ -258,6 +301,86 @@ class AdminCertificateForm(forms.ModelForm):
                 except (SequenceExhaustedError, RandomCodeExhaustedError) as e:
                     self.add_error('certificate_id', str(e))
 
+        if prefix == 'CITI':
+            # 1. Course validation - must be CCC
+            course = cleaned_data.get('course')
+            if course:
+                c_name = (course.name or '').strip().lower()
+                if not ('ccc' in c_name or 'computer concepts' in c_name):
+                    self.add_error('course', "For CITI certificates, course must be 'Certificate Course on Computer Concepts (CCC)'.")
+
+            # 2. Student photo validation
+            photo = cleaned_data.get('student_photo')
+            has_photo = bool(photo or (self.instance and self.instance.pk and self.instance.student_photo))
+            if not has_photo:
+                self.add_error('student_photo', "Student photo is required for CITI certificates.")
+            elif photo and hasattr(photo, 'file'):
+                if photo.size > 2 * 1024 * 1024:
+                    self.add_error('student_photo', "Photo file size exceeds 2 MB. Please upload an image under 2 MB.")
+                else:
+                    try:
+                        from PIL import Image
+                        import io
+                        from django.core.files.uploadedfile import InMemoryUploadedFile
+
+                        photo.seek(0)
+                        img = Image.open(photo)
+                        img.verify()
+
+                        photo.seek(0)
+                        img = Image.open(photo)
+                        if img.mode not in ('RGB', 'L'):
+                            img = img.convert('RGB')
+
+                        # Resize to ~400px wide
+                        target_w = 400
+                        if img.width > target_w:
+                            target_h = int(img.height * (target_w / img.width))
+                            img = img.resize((target_w, target_h), Image.Resampling.LANCZOS)
+
+                        out_io = io.BytesIO()
+                        img.save(out_io, format='JPEG', quality=88, optimize=True)
+                        out_io.seek(0)
+
+                        file_name = os.path.splitext(photo.name)[0] + '.jpg'
+                        cleaned_data['student_photo'] = InMemoryUploadedFile(
+                            out_io, 'student_photo', file_name, 'image/jpeg', out_io.getbuffer().nbytes, None
+                        )
+                    except Exception as e:
+                        self.add_error('student_photo', f"Invalid image file: {str(e)}")
+
+            # 3. Marks validation (0-50 each)
+            tm = cleaned_data.get('theory_marks')
+            pm = cleaned_data.get('practical_marks')
+            if tm is None:
+                self.add_error('theory_marks', "Theory marks (0–50) are required for CITI CCC.")
+            elif not (0 <= tm <= 50):
+                self.add_error('theory_marks', "Theory marks must be between 0 and 50.")
+
+            if pm is None:
+                self.add_error('practical_marks', "Practical marks (0–50) are required for CITI CCC.")
+            elif not (0 <= pm <= 50):
+                self.add_error('practical_marks', "Practical marks must be between 0 and 50.")
+
+            if tm is not None and pm is not None and 0 <= tm <= 50 and 0 <= pm <= 50:
+                total = tm + pm
+                if total < 50:
+                    self.add_error(None, f"Candidate obtained {total}/100 ({total}%), which is below 50%. Status: Not Eligible. Certificate generation blocked.")
+                else:
+                    grade = Certificate.calculate_citi_grade(total)
+                    cleaned_data['grade'] = grade
+
+            # 4. Serial & registration number
+            serial = cleaned_data.get('serial_number', '').strip()
+            if not serial:
+                serial = get_next_citi_serial()
+                cleaned_data['serial_number'] = serial
+
+            issue_d = cleaned_data.get('issue_date')
+            cleaned_data['registration_number'] = Certificate.format_citi_registration_number(serial, issue_d)
+            if not cleaned_data.get('course_duration'):
+                cleaned_data['course_duration'] = '3 Months'
+
         return cleaned_data
 
     def save(self, commit=True):
@@ -275,6 +398,17 @@ class AdminCertificateForm(forms.ModelForm):
             instance.student_name = f"{fn} {mn} {ln}"
         else:
             instance.student_name = f"{fn} {ln}"
+
+        prefix = self.cleaned_data.get('prefix', 'RAS')
+        if prefix == 'CITI':
+            instance.course_duration = self.cleaned_data.get('course_duration', '3 Months')
+            instance.serial_number = self.cleaned_data.get('serial_number', '')
+            instance.registration_number = self.cleaned_data.get('registration_number', '')
+            instance.theory_marks = self.cleaned_data.get('theory_marks')
+            instance.practical_marks = self.cleaned_data.get('practical_marks')
+            if 'student_photo' in self.cleaned_data and self.cleaned_data['student_photo']:
+                instance.student_photo = self.cleaned_data['student_photo']
+
         if commit:
             instance.save()
         return instance

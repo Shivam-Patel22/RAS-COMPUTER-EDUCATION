@@ -15,7 +15,7 @@
     <div class="form-card" style="max-width: 650px;">
         <h1 style="font-size: 1.75rem; margin-bottom: 1.5rem; color: var(--gray-900);">{{ title }}</h1>
 
-        <form method="post" data-validate="true">
+        <form method="post" enctype="multipart/form-data" data-validate="true">
             {% csrf_token %}
 
             <div class="form-group" style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--gray-200); margin-bottom: 1.25rem;">
@@ -63,6 +63,60 @@
                 </div>
             </div>
 
+            <!-- CITI CCC Dedicated Fields (Visible only when CITI prefix is chosen) -->
+            <div id="citi-fields-container" style="display: none; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.25rem;">
+                <h4 style="font-size: 1rem; color: #1e293b; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 700;">
+                    <span>🎓</span> CITI CCC Details & Marks
+                </h4>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label for="{{ form.student_photo.id_for_label }}" style="font-weight: 600;">Student Photo (Passport / Formal) *</label>
+                    {{ form.student_photo }}
+                    <small style="color: var(--gray-500); display: block; margin-top: 0.25rem; font-size: 0.8rem;">Max 2 MB (JPG/PNG). Image will be auto-fitted to certificate top-left.</small>
+                    {% if form.instance.student_photo %}
+                        <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                            <img src="{{ form.instance.student_photo.url }}" alt="Student Photo" style="width: 50px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #cbd5e1;">
+                            <span style="font-size: 0.85rem; color: var(--gray-600);">Current photo</span>
+                        </div>
+                    {% endif %}
+                    {% if form.student_photo.errors %}<div class="form-error">{{ form.student_photo.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="{{ form.theory_marks.id_for_label }}" style="font-weight: 600;">Theory Marks (0–50) *</label>
+                        {{ form.theory_marks }}
+                        {% if form.theory_marks.errors %}<div class="form-error">{{ form.theory_marks.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="{{ form.practical_marks.id_for_label }}" style="font-weight: 600;">Practical Marks (0–50) *</label>
+                        {{ form.practical_marks }}
+                        {% if form.practical_marks.errors %}<div class="form-error">{{ form.practical_marks.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <!-- Marks / Grade Preview Helper -->
+                <div id="citi-marks-summary" style="background: #ffffff; border: 1px dashed #94a3b8; border-radius: 6px; padding: 0.6rem 0.85rem; margin-bottom: 1rem; font-size: 0.88rem; color: #334155;">
+                    <strong>Marks Summary:</strong> Total: <span id="citi-total-display">—</span>/100 | Percentage: <span id="citi-pct-display">—</span> | Grade: <span id="citi-grade-display">—</span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="{{ form.course_duration.id_for_label }}" style="font-weight: 600;">Course Duration</label>
+                        {{ form.course_duration }}
+                        {% if form.course_duration.errors %}<div class="form-error">{{ form.course_duration.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="{{ form.serial_number.id_for_label }}" style="font-weight: 600;">Serial Number</label>
+                        {{ form.serial_number }}
+                        <small style="color: var(--gray-500); display: block; font-size: 0.75rem; margin-top: 0.2rem;">Leave blank to auto-generate (e.g. 4327)</small>
+                        {% if form.serial_number.errors %}<div class="form-error">{{ form.serial_number.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label for="{{ form.course.id_for_label }}">Completed Course *</label>
                 {{ form.course }}
@@ -87,7 +141,7 @@
                 {% if form.issue_date.errors %}<div class="form-error">{{ form.issue_date.errors.0 }}</div>{% endif %}
             </div>
 
-            <div class="form-group">
+            <div class="form-group" id="grade-form-group">
                 <label for="{{ form.grade.id_for_label }}">Grade / Distinction (Optional)</label>
                 {{ form.grade }}
                 {% if form.grade.errors %}<div class="form-error">{{ form.grade.errors.0 }}</div>{% endif %}
@@ -210,11 +264,112 @@ function toggleIdMode(mode) {
     }
 }
 
+function calculateCitiMarks() {
+    var tmInput = document.getElementById('id_theory_marks');
+    var pmInput = document.getElementById('id_practical_marks');
+    var totalSpan = document.getElementById('citi-total-display');
+    var pctSpan = document.getElementById('citi-pct-display');
+    var gradeSpan = document.getElementById('citi-grade-display');
+
+    if (!tmInput || !pmInput || !totalSpan) return;
+
+    var tm = parseFloat(tmInput.value);
+    var pm = parseFloat(pmInput.value);
+
+    if (!isNaN(tm) && !isNaN(pm)) {
+        var total = tm + pm;
+        totalSpan.textContent = total;
+        pctSpan.textContent = total + '%';
+
+        var grade = '';
+        var color = '#1e293b';
+        if (total >= 85) { grade = 'S (>=85%)'; color = '#15803d'; }
+        else if (total >= 75) { grade = 'A (75-84%)'; color = '#15803d'; }
+        else if (total >= 65) { grade = 'B (65-74%)'; color = '#2563eb'; }
+        else if (total >= 55) { grade = 'C (55-64%)'; color = '#d97706'; }
+        else if (total >= 50) { grade = 'D (50-54%)'; color = '#d97706'; }
+        else { grade = 'Not Eligible (<50%)'; color = '#dc2626'; }
+
+        gradeSpan.textContent = grade;
+        gradeSpan.style.color = color;
+    } else {
+        totalSpan.textContent = '—';
+        pctSpan.textContent = '—';
+        gradeSpan.textContent = '—';
+        gradeSpan.style.color = '#334155';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     var prefixSelect = document.getElementById('id_prefix');
     var manualRadio = document.querySelector('input[name="id_gen_mode"][value="manual"]');
     var fnInput = document.getElementById('id_first_name');
     var lnInput = document.getElementById('id_last_name');
+    var courseSelect = document.getElementById('id_course');
+    var citiContainer = document.getElementById('citi-fields-container');
+    var gradeGroup = document.getElementById('grade-form-group');
+    var tmInput = document.getElementById('id_theory_marks');
+    var pmInput = document.getElementById('id_practical_marks');
+
+    // Store original course options to restore when switching back from CITI
+    var originalCourseOptions = [];
+    if (courseSelect) {
+        for (var i = 0; i < courseSelect.options.length; i++) {
+            originalCourseOptions.push({
+                value: courseSelect.options[i].value,
+                text: courseSelect.options[i].text,
+                selected: courseSelect.options[i].selected
+            });
+        }
+    }
+
+    function syncPrefixUI() {
+        var prefix = getSelectedPrefix();
+        if (prefix === 'CITI') {
+            if (citiContainer) citiContainer.style.display = 'block';
+            if (gradeGroup) gradeGroup.style.display = 'none';
+
+            if (courseSelect) {
+                var currentVal = courseSelect.value;
+                courseSelect.innerHTML = '';
+                var matched = false;
+                originalCourseOptions.forEach(function(opt) {
+                    var lower = opt.text.toLowerCase();
+                    if (lower.includes('ccc') || lower.includes('computer concepts')) {
+                        var o = document.createElement('option');
+                        o.value = opt.value;
+                        o.text = opt.text;
+                        if (opt.value === currentVal || !matched) {
+                            o.selected = true;
+                            matched = true;
+                        }
+                        courseSelect.appendChild(o);
+                    }
+                });
+            }
+            calculateCitiMarks();
+        } else {
+            if (citiContainer) citiContainer.style.display = 'none';
+            if (gradeGroup) gradeGroup.style.display = 'block';
+
+            if (courseSelect) {
+                var currentVal = courseSelect.value;
+                courseSelect.innerHTML = '';
+                originalCourseOptions.forEach(function(opt) {
+                    var o = document.createElement('option');
+                    o.value = opt.value;
+                    o.text = opt.text;
+                    if (opt.value === currentVal) {
+                        o.selected = true;
+                    }
+                    courseSelect.appendChild(o);
+                });
+                if (!courseSelect.value && originalCourseOptions.length > 0) {
+                    courseSelect.value = originalCourseOptions[0].value;
+                }
+            }
+        }
+    }
 
     if (prefixSelect) {
         prefixSelect.addEventListener('change', function() {
@@ -223,8 +378,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!isManual) {
                 updateCertId();
             }
+            syncPrefixUI();
         });
     }
+
+    if (tmInput) tmInput.addEventListener('input', calculateCitiMarks);
+    if (pmInput) pmInput.addEventListener('input', calculateCitiMarks);
 
     function onNameChange() {
         var isManual = manualRadio && manualRadio.checked;
@@ -247,6 +406,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (fnInput) fnInput.addEventListener('input', onNameChange);
     if (lnInput) lnInput.addEventListener('input', onNameChange);
+
+    // Initial sync
+    syncPrefixUI();
 
     if (manualRadio && manualRadio.checked) {
         toggleIdMode('manual');
