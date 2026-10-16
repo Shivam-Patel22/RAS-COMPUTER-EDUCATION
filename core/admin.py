@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Inquiry, InquiryFollowUp, ContactContent, AboutContent
+from .models import Inquiry, InquiryFollowUp, ContactContent, AboutContent, JustdialReview
 
 @admin.register(Inquiry)
 class InquiryAdmin(admin.ModelAdmin):
@@ -36,3 +36,12 @@ class ContactContentAdmin(admin.ModelAdmin):
 @admin.register(AboutContent)
 class AboutContentAdmin(admin.ModelAdmin):
     list_display = ('heading', 'updated_at')
+
+
+@admin.register(JustdialReview)
+class JustdialReviewAdmin(admin.ModelAdmin):
+    list_display = ('reviewer_name', 'rating', 'review_date', 'display_order', 'is_active')
+    list_editable = ('display_order', 'is_active')
+    list_filter = ('is_active', 'rating')
+    search_fields = ('reviewer_name', 'review_text')
+

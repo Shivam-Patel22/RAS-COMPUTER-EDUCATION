@@ -200,4 +200,98 @@ class CoreTestCase(TestCase):
         self.assertContains(contact_page_resp, 'https://www.instagram.com/cdac_institute/')
         self.assertContains(contact_page_resp, 'https://www.facebook.com/cdacinstitute/')
 
+    def test_google_review_button_rendered(self):
+        response = self.client.get(reverse('core:contact'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="google-review-btn"')
+        self.assertContains(response, 'Write a Google Review')
+        self.assertContains(response, 'target="_blank"')
+        self.assertContains(response, 'rel="noopener noreferrer"')
+        self.assertContains(response, '4.9')
+        self.assertContains(response, '400+')
+
+    def test_justdial_reviews_display_active(self):
+        from core.models import JustdialReview
+        import datetime
+        JustdialReview.objects.all().delete()
+        JustdialReview.objects.create(
+            reviewer_name="Rajesh Kumar",
+            rating=5,
+            review_text="Best training institute for accounting and GST.",
+            review_date=datetime.date(2026, 1, 15),
+            is_active=True,
+            display_order=1
+        )
+        response = self.client.get(reverse('core:contact'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Reviews from Justdial")
+        self.assertContains(response, "Rajesh Kumar")
+        self.assertContains(response, "Best training institute for accounting and GST.")
+        self.assertContains(response, "via Justdial")
+        self.assertContains(response, "★★★★★")
+        self.assertContains(response, 'id="justdial-all-reviews-link"')
+
+    def test_justdial_inactive_reviews_hidden(self):
+        from core.models import JustdialReview
+        JustdialReview.objects.all().delete()
+        JustdialReview.objects.create(
+            reviewer_name="Hidden Reviewer",
+            rating=4,
+            review_text="This should not be seen on public site.",
+            is_active=False
+        )
+        response = self.client.get(reverse('core:contact'))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Hidden Reviewer")
+        self.assertNotContains(response, "ras-reviews-section")
+
+    def test_justdial_review_xss_escaped(self):
+        from core.models import JustdialReview
+        JustdialReview.objects.all().delete()
+        JustdialReview.objects.create(
+            reviewer_name="Security Tester",
+            rating=5,
+            review_text="<script>alert('xss')</script><b>Bold Text</b>",
+            is_active=True
+        )
+        response = self.client.get(reverse('core:contact'))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "<script>alert('xss')</script>")
+        self.assertContains(response, "&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;")
+
+    def test_navbar_reviews_link(self):
+        response = self.client.get(reverse('core:home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'href="/#reviews"')
+        self.assertContains(response, '>Reviews<')
+
+    def test_homepage_reviews_section_renders(self):
+        from core.models import JustdialReview
+        import datetime
+        JustdialReview.objects.all().delete()
+        JustdialReview.objects.create(
+            reviewer_name="Bhavik Prajapati",
+            rating=5,
+            review_text="One of the best computer coaching institutes in Gandhinagar Sector 22.",
+            review_date=datetime.date(2026, 1, 12),
+            is_active=True,
+            display_order=1
+        )
+        response = self.client.get(reverse('core:home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="reviews"')
+        self.assertContains(response, 'Reviews from')
+        self.assertContains(response, 'Bhavik Prajapati')
+        self.assertContains(response, 'One of the best computer coaching institutes in Gandhinagar Sector 22.')
+        self.assertContains(response, 'via Justdial')
+
+    def test_homepage_reviews_section_hidden_when_no_active_reviews(self):
+        from core.models import JustdialReview
+        JustdialReview.objects.all().delete()
+        response = self.client.get(reverse('core:home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'id="reviews"')
+
+
+
 

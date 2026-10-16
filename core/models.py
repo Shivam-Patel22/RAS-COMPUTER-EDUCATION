@@ -201,3 +201,31 @@ class ContactContent(models.Model):
     def get_solo(cls):
         obj, _ = cls.objects.get_or_create(id=1)
         return obj
+
+
+class JustdialReview(models.Model):
+    reviewer_name = models.CharField(max_length=150)
+    rating = models.PositiveSmallIntegerField(
+        default=5,
+        choices=[(i, f"{i} Stars") for i in range(1, 6)],
+        help_text="Rating between 1 and 5 stars"
+    )
+    review_text = models.TextField(help_text="Text of the review from Justdial")
+    review_date = models.DateField(blank=True, null=True, help_text="Date of review on Justdial (optional)")
+    is_active = models.BooleanField(default=True, help_text="Toggle whether to display this review on the Contact page")
+    display_order = models.PositiveIntegerField(default=0, help_text="Display order (lower numbers appear first)")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['display_order', '-created_at']
+        verbose_name = 'Justdial Review'
+        verbose_name_plural = 'Justdial Reviews'
+
+    @property
+    def stars(self):
+        r = max(1, min(int(self.rating or 5), 5))
+        return '★' * r + '☆' * (5 - r)
+
+    def __str__(self):
+        return f"{self.reviewer_name} ({self.rating}★)"
+

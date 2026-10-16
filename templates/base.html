@@ -49,7 +49,9 @@
                     <li><a href="{% url 'core:home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a></li>
                     <li><a href="{% url 'core:about' %}" class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}">About</a></li>
                     <li><a href="{% url 'courses:course_list' %}" class="nav-link {% if request.resolver_match.url_name == 'course_list' or request.resolver_match.url_name == 'course_detail' %}active{% endif %}">Courses</a></li>
+                    <li><a href="{% url 'core:home' %}#reviews" class="nav-link">Reviews</a></li>
                     <li><a href="{% url 'core:contact' %}" class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">Contact</a></li>
+
                 </ul>
             </nav>
 
@@ -147,7 +149,9 @@
                     <li><a href="{% url 'core:home' %}">Home</a></li>
                     <li><a href="{% url 'core:about' %}">About Us</a></li>
                     <li><a href="{% url 'courses:course_list' %}">All Courses</a></li>
+                    <li><a href="{% url 'core:home' %}#reviews">Student Reviews</a></li>
                     <li><a href="{% url 'certificates:verify' %}">Certificate Verification</a></li>
+
                 </ul>
             </div>
             <div class="footer-col">

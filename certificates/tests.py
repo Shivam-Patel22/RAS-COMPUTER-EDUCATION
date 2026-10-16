@@ -872,7 +872,7 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
         # Verify RAS
         res_ras = self.client.post(url, {'certificate_id': f'RAS-{current_year}-HC1001'})
         self.assertEqual(res_ras.status_code, 200)
-        self.assertContains(res_ras, 'Harshal Chauhan')
+        self.assertContains(res_ras, 'HARSHAL CHAUHAN')
 
         # Verify CITI
         res_citi = self.client.post(url, {'certificate_id': f'CITI-{current_year}-RP5001'})
@@ -882,7 +882,8 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
         # Verify Legacy historical certificate
         res_legacy = self.client.post(url, {'certificate_id': f'RAS-{current_year}-XX1000'})
         self.assertEqual(res_legacy.status_code, 200)
-        self.assertContains(res_legacy, 'Legacy User')
+        self.assertContains(res_legacy, 'LEGACY USER')
+
 
     def test_10_ajax_next_id_api_endpoint(self):
         """10. API endpoint returns next sequence and ID with student initials without consuming sequence."""

@@ -174,3 +174,20 @@ MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'C-DAC Team <noreply@cdac.in>'
 
+# --------------------------------------------------------------------------
+# Reviews & Social Rating Configuration
+# --------------------------------------------------------------------------
+GOOGLE_REVIEW_URL = getattr(
+    os.environ,
+    'GOOGLE_REVIEW_URL',
+    'https://www.google.com/search?q=ras+computer+education&sca_esv=835a53314b04c64e&amc=1&aep=48&prmd=ivns&sxsrf=APpeQnvhSbi3yXZe7du7k6FDDjQUu6UYTw:1792148178647&source=lnms&sa=X&ved=2ahUKEwiEt8qcsL6XAxUDamwGHdzgJlEQ0pQJegQICBAF#lrd=0x395c2b98680613c5:0xe36f138dbac2da1a,3,,,,'
+)
+GOOGLE_REVIEW_RATING = '4.9'
+GOOGLE_REVIEW_COUNT = '400+'
+JUSTDIAL_PAGE_URL = getattr(
+    os.environ,
+    'JUSTDIAL_PAGE_URL',
+    'https://www.justdial.com/Gandhinagar-Gujarat/Ras-Computer-Education-Near-Gh-5-Gandhinagar-Sector-22/9999PXX79-XX79-121008204400-M3T4_BZDET'
+)
+
+

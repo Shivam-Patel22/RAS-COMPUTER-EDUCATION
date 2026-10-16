@@ -1,7 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.conf import settings
 from .forms import ContactForm
 from courses.models import Course
+from .models import Inquiry, AboutContent, ContactContent, JustdialReview
+from dashboard.forms import AdminAboutForm, AdminContactForm
 
 def home(request):
     try:
@@ -10,14 +13,21 @@ def home(request):
             featured_courses = Course.objects.all().order_by('-created_at')[:3]
     except Exception:
         featured_courses = []
+
+    try:
+        reviews = JustdialReview.objects.filter(is_active=True).order_by('display_order', '-created_at')
+    except Exception:
+        reviews = []
         
     context = {
         'featured_courses': featured_courses,
+        'reviews': reviews,
+        'google_review_url': getattr(settings, 'GOOGLE_REVIEW_URL', ''),
+        'google_rating': getattr(settings, 'GOOGLE_REVIEW_RATING', '4.9'),
+        'google_review_count': getattr(settings, 'GOOGLE_REVIEW_COUNT', '400+'),
+        'justdial_page_url': getattr(settings, 'JUSTDIAL_PAGE_URL', ''),
     }
     return render(request, 'core/home.html', context)
-
-from .models import Inquiry, AboutContent, ContactContent
-from dashboard.forms import AdminAboutForm, AdminContactForm
 
 def about(request):
     about_content = AboutContent.get_solo()
@@ -34,6 +44,12 @@ def contact(request):
     contact_form = None
     if request.user.is_authenticated and request.user.is_staff:
         contact_form = AdminContactForm(instance=contact_content)
+
+    reviews = JustdialReview.objects.filter(is_active=True).order_by('display_order', '-created_at')
+    google_review_url = getattr(settings, 'GOOGLE_REVIEW_URL', '')
+    google_rating = getattr(settings, 'GOOGLE_REVIEW_RATING', '4.9')
+    google_review_count = getattr(settings, 'GOOGLE_REVIEW_COUNT', '400+')
+    justdial_page_url = getattr(settings, 'JUSTDIAL_PAGE_URL', '')
 
     if request.method == 'POST':
         form = ContactForm(request.POST)
@@ -75,5 +91,11 @@ def contact(request):
     return render(request, 'core/contact.html', {
         'form': form,
         'contact_content': contact_content,
-        'contact_form': contact_form
+        'contact_form': contact_form,
+        'reviews': reviews,
+        'google_review_url': google_review_url,
+        'google_rating': google_rating,
+        'google_review_count': google_review_count,
+        'justdial_page_url': justdial_page_url,
     })
+
