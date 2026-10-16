@@ -42,7 +42,7 @@
 
             <h3 class="course-title" style="margin-bottom: 0.5rem; font-size: 1.3rem;">{{ course.name }}</h3>
             <p class="course-description" style="color: var(--gray-600); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.6; flex: 1;">
-                {{ course.description|truncatewords:25 }}
+                {{ course.clean_preview_description }}
             </p>
 
             <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--gray-100);">

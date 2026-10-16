@@ -84,7 +84,9 @@ def course_list(request):
             'id': course.id,
             'name': course.name,
             'description': course.description or f"Professional {course.name} course program tailored with practical lab training and certification.",
+            'preview_description': course.clean_preview_description,
             'duration': course.duration or categories_dict[cat_key]['duration'],
+            'fee': f"₹{course.fee:,.0f}" if course.fee else '',
             'image_url': image_url,
         })
 

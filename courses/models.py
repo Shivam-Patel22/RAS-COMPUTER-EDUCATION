@@ -39,6 +39,16 @@ class Course(models.Model):
                 return ''
         return ''
 
+    @property
+    def clean_preview_description(self):
+        from .utils import get_clean_preview
+        return get_clean_preview(self.description)
+
+    @property
+    def formatted_description_html(self):
+        from .utils import format_markdown_to_html
+        return format_markdown_to_html(self.description)
+
 
 
 class CourseOffer(models.Model):

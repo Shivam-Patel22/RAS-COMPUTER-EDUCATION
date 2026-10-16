@@ -155,3 +155,86 @@ class CourseImageDisplayTestCase(TestCase):
         saved_course = form_remove.save()
         self.assertFalse(bool(saved_course.image))
 
+
+class CourseDescriptionAndDetailsTestCase(TestCase):
+    def setUp(self):
+        self.long_c_description = (
+            "# C Programming Course\n\n"
+            "## Course Description\n"
+            "The C Programming Course is designed to help students build a strong foundation in programming "
+            "and problem-solving. Students will learn the fundamentals of C programming, including variables, "
+            "data types, operators, conditional statements, loops, arrays, strings, functions, pointers, "
+            "structures, and file handling.\n\n"
+            "## Course Syllabus\n\n"
+            "**Module 1: Introduction to C Programming**\n"
+            "- Introduction to programming and the C language\n"
+            "- Structure of a C program\n"
+            "- Installing and using a C compiler\n\n"
+            "**Module 2: Fundamentals of C**\n"
+            "- Data types and type conversion\n"
+            "- Input and output functions (`printf()` and `scanf()`)\n\n"
+            "## Learning Outcomes\n"
+            "- Write, compile, debug, and execute C programs.\n\n"
+            "**Prerequisites:** Basic computer knowledge."
+        )
+        self.c_course = Course.objects.create(
+            name="C Programming",
+            category="programming",
+            description=self.long_c_description,
+            duration="2 Months",
+            fee=8500.00
+        )
+
+    def test_clean_preview_description_removes_headings_and_syllabus(self):
+        preview = self.c_course.clean_preview_description
+        # Headings should not be in preview
+        self.assertNotIn("#", preview)
+        self.assertNotIn("Course Syllabus", preview)
+        self.assertNotIn("Module 1", preview)
+        # Should start with the actual description text
+        self.assertTrue(preview.startswith("The C Programming Course is designed to help students"))
+
+    def test_formatted_description_html_renders_markdown_elements(self):
+        html_out = self.c_course.formatted_description_html
+        # Headings
+        self.assertIn('<h2 class="course-h2">C Programming Course</h2>', html_out)
+        self.assertIn('<h3 class="course-h3">Course Description</h3>', html_out)
+        self.assertIn('<h3 class="course-h3">Course Syllabus</h3>', html_out)
+        # Bold
+        self.assertIn('<strong>Module 1: Introduction to C Programming</strong>', html_out)
+        # Bullet list
+        self.assertIn('<ul class="course-bullet-list">', html_out)
+        self.assertIn('<li>Introduction to programming and the C language</li>', html_out)
+        # Code
+        self.assertIn('<code class="course-inline-code">printf()</code>', html_out)
+        # Paragraph
+        self.assertIn('class="course-text-para"', html_out)
+
+    def test_course_detail_view_renders_full_content_and_fee(self):
+        session = self.client.session
+        session['is_guest'] = True
+        session.save()
+        res = self.client.get(reverse('courses:course_detail', args=[self.c_course.id]))
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, "C Programming")
+        self.assertContains(res, "₹8500")
+        self.assertContains(res, "Course Syllabus")
+        self.assertContains(res, "Module 1: Introduction to C Programming")
+        self.assertContains(res, "printf()")
+
+    def test_course_list_includes_preview_and_full_description(self):
+        session = self.client.session
+        session['is_guest'] = True
+        session.save()
+        res = self.client.get(reverse('courses:course_list'))
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.context['courses_json'])
+        programming_cat = next((c for c in data if c['id'] == 'programming'), None)
+        self.assertIsNotNone(programming_cat)
+        sub = next((s for s in programming_cat['subCourses'] if s['id'] == self.c_course.id), None)
+        self.assertIsNotNone(sub)
+        self.assertIn('preview_description', sub)
+        self.assertNotIn('## Course Syllabus', sub['preview_description'])
+        self.assertIn('## Course Syllabus', sub['description'])
+        self.assertEqual(sub['fee'], '₹8,500')
+

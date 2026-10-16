@@ -515,7 +515,19 @@ img {
 }
 
 .course-card .course-description {
+    font-size: 0.95rem;
+    color: var(--gray-600);
+    line-height: 1.55;
+    margin-bottom: 1.25rem;
     flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 4.65em;
+    max-height: 4.65em;
 }
 
 /* Hero Banner Section */
@@ -1978,6 +1990,14 @@ textarea.form-control {
     line-height: 1.55;
     margin-bottom: 1.5rem;
     flex-grow: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 4.65em;
+    max-height: 4.65em;
 }
 
 .category-footer {
@@ -2158,6 +2178,14 @@ textarea.form-control {
     line-height: 1.5;
     margin-bottom: 1.25rem;
     flex-grow: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 4.5em;
+    max-height: 4.5em;
 }
 
 .subcourse-footer {
@@ -2525,6 +2553,93 @@ textarea.form-control {
 [data-theme="dark"] .course-modal-footer {
     background: rgba(0, 0, 0, 0.2);
     border-color: var(--gray-700);
+}
+
+/* Course Formatted Description & Syllabus Styling */
+.course-text-para {
+    margin-bottom: 1rem;
+    line-height: 1.7;
+    color: var(--gray-700);
+}
+
+.course-h2 {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: var(--gray-900);
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.course-h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-top: 1.4rem;
+    margin-bottom: 0.65rem;
+}
+
+.course-h4 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-top: 1.15rem;
+    margin-bottom: 0.5rem;
+}
+
+.course-bullet-list {
+    margin-left: 1.5rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.7;
+    color: var(--gray-700);
+}
+
+.course-bullet-list li {
+    margin-bottom: 0.4rem;
+}
+
+.course-inline-code {
+    background: var(--gray-100);
+    color: var(--primary);
+    padding: 0.15rem 0.45rem;
+    border-radius: var(--radius-sm);
+    font-family: monospace;
+    font-size: 0.88em;
+}
+
+.modal-full-content {
+    color: var(--gray-700);
+    line-height: 1.7;
+    font-size: 0.95rem;
+    max-height: 55vh;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+[data-theme="dark"] .course-text-para,
+[data-theme="dark"] .course-bullet-list,
+[data-theme="dark"] .modal-full-content,
+[data-theme="dark"] .course-full-details-body {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .course-h2 {
+    color: #ffffff;
+    border-color: var(--gray-700);
+}
+
+[data-theme="dark"] .course-h3 {
+    color: #93c5fd;
+}
+
+[data-theme="dark"] .course-h4 {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .course-inline-code {
+    background: rgba(255, 255, 255, 0.08);
+    color: #93c5fd;
 }
 
 /* Mobile WhatsApp Contact Button */

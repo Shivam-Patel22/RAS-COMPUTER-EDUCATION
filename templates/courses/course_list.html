@@ -78,6 +78,10 @@
                     <span class="highlight-label">⏱️ Duration / Track</span>
                     <span class="highlight-value" id="modal-duration">Flexible</span>
                 </div>
+                <div class="highlight-box" id="modal-fee-box" style="display: none;">
+                    <span class="highlight-label">💰 Course Fee</span>
+                    <span class="highlight-value" id="modal-fee" style="color: var(--primary);">₹0</span>
+                </div>
                 <div class="highlight-box">
                     <span class="highlight-label">🎓 Certification</span>
                     <span class="highlight-value">C-DAC Certified</span>
@@ -88,16 +92,16 @@
                 </div>
             </div>
 
-            <!-- Course Overview & Description -->
+            <!-- Course Overview & Complete Syllabus -->
             <div>
-                <h3 class="modal-section-title">Course Overview</h3>
-                <p style="color: var(--gray-600); line-height: 1.6; font-size: 0.95rem;" id="modal-description">
+                <h3 class="modal-section-title">Course Overview &amp; Complete Syllabus</h3>
+                <div class="modal-full-content" id="modal-description">
                     Detailed overview of course skills, practical labs, and certification.
-                </p>
+                </div>
             </div>
 
             <!-- Learning Outcomes & Topics -->
-            <div>
+            <div id="modal-curriculum-container">
                 <h3 class="modal-section-title">Curriculum Highlights</h3>
                 <div class="modal-topics-list" id="modal-topics">
                     <span class="modal-topic-chip">Practical Lab Work</span>
@@ -109,6 +113,7 @@
         </div>
         <div class="course-modal-footer">
             <button type="button" class="btn btn-secondary btn-sm" onclick="closeCourseDetailModal()" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.6rem 1.25rem; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer;">Close</button>
+            <a href="#" id="modal-course-page-link" class="btn btn-outline-dark" style="display: none; padding: 0.65rem 1.25rem; font-weight: 600; text-decoration: none;">View Full Page &rarr;</a>
             <a href="{% url 'core:contact' %}" id="modal-inquiry-btn" class="btn btn-primary" style="padding: 0.65rem 1.4rem; font-weight: 600; text-decoration: none;">
                 Inquire Now / Apply &rarr;
             </a>
@@ -156,12 +161,83 @@ const modalBackdrop = document.getElementById('course-detail-modal');
 const modalTitle = document.getElementById('modal-course-title');
 const modalBadge = document.getElementById('modal-category-badge');
 const modalDuration = document.getElementById('modal-duration');
+const modalFeeBox = document.getElementById('modal-fee-box');
+const modalFee = document.getElementById('modal-fee');
 const modalDesc = document.getElementById('modal-description');
 const modalInquiryBtn = document.getElementById('modal-inquiry-btn');
+const modalCoursePageLink = document.getElementById('modal-course-page-link');
 const modalTopicsContainer = document.getElementById('modal-topics');
 const modalImgWrapper = document.getElementById('modal-img-wrapper');
 const modalCourseImg = document.getElementById('modal-course-img');
 const modalPlaceholder = document.getElementById('modal-course-placeholder');
+
+function formatMarkdownToHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    const escaped = div.innerHTML;
+
+    const lines = escaped.replace(/\r\n/g, '\n').split('\n');
+    let htmlParts = [];
+    let inList = false;
+    let paraLines = [];
+
+    function flushPara() {
+        if (paraLines.length > 0) {
+            htmlParts.push('<p class="course-text-para">' + paraLines.join(' ') + '</p>');
+            paraLines = [];
+        }
+    }
+
+    function flushList() {
+        if (inList) {
+            htmlParts.push('</ul>');
+            inList = false;
+        }
+    }
+
+    lines.forEach(line => {
+        const stripped = line.trim();
+        if (!stripped) {
+            flushPara();
+            flushList();
+            return;
+        }
+
+        let formatted = stripped
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/`(.*?)`/g, '<code class="course-inline-code">$1</code>');
+
+        if (stripped.startsWith('# ')) {
+            flushPara();
+            flushList();
+            htmlParts.push('<h2 class="course-h2">' + formatted.substring(2).trim() + '</h2>');
+        } else if (stripped.startsWith('## ')) {
+            flushPara();
+            flushList();
+            htmlParts.push('<h3 class="course-h3">' + formatted.substring(3).trim() + '</h3>');
+        } else if (stripped.startsWith('### ')) {
+            flushPara();
+            flushList();
+            htmlParts.push('<h4 class="course-h4">' + formatted.substring(4).trim() + '</h4>');
+        } else if (stripped.startsWith('- ') || stripped.startsWith('* ')) {
+            flushPara();
+            if (!inList) {
+                htmlParts.push('<ul class="course-bullet-list">');
+                inList = true;
+            }
+            htmlParts.push('<li>' + formatted.substring(2).trim() + '</li>');
+        } else {
+            flushList();
+            paraLines.push(formatted);
+        }
+    });
+
+    flushPara();
+    flushList();
+    return htmlParts.join('\n');
+}
 
 let currentActiveCategoryId = null;
 
@@ -286,7 +362,8 @@ function openCategory(catId) {
             subCard.className = 'subcourse-card';
 
             const defaultDesc = `Professional ${sub.name} course program tailored with practical lab training and certification.`;
-            const desc = sub.description || defaultDesc;
+            const previewDesc = sub.preview_description || sub.description || defaultDesc;
+            const fullDesc = sub.description || defaultDesc;
 
             const contentDiv = document.createElement('div');
 
@@ -327,7 +404,7 @@ function openCategory(catId) {
 
             const subDesc = document.createElement('p');
             subDesc.className = 'subcourse-desc';
-            subDesc.textContent = desc;
+            subDesc.textContent = previewDesc;
 
             contentDiv.appendChild(badge);
             contentDiv.appendChild(subTitle);
@@ -342,7 +419,7 @@ function openCategory(catId) {
             actionBtn.style.cssText = 'background:none; border:none; cursor:pointer;';
             actionBtn.innerHTML = 'View Details <span>&rarr;</span>';
             actionBtn.addEventListener('click', () => {
-                openCourseDetailModal(sub.name, category.name, category.duration, desc, sub.image_url, category.icon);
+                openCourseDetailModal(sub.name, category.name, sub.duration || category.duration, fullDesc, sub.image_url, category.icon, sub.fee, sub.id);
             });
 
             footer.appendChild(actionBtn);
@@ -403,11 +480,34 @@ function showCategoriesView() {
 }
 
 // Open Course Details Modal
-function openCourseDetailModal(courseTitle, categoryName, duration, description, imageUrl, categoryIcon) {
+function openCourseDetailModal(courseTitle, categoryName, duration, description, imageUrl, categoryIcon, fee, courseId) {
     modalTitle.textContent = courseTitle;
     modalBadge.textContent = categoryName;
     modalDuration.textContent = duration || "Standard Track";
-    modalDesc.textContent = description || `Comprehensive training program for ${courseTitle} designed with practical assignments and official certification.`;
+
+    // Course Fee display
+    if (modalFeeBox && modalFee) {
+        if (fee) {
+            modalFee.textContent = fee;
+            modalFeeBox.style.display = 'flex';
+        } else {
+            modalFeeBox.style.display = 'none';
+        }
+    }
+
+    // Direct Course Page Link
+    if (modalCoursePageLink) {
+        if (courseId) {
+            modalCoursePageLink.href = `/courses/${courseId}/`;
+            modalCoursePageLink.style.display = 'inline-flex';
+        } else {
+            modalCoursePageLink.style.display = 'none';
+        }
+    }
+
+    const defaultDesc = `Professional ${courseTitle} training program tailored with practical lab training and certification.`;
+    const fullContent = description || defaultDesc;
+    modalDesc.innerHTML = formatMarkdownToHtml(fullContent);
 
     // Set Inquiry Button redirect with pre-selected course param
     modalInquiryBtn.href = `${CONTACT_URL}?course=${encodeURIComponent(courseTitle)}`;
@@ -433,20 +533,31 @@ function openCourseDetailModal(courseTitle, categoryName, duration, description,
         }
     }
 
-    // Generate topic chips
+    // Extract dynamic topic / module chips if present, else fallback
     modalTopicsContainer.innerHTML = '';
-    const topics = [
-        `Hands-on ${courseTitle} Practicals`,
-        `Core ${categoryName} Concepts`,
-        'Lab Exercises & Assignments',
-        'C-DAC Certification Preparation'
-    ];
+    const moduleMatches = fullContent.match(/\*\*Module\s+\d+:[^*]+\*\*/gi);
+    let topics = [];
+    if (moduleMatches && moduleMatches.length > 0) {
+        topics = moduleMatches.slice(0, 6).map(m => m.replace(/\*\*/g, '').trim());
+    } else {
+        topics = [
+            `Hands-on ${courseTitle} Practicals`,
+            `Core ${categoryName} Concepts`,
+            'Lab Exercises & Assignments',
+            'C-DAC Certification Preparation'
+        ];
+    }
     topics.forEach(topic => {
         const chip = document.createElement('span');
         chip.className = 'modal-topic-chip';
         chip.textContent = topic;
         modalTopicsContainer.appendChild(chip);
     });
+
+    // Reset scroll positions to top
+    if (modalDesc) modalDesc.scrollTop = 0;
+    const modalContainer = document.querySelector('.course-modal-container');
+    if (modalContainer) modalContainer.scrollTop = 0;
 
     // Show modal
     modalBackdrop.classList.add('active');
@@ -497,14 +608,18 @@ function handleSearch(query) {
         if (cat.subCourses) {
             cat.subCourses.forEach(sub => {
                 if (sub.name.toLowerCase().includes(q) || (sub.description && sub.description.toLowerCase().includes(q))) {
+                    const defaultDesc = `Specialized ${sub.name} training under ${cat.name}.`;
                     results.push({
                         type: 'subcourse',
                         categoryName: cat.name,
                         title: sub.name,
-                        desc: sub.description || `Specialized ${sub.name} training under ${cat.name}.`,
+                        previewDesc: sub.preview_description || sub.description || defaultDesc,
+                        fullDesc: sub.description || defaultDesc,
                         icon: cat.icon,
                         catId: cat.id,
-                        duration: cat.duration,
+                        duration: sub.duration || cat.duration,
+                        fee: sub.fee || '',
+                        id: sub.id,
                         image_url: sub.image_url
                     });
                 }
@@ -572,7 +687,7 @@ function handleSearch(query) {
 
                 const subDesc = document.createElement('p');
                 subDesc.className = 'subcourse-desc';
-                subDesc.textContent = res.desc;
+                subDesc.textContent = res.previewDesc;
 
                 contentDiv.appendChild(badge);
                 contentDiv.appendChild(subTitle);
@@ -587,7 +702,7 @@ function handleSearch(query) {
                 actionBtn.style.cssText = 'background:none; border:none; cursor:pointer;';
                 actionBtn.innerHTML = 'View Details <span>&rarr;</span>';
                 actionBtn.addEventListener('click', () => {
-                    openCourseDetailModal(res.title, res.categoryName, res.duration, res.desc, res.image_url, res.icon);
+                    openCourseDetailModal(res.title, res.categoryName, res.duration, res.fullDesc, res.image_url, res.icon, res.fee, res.id);
                 });
 
                 footer.appendChild(actionBtn);

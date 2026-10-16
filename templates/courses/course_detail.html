@@ -27,6 +27,12 @@
                         <span style="color: var(--gray-600);">Course Duration:</span>
                         <strong>{{ course.duration }}</strong>
                     </div>
+                    {% if course.fee %}
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                        <span style="color: var(--gray-600);">Course Fee:</span>
+                        <strong style="color: var(--primary);">₹{{ course.fee|floatformat:0 }}</strong>
+                    </div>
+                    {% endif %}
                     <div style="display: flex; justify-content: space-between;">
                         <span style="color: var(--gray-600);">Certification:</span>
                         <strong style="color: var(--success);">Included upon passing</strong>
@@ -35,11 +41,11 @@
             </div>
 
             <div>
-                <span class="badge badge-primary" style="margin-bottom: 0.75rem;">Course Overview</span>
+                <span class="badge badge-primary" style="margin-bottom: 0.75rem;">{{ course.get_category_display }}</span>
                 <h1 style="font-size: 2.25rem; margin-bottom: 1rem; color: var(--gray-900);">{{ course.name }}</h1>
 
-                <div style="line-height: 1.8; color: var(--gray-700); margin-bottom: 2rem; white-space: pre-line;">
-                    {{ course.description }}
+                <div class="course-full-details-body" style="line-height: 1.8; color: var(--gray-700); margin-bottom: 2rem;">
+                    {{ course.formatted_description_html|safe }}
                 </div>
 
                 <div style="border-top: 1px solid var(--gray-200); padding-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
