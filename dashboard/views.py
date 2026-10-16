@@ -10,7 +10,7 @@ import urllib.parse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse, FileResponse
 from django.urls import reverse
-from django.contrib.auth import login as auth_login, logout as auth_logout, authenticate
+from django.contrib.auth import login as auth_login, logout as auth_logout, authenticate, update_session_auth_hash
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.core.cache import cache
@@ -18,7 +18,11 @@ from django.views.decorators.http import require_POST
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.db import transaction, IntegrityError
 from .decorators import staff_required
-from .forms import AdminLoginForm, AdminCourseForm, AdminCertificateForm, AdminOfferForm, AdminStudentForm, AdminAboutForm, AdminContactForm
+from .forms import (
+    AdminLoginForm, AdminCourseForm, AdminCertificateForm, AdminOfferForm,
+    AdminStudentForm, AdminAboutForm, AdminContactForm,
+    AdminChangeUsernameForm, AdminChangePasswordForm
+)
 from courses.models import Course, CourseOffer
 from certificates.models import Certificate
 from certificates.utils import (
@@ -1083,5 +1087,72 @@ def edit_contact(request):
         'title': 'Edit Contact Details & Location'
     }
     return render(request, 'dashboard/edit_contact.html', context)
+
+
+@staff_required
+def account_settings(request):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'change_username' or 'new_username' in request.POST:
+            return change_username(request)
+        elif action == 'change_password' or 'new_password' in request.POST:
+            return change_password(request)
+
+    username_form = AdminChangeUsernameForm(request.user)
+    password_form = AdminChangePasswordForm(request.user)
+
+    context = {
+        'username_form': username_form,
+        'password_form': password_form,
+        'title': 'Account Settings'
+    }
+    return render(request, 'dashboard/account_settings.html', context)
+
+
+@staff_required
+def change_username(request):
+    if request.method != 'POST':
+        return redirect('dashboard:account_settings')
+
+    form = AdminChangeUsernameForm(request.user, request.POST)
+    if form.is_valid():
+        new_username = form.cleaned_data['new_username']
+        form.save()
+        messages.success(request, f"Admin username successfully changed to '{new_username}'.")
+        return redirect('dashboard:account_settings')
+    else:
+        messages.error(request, "Failed to update username. Please review the errors below.")
+        password_form = AdminChangePasswordForm(request.user)
+        context = {
+            'username_form': form,
+            'password_form': password_form,
+            'title': 'Account Settings'
+        }
+        return render(request, 'dashboard/account_settings.html', context)
+
+
+@staff_required
+def change_password(request):
+    if request.method != 'POST':
+        return redirect('dashboard:account_settings')
+
+    form = AdminChangePasswordForm(request.user, request.POST)
+    if form.is_valid():
+        form.save()
+        # Keep user logged in with Django session update
+        update_session_auth_hash(request, request.user)
+        request.session['admin_last_activity'] = time.time()
+        messages.success(request, "Admin password changed successfully. Your session remains active.")
+        return redirect('dashboard:account_settings')
+    else:
+        messages.error(request, "Failed to update password. Please review the errors below.")
+        username_form = AdminChangeUsernameForm(request.user)
+        context = {
+            'username_form': username_form,
+            'password_form': form,
+            'title': 'Account Settings'
+        }
+        return render(request, 'dashboard/account_settings.html', context)
+
 
 

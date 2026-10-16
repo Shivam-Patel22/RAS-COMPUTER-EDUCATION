@@ -40,4 +40,7 @@ urlpatterns = [
     path('students/<int:pk>/delete/', views.delete_student, name='delete_student'),
     path('about/edit/', views.edit_about, name='edit_about'),
     path('contact/edit/', views.edit_contact, name='edit_contact'),
+    path('settings/', views.account_settings, name='account_settings'),
+    path('settings/change-username/', views.change_username, name='change_username'),
+    path('settings/change-password/', views.change_password, name='change_password'),
 ]

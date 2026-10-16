@@ -415,4 +415,129 @@ class AdminContactForm(forms.ModelForm):
         return url
 
 
+class AdminChangeUsernameForm(forms.Form):
+    new_username = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'id': 'id_new_username',
+            'placeholder': 'Enter new username',
+            'required': 'required',
+            'autocomplete': 'username'
+        }),
+        label="New Username"
+    )
+    current_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'id': 'id_username_current_password',
+            'placeholder': 'Enter current password to confirm',
+            'required': 'required',
+            'autocomplete': 'current-password'
+        }),
+        label="Current Password"
+    )
+
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+    def clean_new_username(self):
+        new_username = self.cleaned_data.get('new_username', '').strip()
+        if not new_username:
+            raise forms.ValidationError("New username cannot be empty.")
+        if new_username == self.user.username:
+            raise forms.ValidationError("New username must be different from your current username.")
+
+        # Run Django User model username validators (format, allowed characters)
+        username_field = User._meta.get_field('username')
+        for validator in username_field.validators:
+            validator(new_username)
+
+        # Ensure uniqueness across existing users
+        if User.objects.filter(username__iexact=new_username).exclude(pk=self.user.pk).exists():
+            raise forms.ValidationError("This username is already taken. Please choose another.")
+
+        return new_username
+
+    def clean_current_password(self):
+        current_password = self.cleaned_data.get('current_password')
+        if current_password and not self.user.check_password(current_password):
+            raise forms.ValidationError("Incorrect current password.")
+        return current_password
+
+    def save(self):
+        new_username = self.cleaned_data['new_username']
+        self.user.username = new_username
+        self.user.save(update_fields=['username'])
+        return self.user
+
+
+class AdminChangePasswordForm(forms.Form):
+    current_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'id': 'id_password_current_password',
+            'placeholder': 'Enter current password',
+            'required': 'required',
+            'autocomplete': 'current-password'
+        }),
+        label="Current Password"
+    )
+    new_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'id': 'id_new_password',
+            'placeholder': 'Enter new password',
+            'required': 'required',
+            'autocomplete': 'new-password'
+        }),
+        label="New Password"
+    )
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'id': 'id_confirm_password',
+            'placeholder': 'Confirm new password',
+            'required': 'required',
+            'autocomplete': 'new-password'
+        }),
+        label="Confirm New Password"
+    )
+
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+    def clean_current_password(self):
+        current_password = self.cleaned_data.get('current_password')
+        if current_password and not self.user.check_password(current_password):
+            raise forms.ValidationError("Incorrect current password.")
+        return current_password
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password = cleaned_data.get('new_password')
+        confirm_password = cleaned_data.get('confirm_password')
+
+        if new_password and confirm_password:
+            if new_password != confirm_password:
+                self.add_error('confirm_password', "The two password fields didn't match.")
+            else:
+                from django.contrib.auth.password_validation import validate_password
+                try:
+                    validate_password(new_password, user=self.user)
+                except forms.ValidationError as error:
+                    self.add_error('new_password', error)
+
+        return cleaned_data
+
+    def save(self):
+        new_password = self.cleaned_data['new_password']
+        self.user.set_password(new_password)
+        self.user.save()
+        return self.user
+
+
+
 

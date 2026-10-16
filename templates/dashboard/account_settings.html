@@ -1,0 +1,148 @@
+{% extends 'dashboard/admin_base.html' %}
+
+{% block title %}{{ title }} | Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <!-- Page Header -->
+    <div style="background: var(--dark-surface); color: white; border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="font-size: 1.8rem; color: white;">⚙️ Administrator Account Settings</h1>
+            <p style="color: var(--gray-400); margin-top: 0.25rem;">
+                Securely manage your administrator credentials, update login username, and change password.
+            </p>
+        </div>
+        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+            <div style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: var(--radius-md); padding: 0.5rem 1rem; font-size: 0.85rem; color: var(--gray-200);">
+                Active User: <strong style="color: #fff;">{{ request.user.username }}</strong>
+            </div>
+            <a href="{% url 'dashboard:index' %}" class="btn btn-outline btn-sm">Dashboard Overview</a>
+        </div>
+    </div>
+
+    <!-- Forms Grid: Two Columns for Username and Password Settings -->
+    <div class="grid grid-2" style="gap: 2rem; align-items: start;">
+
+        <!-- Card 1: Change Username -->
+        <div class="card" style="padding: 2rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <span style="font-size: 1.4rem;">👤</span>
+                <h3 style="margin: 0; color: var(--gray-900);">Change Username</h3>
+            </div>
+            <p style="color: var(--gray-500); font-size: 0.85rem; margin-bottom: 1.5rem; line-height: 1.5;">
+                Update your login username. Your current password is required to verify your identity. The new username will be active immediately for all future logins.
+            </p>
+
+            <form method="post" action="{% url 'dashboard:change_username' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="change_username">
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Current Username</label>
+                    <input type="text" class="form-control" value="{{ request.user.username }}" disabled style="background-color: var(--gray-100); cursor: not-allowed; opacity: 0.85;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label for="id_new_username" style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">New Username *</label>
+                    {{ username_form.new_username }}
+                    {% if username_form.new_username.errors %}
+                        {% for error in username_form.new_username.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    <small style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.25rem;">Up to 150 characters. Letters, digits and @/./+/-/_ only.</small>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label for="id_username_current_password" style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Current Password (Verification) *</label>
+                    {{ username_form.current_password }}
+                    {% if username_form.current_password.errors %}
+                        {% for error in username_form.current_password.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    <small style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.25rem;">Enter your current password to confirm this change.</small>
+                </div>
+
+                {% if username_form.non_field_errors %}
+                    <div style="margin-bottom: 1rem;">
+                        {% for error in username_form.non_field_errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">💾 Update Username</button>
+                    <a href="{% url 'dashboard:index' %}" class="btn btn-outline-dark">Cancel</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Card 2: Change Password -->
+        <div class="card" style="padding: 2rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <span style="font-size: 1.4rem;">🔒</span>
+                <h3 style="margin: 0; color: var(--gray-900);">Change Password</h3>
+            </div>
+            <p style="color: var(--gray-500); font-size: 0.85rem; margin-bottom: 1.5rem; line-height: 1.5;">
+                Ensure your administrator account stays protected with a strong password. Your current session will remain securely authenticated after changing your password.
+            </p>
+
+            <form method="post" action="{% url 'dashboard:change_password' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="change_password">
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label for="id_password_current_password" style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Current Password *</label>
+                    {{ password_form.current_password }}
+                    {% if password_form.current_password.errors %}
+                        {% for error in password_form.current_password.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    <small style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.25rem;">Enter your current password to verify authorization.</small>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label for="id_new_password" style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">New Password *</label>
+                    {{ password_form.new_password }}
+                    {% if password_form.new_password.errors %}
+                        {% for error in password_form.new_password.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    <small style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.25rem;">Must be at least 8 characters and satisfy password complexity rules.</small>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label for="id_confirm_password" style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Confirm New Password *</label>
+                    {{ password_form.confirm_password }}
+                    {% if password_form.confirm_password.errors %}
+                        {% for error in password_form.confirm_password.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    <small style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.25rem;">Re-enter the new password identically.</small>
+                </div>
+
+                {% if password_form.non_field_errors %}
+                    <div style="margin-bottom: 1rem;">
+                        {% for error in password_form.non_field_errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">🔒 Update Password</button>
+                    <a href="{% url 'dashboard:index' %}" class="btn btn-outline-dark">Cancel</a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
