@@ -1,8 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import never_cache
+from django.utils.text import slugify
 from .forms import CertificateVerificationForm
 from .models import Certificate
+from .utils import generate_certificate_pdf
 
 @csrf_exempt
 @never_cache
@@ -42,3 +45,17 @@ def verify(request):
         'form': form,
         'error_message': error_message
     })
+
+
+@never_cache
+def download_certificate_pdf(request, certificate_id):
+    """
+    Public download endpoint for verified certificate PDF.
+    Generates authentic vector PDF in memory (ReportLab) with zero browser headers/footers.
+    """
+    cert = get_object_or_404(Certificate.objects.select_related('course', 'student'), certificate_id__iexact=certificate_id)
+    pdf_bytes = generate_certificate_pdf(cert)
+    filename = f"{cert.certificate_id}_{slugify(cert.student_name or 'student')}.pdf"
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response

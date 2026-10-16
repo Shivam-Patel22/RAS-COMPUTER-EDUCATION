@@ -486,6 +486,42 @@ class CertificatesTestCase(TestCase):
         self.assertTrue(response_pdf.content.startswith(b'%PDF'))
         self.assertGreater(len(response_pdf.content), 1000)
 
+    def test_ras_public_verification_and_download_pdf(self):
+        """Test public verify result page shows RAS landscape template and provides direct clean PDF download."""
+        ras_cert = Certificate.objects.create(
+            certificate_id='RAS-2026-10-SP-391758-1003',
+            first_name='Shivam',
+            last_name='Patel',
+            student_name='Shivam Patel',
+            course=self.course,
+            course_start_date=date(2026, 10, 1),
+            course_end_date=date(2026, 10, 30),
+            issue_date=date(2026, 11, 1),
+            grade='A+'
+        )
+
+        url = reverse('certificates:verify')
+        response = self.client.post(url, {'certificate_id': 'RAS-2026-10-SP-391758-1003'})
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'certificates/result.html')
+        self.assertContains(response, 'ras-result-wrapper')
+        self.assertContains(response, 'ras-certificate-card')
+        self.assertContains(response, 'ras_template.jpg')
+        self.assertContains(response, 'SHIVAM PATEL')
+        self.assertContains(response, '1st Oct.')
+        self.assertContains(response, '30th Oct.')
+        self.assertContains(response, '2026')
+        self.assertContains(response, '“A+”')
+        self.assertContains(response, '01.11.2026')
+        self.assertContains(response, '📥 Download PDF')
+
+        # Test direct PDF download endpoint
+        dl_url = reverse('certificates:download_certificate_pdf', kwargs={'certificate_id': ras_cert.certificate_id})
+        dl_response = self.client.get(dl_url)
+        self.assertEqual(dl_response.status_code, 200)
+        self.assertEqual(dl_response['Content-Type'], 'application/pdf')
+        self.assertTrue(dl_response.content.startswith(b'%PDF'))
+        self.assertGreater(len(dl_response.content), 1000)
 
     def test_ccc_public_verification_view(self):
         """Test public verify result page shows CCC branding for CCC certificate."""

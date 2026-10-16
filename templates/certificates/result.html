@@ -1,7 +1,192 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Certificate Verification Result | {% if certificate.is_ccc %}CCC Certificate{% else %}Centre for Development of Advanced Computing (C-DAC){% endif %}{% endblock %}
+{% block title %}Certificate Verification Result | {% if certificate.prefix == 'RAS' %}RAS Computer Education{% elif certificate.is_ccc %}CCC Certificate{% else %}Centre for Development of Advanced Computing (C-DAC){% endif %}{% endblock %}
+
+{% block extra_head %}
+{% if certificate.prefix == 'RAS' %}
+<style>
+    /* RAS Landscape Certificate in Public Verification Result */
+    .ras-result-wrapper {
+        max-width: 950px;
+        margin: 1.5rem auto 2.5rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .ras-certificate-card {
+        position: relative;
+        width: 100%;
+        max-width: 950px;
+        aspect-ratio: 3508 / 2480;
+        background: #ffffff;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0, 0, 0, 0.08);
+        border-radius: 6px;
+        overflow: hidden;
+        container-type: inline-size;
+        box-sizing: border-box;
+        user-select: none;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .ras-bg-template {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: fill;
+        z-index: 1;
+        pointer-events: none;
+        display: block;
+    }
+
+    .ras-field {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        white-space: nowrap;
+        line-height: 1;
+        color: #000000;
+        z-index: 2;
+        font-family: Arial, Helvetica, 'Segoe UI', sans-serif;
+    }
+
+    .ras-student-name {
+        left: 62%;
+        top: 39%;
+        font-weight: 800;
+        font-size: 20px;
+        font-size: 2.2cqw;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    .ras-course-name {
+        left: 64%;
+        top: 44%;
+        font-weight: 800;
+        font-size: 16px;
+        font-size: 1.8cqw;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+    }
+
+    .ras-period-from {
+        left: 34%;
+        top: 50%;
+        font-weight: 600;
+        font-size: 13px;
+        font-size: 1.4cqw;
+    }
+
+    .ras-period-to {
+        left: 44.5%;
+        top: 50%;
+        font-weight: 600;
+        font-size: 13px;
+        font-size: 1.4cqw;
+    }
+
+    .ras-year {
+        left: 58.5%;
+        top: 50%;
+        font-weight: 600;
+        font-size: 13px;
+        font-size: 1.4cqw;
+    }
+
+    .ras-grade {
+        left: 35%;
+        top: 59.5%;
+        font-weight: 700;
+        font-size: 15px;
+        font-size: 1.6cqw;
+    }
+
+    .ras-issue-date {
+        left: 23.5%;
+        top: 70.5%;
+        font-weight: 600;
+        font-size: 13px;
+        font-size: 1.4cqw;
+    }
+
+    @page {
+        size: A4 landscape;
+        margin: 0mm;
+    }
+
+    @media print {
+        @page {
+            size: A4 landscape;
+            margin: 0mm;
+        }
+        @page :left { margin: 0mm; }
+        @page :right { margin: 0mm; }
+        @page :first { margin: 0mm; }
+
+        html, body {
+            background: #ffffff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .container {
+            max-width: 100% !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .ras-result-wrapper {
+            max-width: 100% !important;
+            width: 100% !important;
+            height: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        .ras-certificate-card {
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            width: 100vw !important;
+            max-width: 100% !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            margin: 0 !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .ras-student-name { font-size: 18pt !important; }
+        .ras-course-name { font-size: 15pt !important; }
+        .ras-period-from, .ras-period-to, .ras-year { font-size: 12pt !important; }
+        .ras-grade { font-size: 14pt !important; }
+        .ras-issue-date { font-size: 12pt !important; }
+    }
+</style>
+<script>
+    let originalDocTitle = document.title;
+    window.addEventListener('beforeprint', () => {
+        originalDocTitle = document.title;
+        document.title = "";
+    });
+    window.addEventListener('afterprint', () => {
+        document.title = originalDocTitle;
+    });
+</script>
+{% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -12,7 +197,37 @@
         <h1 style="font-size: 2rem; color: var(--gray-900);">Official Certificate Record</h1>
     </div>
 
-    {% if certificate.is_ccc %}
+    {% if certificate.prefix == 'RAS' %}
+    <!-- Official RAS Computer Education Certificate Render Box (A4 Landscape) -->
+    <div class="ras-result-wrapper">
+        <div class="ras-certificate-card">
+            <!-- Background Template -->
+            <img src="{% static 'certificates/ras_template.jpg' %}" alt="RAS Certificate Background Template" class="ras-bg-template">
+
+            <!-- Dynamic Field Overlays -->
+            <!-- 1. Student Name: x 62%, y 39% -->
+            <div class="ras-field ras-student-name">{{ certificate.student_name|upper }}</div>
+
+            <!-- 2. Course Name: x 64%, y 44% -->
+            <div class="ras-field ras-course-name">“{{ certificate.course.name|upper }}”</div>
+
+            <!-- 3. Period From: x 34%, y 50% -->
+            <div class="ras-field ras-period-from">{% if certificate.course_start_date %}{{ certificate.course_start_date|date:"jS M." }}{% endif %}</div>
+
+            <!-- 4. Period To: x 44.5%, y 50% -->
+            <div class="ras-field ras-period-to">{% if certificate.course_end_date %}{{ certificate.course_end_date|date:"jS M." }}{% endif %}</div>
+
+            <!-- 5. Year: x 58.5%, y 50% -->
+            <div class="ras-field ras-year">{{ certificate.course_end_date.year|default:certificate.issue_date.year }}</div>
+
+            <!-- 6. Grade: x 35%, y 59.5% -->
+            <div class="ras-field ras-grade">{% if certificate.grade %}“{{ certificate.grade }}”{% endif %}</div>
+
+            <!-- 7. Issue Date: x 23.5%, y 70.5% -->
+            <div class="ras-field ras-issue-date">{{ certificate.issue_date|date:"d.m.Y" }}</div>
+        </div>
+    </div>
+    {% elif certificate.is_ccc %}
     <!-- Official CCC Certificate Render Box -->
     <div class="certificate-card" style="border: 2px solid #2563eb; background: linear-gradient(to bottom, #ffffff, #f8fafc);">
         <div class="certificate-header" style="border-bottom: 2px solid #2563eb; padding-bottom: 1.25rem;">
@@ -108,8 +323,9 @@
     </div>
     {% endif %}
 
-    <div class="no-print" style="text-align: center; margin-top: 2.5rem; display: flex; gap: 1rem; justify-content: center;">
+    <div class="no-print" style="text-align: center; margin-top: 2.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
         <a href="{% url 'certificates:verify' %}" class="btn btn-outline-dark">&larr; Verify Another Certificate</a>
+        <a href="{% url 'certificates:download_certificate_pdf' certificate.certificate_id %}" class="btn btn-success" style="display: inline-flex; align-items: center; gap: 0.4rem;">📥 Download PDF</a>
         <button onclick="window.print();" class="btn btn-primary">🖨️ Print / Save Certificate</button>
     </div>
 </div>
