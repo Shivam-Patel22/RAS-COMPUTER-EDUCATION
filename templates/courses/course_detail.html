@@ -8,8 +8,8 @@
         <a href="{% url 'courses:course_list' %}" style="color: var(--gray-600); font-weight: 500;">&larr; Back to all courses</a>
     </div>
 
-    <div class="card animate__animated animate__fadeInUp" style="padding: 2.5rem;">
-        <div class="grid grid-2" style="align-items: start; gap: 2.5rem;">
+    <div class="card course-detail-card animate__animated animate__fadeInUp">
+        <div class="grid grid-2 course-detail-grid" style="align-items: start;">
             <div>
                 {% if course.image %}
                     <img src="{{ course.image.url }}" alt="{{ course.name }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" style="width: 100%; max-height: 350px; object-fit: cover; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
@@ -42,7 +42,7 @@
 
             <div>
                 <span class="badge badge-primary" style="margin-bottom: 0.75rem;">{{ course.get_category_display }}</span>
-                <h1 style="font-size: 2.25rem; margin-bottom: 1rem; color: var(--gray-900);">{{ course.name }}</h1>
+                <h1 class="course-detail-title" style="margin-bottom: 1rem; color: var(--gray-900);">{{ course.name }}</h1>
 
                 <div class="course-full-details-body" style="line-height: 1.8; color: var(--gray-700); margin-bottom: 2rem;">
                     {{ course.formatted_description_html|safe }}

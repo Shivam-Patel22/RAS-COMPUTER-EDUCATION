@@ -68,6 +68,8 @@ body:not(:has(.offers-ticker-container)) {
 
 html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
+    width: 100%;
 }
 
 body {
@@ -78,6 +80,8 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    overflow-x: hidden;
+    width: 100%;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -485,12 +489,12 @@ img {
 }
 
 .grid-3 {
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
     align-items: stretch;
 }
 
 .grid-2 {
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr));
 }
 
 .card {
@@ -506,6 +510,23 @@ img {
     transform: translateY(-4px);
     box-shadow: var(--shadow-lg);
     border-color: var(--primary-light);
+}
+
+.course-detail-card,
+.about-hero-card {
+    padding: 2.5rem;
+}
+
+.course-detail-grid {
+    gap: 2.5rem;
+}
+
+.course-detail-title {
+    font-size: 2.25rem;
+}
+
+.admin-overview-header {
+    padding: 2rem;
 }
 
 .course-card {
@@ -875,11 +896,14 @@ textarea.form-control {
         top: 100%;
         left: 0;
         right: 0;
+        max-height: calc(100vh - var(--header-height));
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
         background: var(--dark-surface);
         flex-direction: column;
         align-items: flex-start;
         padding: 1.5rem;
-        gap: 1.5rem;
+        gap: 1.25rem;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         display: none;
         z-index: 1000;
@@ -926,10 +950,47 @@ textarea.form-control {
     .footer-container {
         grid-template-columns: 1fr;
     }
-}
 
-/* Tablets & Mobile: clean proportional scaling with dark background */
-@media (max-width: 768px) {
+    /* Grid & Component collapse on mobile/tablets */
+    .grid-2,
+    .grid-3 {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+
+    .reviews-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .container {
+        padding: 2rem 1.25rem;
+    }
+
+    .course-detail-card,
+    .about-hero-card {
+        padding: 1.5rem;
+    }
+
+    .course-detail-grid {
+        gap: 1.5rem;
+    }
+
+    .table-container {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .form-control,
+    .header-verify-input,
+    input,
+    select,
+    textarea {
+        font-size: 16px; /* Prevents auto-zoom on iOS browsers */
+    }
+
+    /* Proportional scaling with dark background for banners */
     .hero-banner-section,
     .hero-section {
         height: auto;
@@ -951,6 +1012,106 @@ textarea.form-control {
         max-height: calc(100svh - var(--header-height));
         object-fit: contain;
         object-position: center;
+    }
+}
+
+@media (max-width: 640px) {
+    .card {
+        padding: 1.25rem;
+    }
+
+    .form-card {
+        padding: 1.25rem;
+        margin: 1.25rem auto;
+    }
+
+    .admin-overview-header {
+        padding: 1.25rem;
+    }
+
+    .page-title {
+        font-size: 1.75rem;
+    }
+
+    .page-subtitle {
+        font-size: 0.95rem;
+    }
+
+    .page-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .course-detail-title {
+        font-size: 1.6rem;
+    }
+
+    .certificate-card {
+        padding: 1.5rem 1rem;
+        border-width: 4px;
+        margin: 1rem auto;
+    }
+
+    .certificate-title {
+        font-size: 1.4rem;
+        letter-spacing: 1px;
+    }
+
+    .certificate-student {
+        font-size: 1.35rem;
+    }
+
+    .certificate-meta-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .course-detail-card,
+    .about-hero-card {
+        padding: 1.25rem;
+    }
+
+    .category-header-banner {
+        padding: 1.25rem 1rem;
+    }
+
+    .category-banner-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .btn-back-courses {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .category-banner-title {
+        font-size: 1.35rem;
+    }
+
+    .course-modal-backdrop {
+        padding: 0.5rem;
+    }
+
+    .course-modal-header {
+        padding: 1rem 1.25rem;
+    }
+
+    .course-modal-body {
+        padding: 1.25rem;
+    }
+
+    .course-modal-footer {
+        padding: 1rem 1.25rem;
+        flex-direction: column-reverse;
+        align-items: stretch;
+        gap: 0.6rem;
+    }
+
+    .course-modal-footer .btn {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
     }
 }
 
@@ -1006,6 +1167,48 @@ textarea.form-control {
         max-height: calc(100svh - var(--header-height));
         object-fit: contain;
     }
+
+    .container {
+        padding: 1.25rem 0.85rem;
+    }
+
+    .card {
+        padding: 1rem;
+    }
+
+    .form-card {
+        padding: 1rem 0.75rem;
+    }
+
+    .footer-container {
+        padding: 1.5rem 0.85rem 0.75rem;
+        gap: 1.5rem;
+    }
+
+    .footer-bottom {
+        padding: 0.75rem 0.85rem;
+        font-size: 0.8rem;
+    }
+
+    .btn {
+        min-height: 44px;
+        padding: 0.6rem 1rem;
+    }
+
+    .btn-sm {
+        min-height: 38px;
+        padding: 0.35rem 0.75rem;
+    }
+
+    .admin-overview-header {
+        padding: 1rem;
+    }
+
+    .admin-nav-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
 }
 
 @media (max-width: 360px) {
@@ -1025,6 +1228,35 @@ textarea.form-control {
     .offers-ticker-badge {
         font-size: 0.68rem;
         padding: 0.2rem 0.45rem;
+    }
+
+    .container {
+        padding: 1rem 0.65rem;
+    }
+
+    .page-title {
+        font-size: 1.4rem;
+    }
+
+    .card {
+        padding: 0.85rem;
+    }
+
+    .form-card {
+        padding: 0.85rem 0.65rem;
+    }
+
+    .certificate-card {
+        padding: 1rem 0.5rem;
+        border-width: 3px;
+    }
+
+    .certificate-title {
+        font-size: 1.2rem;
+    }
+
+    .certificate-student {
+        font-size: 1.15rem;
     }
 }
 
