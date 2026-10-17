@@ -42,11 +42,17 @@ def extract_recipient_initials(first_name="", last_name="", student_name=""):
     if not ln:
         raise ValueError("Last name is required to generate recipient initials.")
 
-    f_char = fn[0].upper()
-    l_char = ln[0].upper()
+    import unicodedata
+    norm_fn = unicodedata.normalize('NFKD', fn).encode('ascii', 'ignore').decode('ascii').strip()
+    norm_ln = unicodedata.normalize('NFKD', ln).encode('ascii', 'ignore').decode('ascii').strip()
 
-    if not (f_char.isalpha() and l_char.isalpha()):
-        raise ValueError(f"Initials must be alphabetic characters, got '{f_char}{l_char}'.")
+    if norm_fn and norm_ln and norm_fn[0].isalpha() and norm_ln[0].isalpha():
+        f_char = norm_fn[0].upper()
+        l_char = norm_ln[0].upper()
+    else:
+        # Fallback for non-ASCII scripts (e.g. Gujarati, Hindi, Devanagari) to guarantee standard ASCII Certificate ID
+        f_char = 'S'
+        l_char = 'T'
 
     return f"{f_char}{l_char}"
 

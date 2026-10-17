@@ -27,10 +27,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # Use environment secret key in production, fallback to development key
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-()ko!df&ipcfb6k$*!0#g@z@+9og96s6+1w0utd4q^2o8zok#b')
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    if os.environ.get('RENDER') or os.environ.get('PRODUCTION') or os.environ.get('DJANGO_ENV') == 'production':
+        from django.core.exceptions import ImproperlyConfigured
+        raise ImproperlyConfigured("SECRET_KEY environment variable must be set in production.")
+    SECRET_KEY = 'django-insecure-()ko!df&ipcfb6k$*!0#g@z@+9og96s6+1w0utd4q^2o8zok#b'
 
-# DEBUG: True in local development, False in production (e.g. Render) unless overridden
-DEBUG = os.environ.get('DEBUG', 'False' if os.environ.get('RENDER') else 'True').lower() in ('true', '1', 't')
+# DEBUG: True in local development, False in production (e.g. Render/PRODUCTION) unless overridden
+DEBUG = os.environ.get('DEBUG', 'False' if (os.environ.get('RENDER') or os.environ.get('PRODUCTION')) else 'True').lower() in ('true', '1', 't')
 
 # Allow Render's onrender.com domain and localhost
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver,.onrender.com').split(',') if h.strip()]
@@ -214,8 +219,16 @@ STATIC_ROOT.mkdir(parents=True, exist_ok=True)
 MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
 
 # Email Configuration
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'C-DAC Team <noreply@cdac.in>'
+EMAIL_BACKEND = os.environ.get(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend' if DEBUG else 'django.core.mail.backends.smtp.EmailBackend'
+)
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'C-DAC Team <noreply@cdac.in>')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 't')
 
 # --------------------------------------------------------------------------
 # Reviews & Social Rating Configuration
@@ -236,7 +249,14 @@ JUSTDIAL_PAGE_URL = getattr(
 # --------------------------------------------------------------------------
 # Certificate Verification Base URL Configuration
 # --------------------------------------------------------------------------
-SITE_BASE_URL = os.environ.get("SITE_BASE_URL", "http://localhost:8000")
+SITE_BASE_URL = os.environ.get("SITE_BASE_URL", "").rstrip('/')
+if not SITE_BASE_URL:
+    if DEBUG:
+        SITE_BASE_URL = "http://localhost:8000"
+    else:
+        # Production fallback using first non-local allowed host
+        first_host = next((h for h in ALLOWED_HOSTS if h and not h.startswith(('localhost', '127.0.0.1', 'testserver'))), None)
+        SITE_BASE_URL = f"https://{first_host.lstrip('.')}" if first_host else "http://localhost:8000"
 
 # --------------------------------------------------------------------------
 # Admin Login Path Configuration
@@ -317,8 +337,10 @@ LOGGING = {
         },
         'security_file': {
             'level': 'INFO',
-            'class': 'logging.FileHandler',
+            'class': 'logging.handlers.RotatingFileHandler',
             'filename': BASE_DIR / 'logs' / 'admin_access.log',
+            'maxBytes': 5 * 1024 * 1024,  # 5 MB
+            'backupCount': 5,
             'formatter': 'security_format',
             'encoding': 'utf-8',
         },

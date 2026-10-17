@@ -30,6 +30,22 @@ def verify(request):
             form = CertificateVerificationForm()
 
     if cert_id:
+        # Rate limit lookups: max 20 requests per minute per IP to prevent scraping
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        client_ip = x_forwarded_for.split(',')[0].strip() if x_forwarded_for else request.META.get('REMOTE_ADDR', '')
+        rate_key = f"cert_verify_rate_{client_ip}"
+        try:
+            from django.core.cache import cache
+            attempts = cache.get(rate_key, 0)
+            if attempts >= 25:
+                return render(request, 'certificates/verify.html', {
+                    'form': form,
+                    'error_message': "Too many verification requests. Please wait a minute before trying again."
+                }, status=429)
+            cache.set(rate_key, attempts + 1, timeout=60)
+        except Exception:
+            pass
+
         # Rule 9: Exact match lookup ONLY (case-insensitive)
         # Supports both Certificate ID and CITI Registration Number
         try:

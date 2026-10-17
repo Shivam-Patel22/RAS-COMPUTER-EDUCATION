@@ -405,7 +405,20 @@ class AdminCertificateForm(forms.ModelForm):
                 cleaned_data['serial_number'] = serial
 
             issue_d = cleaned_data.get('issue_date')
-            cleaned_data['registration_number'] = Certificate.format_citi_registration_number(serial, issue_d)
+            reg_num = Certificate.format_citi_registration_number(serial, issue_d)
+            cleaned_data['registration_number'] = reg_num
+
+            # Check for duplicate registration numbers across CITI certificates
+            if reg_num:
+                existing_qs = Certificate.objects.filter(registration_number=reg_num)
+                if self.instance and self.instance.pk:
+                    existing_qs = existing_qs.exclude(pk=self.instance.pk)
+                if existing_qs.exists():
+                    self.add_error(
+                        'serial_number',
+                        f"Registration number '{reg_num}' is already assigned to another certificate. Please choose a unique serial number."
+                    )
+
             if not cleaned_data.get('course_duration'):
                 cleaned_data['course_duration'] = '3 Months'
 

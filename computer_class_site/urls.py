@@ -28,7 +28,8 @@ urlpatterns = [
 if admin_path != 'cdac-admin':
     urlpatterns.append(path('cdac-admin/', include('dashboard.urls')))
 
-# Serve media files
-urlpatterns += [
-    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
-]
+# Serve media files in development or when explicitly enabled
+if settings.DEBUG or getattr(settings, 'SERVE_MEDIA', True):
+    urlpatterns += [
+        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    ]

@@ -24,6 +24,17 @@ class ContactForm(forms.Form):
         required=False,
         widget=forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write your message or inquiry here...', 'rows': 5})
     )
+    # Anti-bot honeypot field (hidden from real users, filled by automated spambots)
+    website = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'style': 'display:none !important;', 'tabindex': '-1', 'autocomplete': 'off'})
+    )
+
+    def clean_website(self):
+        val = self.cleaned_data.get('website', '').strip()
+        if val:
+            raise forms.ValidationError("Automated submission detected.")
+        return val
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

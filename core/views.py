@@ -52,6 +52,20 @@ def contact(request):
     justdial_page_url = getattr(settings, 'JUSTDIAL_PAGE_URL', '')
 
     if request.method == 'POST':
+        # Rate limit contact form submissions (max 5 submissions per 10 minutes per IP)
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        client_ip = x_forwarded_for.split(',')[0].strip() if x_forwarded_for else request.META.get('REMOTE_ADDR', '')
+        rate_key = f"contact_rate_{client_ip}"
+        try:
+            from django.core.cache import cache
+            attempts = cache.get(rate_key, 0)
+            if attempts >= 5:
+                messages.error(request, "Too many inquiry submissions from your network. Please wait a few minutes before submitting again.")
+                return redirect('core:contact')
+            cache.set(rate_key, attempts + 1, timeout=600)
+        except Exception:
+            pass
+
         form = ContactForm(request.POST)
         if form.is_valid():
             name = form.cleaned_data['name']

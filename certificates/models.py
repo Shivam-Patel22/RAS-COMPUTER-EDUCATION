@@ -1,6 +1,7 @@
 import hashlib
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Certificate(models.Model):
     certificate_id = models.CharField(max_length=50, unique=True, db_index=True)
@@ -12,7 +13,7 @@ class Certificate(models.Model):
     course = models.ForeignKey('courses.Course', on_delete=models.PROTECT)
     course_start_date = models.DateField(null=True, blank=True)
     course_end_date = models.DateField(null=True, blank=True)
-    issue_date = models.DateField()
+    issue_date = models.DateField(db_index=True)
     grade = models.CharField(max_length=20, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     verification_token = models.CharField(max_length=64, blank=True, null=True)
@@ -22,8 +23,16 @@ class Certificate(models.Model):
 
     # CITI CCC Specific Fields (Optional & Nullable for non-CITI certificates)
     student_photo = models.ImageField(upload_to='student_photos/', null=True, blank=True)
-    theory_marks = models.PositiveSmallIntegerField(null=True, blank=True)
-    practical_marks = models.PositiveSmallIntegerField(null=True, blank=True)
+    theory_marks = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(50)]
+    )
+    practical_marks = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(50)]
+    )
     course_duration = models.CharField(max_length=50, blank=True, default='3 Months')
     serial_number = models.CharField(max_length=20, blank=True, default='')
     registration_number = models.CharField(max_length=100, blank=True, default='', db_index=True)

@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}404 - Page Not Found | RAS Computer Education{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 650px; margin: 4rem auto 5rem; text-align: center; padding: 1.5rem;">
+    <div style="font-size: 5rem; line-height: 1; margin-bottom: 1rem;">🔍</div>
+    <h1 style="font-size: 2.2rem; color: var(--gray-900); margin-bottom: 0.75rem;">Page Not Found</h1>
+    <p style="color: var(--gray-600); font-size: 1.05rem; line-height: 1.6; margin-bottom: 2rem;">
+        We could not find the page you were looking for. It may have been moved, renamed, or is temporarily unavailable.
+    </p>
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <a href="{% url 'core:home' %}" class="btn btn-primary" style="padding: 0.75rem 1.5rem;">Return to Homepage &rarr;</a>
+        <a href="{% url 'courses:course_list' %}" class="btn btn-outline" style="padding: 0.75rem 1.5rem;">Browse Courses</a>
+    </div>
+</div>
+{% endblock %}
