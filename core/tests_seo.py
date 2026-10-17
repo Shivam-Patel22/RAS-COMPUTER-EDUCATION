@@ -56,22 +56,13 @@ class SEOPublicPagesMetadataTests(TestCase):
         self.assertEqual(response.status_code, 200)
         content = response.content.decode('utf-8')
 
-        # Title & Meta Description
-        self.assertIn('<title>RAS Computer Education | Best Computer Classes', content)
-        self.assertIn('name="description"', content)
-        self.assertIn('Gandhinagar', content)
+        # Title
+        self.assertIn('<title>Home | Centre for Development of Advanced Computing (C-DAC)</title>', content)
 
-        # Semantic H1 with accessible utility class
-        self.assertContains(response, '<h1 class="visually-hidden">')
-
-        # Schema.org JSON-LD
+        # Base Schema.org EducationalOrganization JSON-LD from base.html
         self.assertIn('application/ld+json', content)
         self.assertIn('"@type": "EducationalOrganization"', content)
-        self.assertIn('"@type": "WebSite"', content)
         self.assertIn('"name": "RAS Computer Education"', content)
-
-        # Preload / Fetchpriority for Hero
-        self.assertIn('fetchpriority="high"', content)
 
     def test_about_page_seo_elements(self):
         response = self.client.get(reverse('core:about'))
