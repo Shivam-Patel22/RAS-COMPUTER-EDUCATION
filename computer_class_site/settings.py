@@ -33,7 +33,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-()ko!df&ipcfb6k$*!0#g
 DEBUG = os.environ.get('DEBUG', 'False' if os.environ.get('RENDER') else 'True').lower() in ('true', '1', 't')
 
 # Allow Render's onrender.com domain and localhost
-ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,.onrender.com').split(',') if h.strip()]
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver,.onrender.com').split(',') if h.strip()]
 
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sitemaps',
     
     # Security packages
     'axes',

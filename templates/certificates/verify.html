@@ -1,6 +1,32 @@
 {% extends 'base.html' %}
 
-{% block title %}Verify Certificate | Centre for Development of Advanced Computing (C-DAC){% endblock %}
+{% block title %}Verify Student Certificate Online | RAS & C-DAC Computer Education Gandhinagar{% endblock %}
+{% block meta_description %}Verify authentic course completion certificates issued by RAS Computer Education & C-DAC Training Centre Gandhinagar. Check student credentials, grades, and issue dates online.{% endblock %}
+{% block canonical_url %}{{ request.scheme }}://{{ request.get_host }}{% url 'certificates:verify' %}{% endblock %}
+
+{% block structured_data %}
+{{ block.super }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "{{ request.scheme }}://{{ request.get_host }}/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Verify Certificate",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'certificates:verify' %}"
+    }
+  ]
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="container">

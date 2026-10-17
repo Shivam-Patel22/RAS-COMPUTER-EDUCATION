@@ -97,6 +97,19 @@ def course_list(request):
         'courses': db_courses
     })
 
-def course_detail(request, pk):
-    course = get_object_or_404(Course, pk=pk)
-    return render(request, 'courses/course_detail.html', {'course': course})
+def course_detail(request, pk=None, slug=None):
+    if pk is not None:
+        course = get_object_or_404(Course, pk=pk)
+    else:
+        course = get_object_or_404(Course, slug=slug)
+
+    # Contextual related courses within same category for SEO internal linking
+    related_courses = Course.objects.filter(
+        category=course.category
+    ).exclude(pk=course.pk).order_by('name')[:4]
+
+    return render(request, 'courses/course_detail.html', {
+        'course': course,
+        'related_courses': related_courses,
+    })
+

@@ -4,6 +4,8 @@
     {% if active_tab == 'register' %}Register | Student Portal{% else %}Login | Student Portal{% endif %}
 {% endblock %}
 
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
 {% block content %}
 <div class="container" style="max-width: 500px; margin: 3rem auto;">
     <div class="card animate__animated animate__fadeInUp" style="padding: 2.25rem;">

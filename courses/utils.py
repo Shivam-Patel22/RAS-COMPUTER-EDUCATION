@@ -112,3 +112,16 @@ def format_markdown_to_html(text):
     flush_para()
     flush_list()
     return '\n'.join(html_parts)
+
+
+def generate_course_slug(name):
+    """
+    Generates a clean, readable SEO slug from a course name,
+    properly mapping special technical notations like C++, C#, .NET.
+    """
+    if not name:
+        return 'course'
+    from django.utils.text import slugify
+    normalized = str(name).replace('++', 'pp').replace('#', ' sharp').replace('.net', 'dotnet').replace('.NET', 'dotnet')
+    slug = slugify(normalized)
+    return slug or 'course'

@@ -4,19 +4,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}C-DAC | Centre for Development of Advanced Computing{% endblock %}</title>
-    <meta name="description" content="Centre for Development of Advanced Computing (C-DAC) offering industry-grade courses, certifications, and hands-on technical training.">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- Primary SEO Metadata -->
+    <title>{% block title %}RAS Computer Education | Leading Computer Training Institute in Gandhinagar{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}RAS Computer Education offers government-recognized computer courses, CCC, Tally Prime, Python, Web Development, and IT Diplomas in Gandhinagar, Gujarat. Practical labs with verified certification.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}computer classes Gandhinagar, computer courses, CCC certificate, Tally Prime training, Python course, web development classes, computer diploma Gandhinagar, RAS Computer Education{% endblock %}">
+    <meta name="robots" content="{% block meta_robots %}index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1{% endblock %}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}">
+    
+    <!-- Favicon & Touch Icons -->
     <link rel="icon" type="image/png" href="{% static 'images/ras.png' %}">
-    <meta property="og:title" content="C-DAC | Centre for Development of Advanced Computing">
-    <meta property="og:description" content="Centre for Development of Advanced Computing (C-DAC) offering industry-grade courses, certifications, and hands-on technical training.">
-    <meta property="og:image" content="{% static 'images/ras.png' %}">
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="C-DAC">
+    <link rel="apple-touch-icon" href="{% static 'images/ras.png' %}">
+
+    <!-- Open Graph / Social Sharing Metadata -->
+    <meta property="og:site_name" content="RAS Computer Education">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}RAS Computer Education | Computer Courses & IT Training in Gandhinagar{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Certified computer courses, CCC, Tally Prime, Python, Web Development, and Diploma tracks with practical lab training at RAS Computer Education Gandhinagar.{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/ras.png' %}{% endblock %}">
+    <meta property="og:locale" content="en_IN">
+
+    <!-- Twitter Card Metadata -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}RAS Computer Education | Computer Courses Gandhinagar{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Certified computer training institute in Gandhinagar offering CCC, Tally Prime, Python, and Full Stack Development with hands-on practice.{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/ras.png' %}{% endblock %}">
+
+    <!-- CSS & Typography Stylesheets -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/animate.min.css' %}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Schema.org EducationalOrganization JSON-LD -->
+    {% block structured_data %}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "EducationalOrganization",
+      "name": "RAS Computer Education",
+      "alternateName": ["C-DAC Computer Class", "CITI Computer Education"],
+      "url": "{{ request.scheme }}://{{ request.get_host }}/",
+      "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'images/ras.png' %}",
+      "image": "{{ request.scheme }}://{{ request.get_host }}{% static 'images/New Hero Banner.png' %}",
+      "description": "Authorized computer education institute offering CCC, Tally Prime, Programming, Web Development, and Diploma certifications.",
+      "telephone": "{% if site_contact and site_contact.phone %}{{ site_contact.phone }}{% else %}+91 98765 43210{% endif %}",
+      "email": "{% if site_contact and site_contact.email %}{{ site_contact.email }}{% else %}info@cdac-class.in{% endif %}",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Near Gh-5, Sector 22 / Sector 11",
+        "addressLocality": "Gandhinagar",
+        "addressRegion": "Gujarat",
+        "postalCode": "382022",
+        "addressCountry": "IN"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 23.2384,
+        "longitude": 72.6517
+      },
+      "sameAs": [
+        "https://www.instagram.com/ras_computer_education/",
+        "https://www.facebook.com/RASeducationgnr/",
+        "https://www.justdial.com/Gandhinagar-Gujarat/Ras-Computer-Education-Near-Gh-5-Gandhinagar-Sector-22/9999PXX79-XX79-121008204400-M3T4_BZDET"
+      ],
+      "priceRange": "₹₹",
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Computer Training Courses",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Course",
+              "name": "Course on Computer Concepts (CCC)",
+              "description": "Government-recognized CCC course for computer literacy and government job qualifications."
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Course",
+              "name": "Tally Prime Financial Accounting",
+              "description": "Professional computerized accounting, GST compliance, and taxation."
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Course",
+              "name": "Python & Web Development",
+              "description": "Comprehensive practical programming in Python, Django, React, and Full Stack Web Development."
+            }
+          }
+        ]
+      }
+    }
+    </script>
+    {% endblock %}
+
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');

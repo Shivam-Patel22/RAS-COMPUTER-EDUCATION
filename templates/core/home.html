@@ -1,13 +1,34 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Home | Centre for Development of Advanced Computing (C-DAC){% endblock %}
+{% block title %}RAS Computer Education | Best Computer Classes &amp; IT Training in Gandhinagar{% endblock %}
+{% block meta_description %}Join RAS Computer Education in Gandhinagar for government-recognized computer courses, CCC, Tally Prime, Python, Web Development, and IT Diplomas. Hands-on practical lab training with 100% verified certification.{% endblock %}
+
+{% block structured_data %}
+{{ block.super }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "RAS Computer Education",
+  "alternateName": "C-DAC Computer Class",
+  "url": "{{ request.scheme }}://{{ request.get_host }}/",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "{{ request.scheme }}://{{ request.get_host }}{% url 'courses:course_list' %}?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+{% endblock %}
 
 {% block content %}
+<h1 class="visually-hidden">RAS Computer Education - Premier Computer Training Institute in Gandhinagar, Gujarat</h1>
+
 <!-- Hero Section -->
 <section class="hero-banner-section" aria-label="Hero Banner">
     <div class="hero-banner-container animate__animated animate__fadeIn">
-        <img src="{% static 'images/New Hero Banner.png' %}" alt="RAS Computer Education &amp; Spoken English - Authorized Training Center" class="hero-banner-img">
+        <img src="{% static 'images/New Hero Banner.png' %}" alt="RAS Computer Education &amp; Spoken English - Authorized Training Center Gandhinagar" class="hero-banner-img" fetchpriority="high">
     </div>
 </section>
 
@@ -16,9 +37,9 @@
     <div class="popular-courses-header animate__animated animate__fadeInDown">
         <div>
             <h2>Our Most <span>Popular Courses</span></h2>
-            <p>Let's join our best classes with our famous instructor and institutes</p>
+            <p>Practical, industry-aligned technical training programs with certified credentials</p>
         </div>
-        <a href="{% url 'courses:course_list' %}" class="explore-link">Explore Courses &rarr;</a>
+        <a href="{% url 'courses:course_list' %}" class="explore-link">Explore All Courses &rarr;</a>
     </div>
 
     {% if featured_courses %}
@@ -26,7 +47,7 @@
         {% for course in featured_courses %}
         <div class="card card-hover course-card animate__animated animate__fadeInUp anim-delay-{{ forloop.counter }}" data-course-name="{{ course.name }}" style="display: flex; flex-direction: column; height: 100%;">
             {% if course.image %}
-                <img src="{{ course.image.url }}" alt="{{ course.name }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" style="width: 100%; height: 200px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+                <img src="{{ course.image.url }}" alt="{{ course.name }} Training Course at RAS Computer Education Gandhinagar" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" style="width: 100%; height: 200px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
                 <div style="display: none; width: 100%; height: 200px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: var(--radius-md); margin-bottom: 1.25rem; align-items: center; justify-content: center; color: white; font-size: 3.5rem;">
                     💻
                 </div>
@@ -46,7 +67,7 @@
             </p>
 
             <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--gray-100);">
-                <a href="{% url 'courses:course_detail' course.id %}" class="btn btn-primary btn-sm">View Details &rarr;</a>
+                <a href="{{ course.get_absolute_url }}" class="btn btn-primary btn-sm">View Details &rarr;</a>
             </div>
         </div>
         {% endfor %}

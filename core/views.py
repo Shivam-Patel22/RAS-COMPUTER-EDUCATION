@@ -99,3 +99,12 @@ def contact(request):
         'justdial_page_url': justdial_page_url,
     })
 
+
+def robots_txt(request):
+    host = request.get_host()
+    scheme = 'https' if not request.is_secure() and not host.startswith(('localhost', '127.0.0.1', 'testserver')) else request.scheme
+    site_url = f"{scheme}://{host}"
+    return render(request, 'robots.txt', {'site_url': site_url}, content_type='text/plain')
+
+
+

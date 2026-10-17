@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /static/
+Allow: /media/
+
+# Prevent search engine indexing of private admin and account portals
+Disallow: /cdac-admin/
+Disallow: /django-admin/
+Disallow: /accounts/
+Disallow: /verify-certificate/download/
+
+Sitemap: {{ site_url }}/sitemap.xml

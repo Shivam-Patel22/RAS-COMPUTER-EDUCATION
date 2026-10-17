@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block title %}Certificate Verification Result | {% if certificate.prefix == 'RAS' %}RAS Computer Education{% elif certificate.prefix == 'CITI' %}CITI Computer Education{% elif certificate.is_ccc %}CCC Certificate{% else %}Centre for Development of Advanced Computing (C-DAC){% endif %}{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
 
 {% block extra_head %}
 {% if certificate.prefix == 'RAS' %}

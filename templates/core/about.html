@@ -1,6 +1,31 @@
 {% extends 'base.html' %}
 
-{% block title %}About Us | Centre for Development of Advanced Computing (C-DAC){% endblock %}
+{% block title %}About Us | RAS Computer Education &amp; Training Gandhinagar{% endblock %}
+{% block meta_description %}Learn about RAS Computer Education in Gandhinagar, dedicated to practical computer courses, hands-on IT laboratory training, experienced faculty, and verified career certifications.{% endblock %}
+
+{% block structured_data %}
+{{ block.super }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "{{ request.scheme }}://{{ request.get_host }}/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "About Us",
+      "item": "{{ request.build_absolute_uri }}"
+    }
+  ]
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="container">
