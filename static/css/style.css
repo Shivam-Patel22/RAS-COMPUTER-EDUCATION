@@ -2514,7 +2514,7 @@ textarea.form-control {
 }
 
 [data-theme="dark"] .category-desc {
-    color: var(--gray-300);
+    color: #C4C7CE;
 }
 
 [data-theme="dark"] .category-footer {
@@ -2564,7 +2564,7 @@ textarea.form-control {
 }
 
 [data-theme="dark"] .category-banner-meta {
-    color: var(--gray-300);
+    color: #C4C7CE;
 }
 
 [data-theme="dark"] .subcourse-card {
@@ -2591,7 +2591,7 @@ textarea.form-control {
 }
 
 [data-theme="dark"] .subcourse-desc {
-    color: var(--gray-300);
+    color: #C4C7CE;
 }
 
 [data-theme="dark"] .subcourse-footer {
