@@ -63,7 +63,10 @@
                 <label for="{{ form.certificate_id.id_for_label }}">Certificate ID *</label>
                 {{ form.certificate_id }}
                 <small id="id-mode-hint" style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.3rem;">⚡ Auto mode active: Format PREFIX-YYYY-MM-FF-RRRRRR-SSSS (Server auto-generated)</small>
-                {% if form.certificate_id.errors %}<div class="form-error">{{ form.certificate_id.errors.0 }}</div>{% endif %}
+                <div id="cert-id-duplicate-warning" class="form-error" style="display: none; margin-top: 0.35rem; font-size: 0.82rem; color: #dc2626; font-weight: 600;">
+                    ⚠ Certificate ID already exists. Please enter a unique ID.
+                </div>
+                {% if form.certificate_id.errors %}<div class="form-error" id="cert-id-server-error">{{ form.certificate_id.errors.0 }}</div>{% endif %}
             </div>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
@@ -187,7 +190,63 @@ var nextSeqs = {
 };
 var currentYear = {{ current_year|default:2026 }};
 var nextIdApiUrl = '{% url "dashboard:get_next_certificate_id" %}';
-var isEdit = {% if cert or form.instance.pk %}true{% else %}false{% endif %};
+var checkIdApiUrl = '{% url "dashboard:check_certificate_id" %}';
+var excludePk = '{% if cert %}{{ cert.pk }}{% elif form.instance.pk %}{{ form.instance.pk }}{% endif %}';
+var isEdit = Boolean(excludePk);
+var isDuplicateId = false;
+var checkTimeout = null;
+
+function checkDuplicateCertId(value) {
+    var warningEl = document.getElementById('cert-id-duplicate-warning');
+    var serverErrorEl = document.getElementById('cert-id-server-error');
+    var submitBtn = document.querySelector('form button[type="submit"]');
+    var certInput = document.getElementById('id_certificate_id');
+    var cleanVal = (value || '').trim();
+
+    if (!cleanVal) {
+        if (warningEl) warningEl.style.display = 'none';
+        isDuplicateId = false;
+        if (certInput) {
+            certInput.style.borderColor = '';
+            certInput.removeAttribute('aria-invalid');
+        }
+        if (submitBtn) submitBtn.removeAttribute('disabled');
+        return;
+    }
+
+    var url = checkIdApiUrl + '?certificate_id=' + encodeURIComponent(cleanVal) + (excludePk ? '&exclude_pk=' + encodeURIComponent(excludePk) : '');
+    fetch(url)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            var currentVal = (certInput ? certInput.value : '').trim().toUpperCase();
+            if (currentVal !== (data.certificate_id || '').toUpperCase()) {
+                return;
+            }
+            if (data.exists) {
+                isDuplicateId = true;
+                if (warningEl) {
+                    warningEl.textContent = '⚠ Certificate ID already exists. Please enter a unique ID.';
+                    warningEl.style.display = 'block';
+                }
+                if (serverErrorEl) serverErrorEl.style.display = 'none';
+                if (certInput) {
+                    certInput.style.borderColor = '#dc2626';
+                    certInput.setAttribute('aria-invalid', 'true');
+                }
+                if (submitBtn) submitBtn.setAttribute('disabled', 'disabled');
+            } else {
+                isDuplicateId = false;
+                if (warningEl) warningEl.style.display = 'none';
+                if (serverErrorEl) serverErrorEl.style.display = 'none';
+                if (certInput) {
+                    certInput.style.borderColor = '';
+                    certInput.removeAttribute('aria-invalid');
+                }
+                if (submitBtn) submitBtn.removeAttribute('disabled');
+            }
+        })
+        .catch(function() {});
+}
 
 function getSelectedPrefix() {
     var prefixSelect = document.getElementById('id_prefix');
@@ -266,6 +325,9 @@ function updateCertId() {
 function toggleIdMode(mode) {
     var certInput = document.getElementById('id_certificate_id');
     var hint = document.getElementById('id-mode-hint');
+    var warningEl = document.getElementById('cert-id-duplicate-warning');
+    var serverErrorEl = document.getElementById('cert-id-server-error');
+    var submitBtn = document.querySelector('form button[type="submit"]');
     var prefix = getSelectedPrefix();
     var initials = getStudentInitials();
     var seq = nextSeqs[prefix] || (prefix === 'RAS' ? 1001 : 5001);
@@ -278,11 +340,20 @@ function toggleIdMode(mode) {
             hint.textContent = '✏️ Manual mode active: Format ' + prefix + '-YYYY-MM-FF-RRRRRR-SSSS (e.g. ' + computeCertId(prefix, initials, seq) + ').';
         }
         certInput.focus();
+        if (certInput.value.trim()) {
+            checkDuplicateCertId(certInput.value);
+        }
     } else {
         certInput.setAttribute('readonly', 'readonly');
         if (hint) {
             hint.textContent = '⚡ Auto mode active: Format ' + prefix + '-YYYY-MM-FF-RRRRRR-SSSS (Server auto-generated)';
         }
+        if (warningEl) warningEl.style.display = 'none';
+        if (serverErrorEl) serverErrorEl.style.display = 'none';
+        certInput.style.borderColor = '';
+        certInput.removeAttribute('aria-invalid');
+        isDuplicateId = false;
+        if (submitBtn) submitBtn.removeAttribute('disabled');
         updateCertId();
     }
 }
@@ -430,6 +501,88 @@ document.addEventListener('DOMContentLoaded', function() {
     if (fnInput) fnInput.addEventListener('input', onNameChange);
     if (lnInput) lnInput.addEventListener('input', onNameChange);
 
+    var certInput = document.getElementById('id_certificate_id');
+    var formEl = document.querySelector('form[data-validate="true"]') || document.querySelector('form');
+    var submitBtn = document.querySelector('form button[type="submit"]');
+
+    if (certInput) {
+        certInput.addEventListener('input', function() {
+            var isManual = manualRadio && manualRadio.checked;
+            if (!isManual && !isEdit) return;
+            if (submitBtn) submitBtn.removeAttribute('disabled');
+            clearTimeout(checkTimeout);
+            checkTimeout = setTimeout(function() {
+                checkDuplicateCertId(certInput.value);
+            }, 300);
+        });
+
+        certInput.addEventListener('blur', function() {
+            var isManual = manualRadio && manualRadio.checked;
+            if (!isManual && !isEdit) return;
+            clearTimeout(checkTimeout);
+            checkDuplicateCertId(certInput.value);
+        });
+    }
+
+    var formSubmitting = false;
+    if (formEl) {
+        formEl.addEventListener('submit', function(e) {
+            var isManual = manualRadio && manualRadio.checked;
+            if (!isManual && !isEdit) {
+                return;
+            }
+            if (formSubmitting) {
+                return;
+            }
+            if (isDuplicateId) {
+                e.preventDefault();
+                var warningEl = document.getElementById('cert-id-duplicate-warning');
+                if (warningEl) {
+                    warningEl.textContent = '⚠ Certificate ID already exists. Please enter a unique ID.';
+                    warningEl.style.display = 'block';
+                }
+                if (certInput) {
+                    certInput.style.borderColor = '#dc2626';
+                    certInput.setAttribute('aria-invalid', 'true');
+                    certInput.focus();
+                }
+                return false;
+            }
+
+            var cleanVal = (certInput ? certInput.value : '').trim();
+            if (!cleanVal) return;
+
+            e.preventDefault();
+            clearTimeout(checkTimeout);
+            var url = checkIdApiUrl + '?certificate_id=' + encodeURIComponent(cleanVal) + (excludePk ? '&exclude_pk=' + encodeURIComponent(excludePk) : '');
+            fetch(url)
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data.exists) {
+                        isDuplicateId = true;
+                        var warningEl = document.getElementById('cert-id-duplicate-warning');
+                        if (warningEl) {
+                            warningEl.textContent = '⚠ Certificate ID already exists. Please enter a unique ID.';
+                            warningEl.style.display = 'block';
+                        }
+                        if (certInput) {
+                            certInput.style.borderColor = '#dc2626';
+                            certInput.setAttribute('aria-invalid', 'true');
+                            certInput.focus();
+                        }
+                    } else {
+                        isDuplicateId = false;
+                        formSubmitting = true;
+                        formEl.submit();
+                    }
+                })
+                .catch(function() {
+                    formSubmitting = true;
+                    formEl.submit();
+                });
+        });
+    }
+
     // Initial sync
     syncPrefixUI();
 
@@ -443,7 +596,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (certInput) certInput.setAttribute('readonly', 'readonly');
             var hint = document.getElementById('id-mode-hint');
             if (hint) {
-                hint.textContent = '⚡ Auto mode active: Format PREFIX-YYYY-FLSEQUENCE (Server auto-generated)';
+                hint.textContent = '⚡ Auto mode active: Format PREFIX-YYYY-MM-FF-RRRRRR-SSSS (Server auto-generated)';
             }
         }
     }

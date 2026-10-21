@@ -1,7 +1,10 @@
 import hashlib
 from django.db import models
+from django.db.models.functions import Lower
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 
 class Certificate(models.Model):
     certificate_id = models.CharField(max_length=50, unique=True, db_index=True)
@@ -37,12 +40,38 @@ class Certificate(models.Model):
     serial_number = models.CharField(max_length=20, blank=True, default='')
     registration_number = models.CharField(max_length=100, blank=True, default='', db_index=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                Lower('certificate_id'),
+                name='unique_lower_certificate_id'
+            ),
+        ]
+
+    def clean(self):
+        super().clean()
+        if self.certificate_id:
+            self.certificate_id = self.certificate_id.strip().upper()
+            qs = Certificate.objects.filter(certificate_id__iexact=self.certificate_id)
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            if qs.exists():
+                raise ValidationError({'certificate_id': "⚠ Certificate ID already exists. Please enter a unique ID."})
+
     def generate_verification_hash(self):
         """Generates a SHA-256 hash for certificate data verification."""
         data_str = f"{self.certificate_id}|{self.student_name}|{self.course_id}|{self.issue_date}|{self.grade or ''}"
         return hashlib.sha256(data_str.encode('utf-8')).hexdigest()
 
     def save(self, *args, **kwargs):
+        if self.certificate_id:
+            self.certificate_id = self.certificate_id.strip().upper()
+            qs = Certificate.objects.filter(certificate_id__iexact=self.certificate_id)
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            if qs.exists():
+                raise IntegrityError("⚠ Certificate ID already exists. Please enter a unique ID.")
+
         fn = self.first_name.strip() if self.first_name else ""
         mn = self.middle_name.strip() if self.middle_name else ""
         ln = self.last_name.strip() if self.last_name else ""

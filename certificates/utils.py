@@ -323,12 +323,16 @@ def generate_certificate_id(prefix="RAS", year=None, month=None, first_name="", 
 
     if reserve:
         with _cert_gen_lock:
-            seq = reserve_next_certificate_sequence(clean_prefix)
-            random_code = allocate_unique_random_code()
-            cert_id = format_certificate_id(clean_prefix, year, month, initials, random_code, seq)
-            from .models import CertificateRandomCodeRegistry
-            CertificateRandomCodeRegistry.objects.filter(code=random_code).update(certificate_id=cert_id, status='active')
-            return cert_id
+            from .models import Certificate, CertificateRandomCodeRegistry
+            max_retries = 100
+            for attempt in range(max_retries):
+                seq = reserve_next_certificate_sequence(clean_prefix)
+                random_code = allocate_unique_random_code()
+                cert_id = format_certificate_id(clean_prefix, year, month, initials, random_code, seq)
+                if not Certificate.objects.filter(certificate_id__iexact=cert_id).exists():
+                    CertificateRandomCodeRegistry.objects.filter(code=random_code).update(certificate_id=cert_id, status='active')
+                    return cert_id
+            raise SequenceExhaustedError("Unable to allocate a unique Certificate ID after multiple collision attempts.")
     else:
         seq = peek_next_certificate_sequence(clean_prefix)
         preview_code = 100000

@@ -262,7 +262,14 @@ class AdminCertificateForm(forms.ModelForm):
         return issue_date
 
     def clean_certificate_id(self):
-        return self.cleaned_data.get('certificate_id', '').strip().upper()
+        cert_id = self.cleaned_data.get('certificate_id', '').strip().upper()
+        if cert_id and self.data.get('id_gen_mode') == 'manual':
+            qs = Certificate.objects.filter(certificate_id__iexact=cert_id)
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise forms.ValidationError("⚠ Certificate ID already exists. Please enter a unique ID.")
+        return cert_id
 
     def clean(self):
         cleaned_data = super().clean()
@@ -304,7 +311,7 @@ class AdminCertificateForm(forms.ModelForm):
                 if self.instance and self.instance.pk:
                     qs = qs.exclude(pk=self.instance.pk)
                 if qs.exists():
-                    self.add_error('certificate_id', f"Certificate ID '{cert_id}' is already in use. Please enter a unique Certificate ID.")
+                    self.add_error('certificate_id', "⚠ Certificate ID already exists. Please enter a unique ID.")
                 else:
                     # Register manual random code if it matches standard pattern
                     parts = cert_id.split('-')

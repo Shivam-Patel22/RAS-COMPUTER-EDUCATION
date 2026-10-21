@@ -23,6 +23,7 @@ urlpatterns = [
     path('certificates/download-zip/', views.download_certificates_zip, name='download_certificates_zip'),
     path('certificates/export/', views.export_certificates_excel, name='export_certificates_excel'),
     path('certificates/next-id/', views.get_next_certificate_id_api, name='get_next_certificate_id'),
+    path('certificates/check-id/', views.check_certificate_id_api, name='check_certificate_id'),
     path('verify-certificate/', views.admin_verify_search, name='admin_verify_search'),
 
 

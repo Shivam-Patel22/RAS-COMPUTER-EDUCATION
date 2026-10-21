@@ -706,7 +706,7 @@ def add_certificate(request):
                     cert.certificate_id = generate_certificate_id(prefix=prefix, first_name=fn, last_name=ln, reserve=True)
 
                 # Concurrency-safe save with retry
-                max_retries = 5
+                max_retries = 10
                 saved = False
                 for attempt in range(max_retries):
                     try:
@@ -716,7 +716,8 @@ def add_certificate(request):
                         break
                     except IntegrityError:
                         if request.POST.get('id_gen_mode') == 'manual' or attempt == max_retries - 1:
-                            messages.error(request, f"Certificate ID '{cert.certificate_id}' is already in use.")
+                            messages.error(request, "⚠ Certificate ID already exists. Please enter a unique ID.")
+                            form.add_error('certificate_id', "⚠ Certificate ID already exists. Please enter a unique ID.")
                             current_year = datetime.date.today().year
                             return render(request, 'dashboard/certificate_form.html', {
                                 'form': form,
@@ -758,9 +759,13 @@ def edit_certificate(request, pk):
     if request.method == 'POST':
         form = AdminCertificateForm(request.POST, request.FILES, instance=cert)
         if form.is_valid():
-            form.save()
-            messages.success(request, f"Certificate '{cert.certificate_id}' updated successfully.")
-            return redirect('dashboard:manage_certificates')
+            try:
+                form.save()
+                messages.success(request, f"Certificate '{cert.certificate_id}' updated successfully.")
+                return redirect('dashboard:manage_certificates')
+            except IntegrityError:
+                form.add_error('certificate_id', "⚠ Certificate ID already exists. Please enter a unique ID.")
+                messages.error(request, "⚠ Certificate ID already exists. Please enter a unique ID.")
     else:
         form = AdminCertificateForm(instance=cert)
 
@@ -808,6 +813,33 @@ def get_next_certificate_id_api(request):
         'month': f"{current_month:02d}",
         'certificate_id': cert_id,
         'initials': initials
+    })
+
+@staff_required
+def check_certificate_id_api(request):
+    """
+    API endpoint to check if a certificate ID already exists in the database.
+    Case-insensitive and ignores leading/trailing whitespace.
+    """
+    raw_id = request.GET.get('certificate_id', '')
+    clean_id = raw_id.strip().upper()
+    exclude_pk = request.GET.get('exclude_pk')
+
+    if not clean_id:
+        return JsonResponse({'exists': False, 'certificate_id': ''})
+
+    qs = Certificate.objects.filter(certificate_id__iexact=clean_id)
+    if exclude_pk:
+        try:
+            qs = qs.exclude(pk=int(exclude_pk))
+        except (ValueError, TypeError):
+            pass
+
+    exists = qs.exists()
+    return JsonResponse({
+        'exists': exists,
+        'certificate_id': clean_id,
+        'message': "⚠ Certificate ID already exists. Please enter a unique ID." if exists else ""
     })
 
 @staff_required

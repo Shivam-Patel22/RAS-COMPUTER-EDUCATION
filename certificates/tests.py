@@ -761,7 +761,7 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
         })
         self.assertFalse(form_duplicate.is_valid())
         self.assertIn('certificate_id', form_duplicate.errors)
-        self.assertIn('already in use', form_duplicate.errors['certificate_id'][0])
+        self.assertIn('already exists', form_duplicate.errors['certificate_id'][0])
 
     def test_05_dynamic_year_handling(self):
         """5. Year is taken dynamically from server's current date, not hardcoded."""
