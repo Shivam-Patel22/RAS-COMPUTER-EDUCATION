@@ -186,89 +186,33 @@ def admin_login(request):
     user_agent = request.META.get('HTTP_USER_AGENT', 'Unknown')
     next_url = request.POST.get('next') or request.GET.get('next') or ''
 
-    # --------------------------------------------------------------------------
-    # Step 2: 2FA Verification Submission
-    # --------------------------------------------------------------------------
+    # If user submitted from a previously-cached 2FA step, log them in or redirect cleanly
     if request.method == 'POST' and request.POST.get('step') == '2fa':
-        pre_user_id = request.session.get('pre_2fa_user_id')
-        pre_timestamp = request.session.get('pre_2fa_timestamp', 0)
-
-        # Enforce 5-minute timeout window for 2FA completion
-        if not pre_user_id or (time.time() - pre_timestamp > 300):
-            request.session.pop('pre_2fa_user_id', None)
-            request.session.pop('pre_2fa_timestamp', None)
-            messages.error(request, "Your verification session has timed out. Please enter your credentials again.")
-            return redirect('dashboard:login')
-
-        target_user = User.objects.filter(pk=pre_user_id, is_active=True, is_staff=True).first()
-        if not target_user:
-            request.session.pop('pre_2fa_user_id', None)
-            messages.error(request, "Invalid username/email or password.")
-            return redirect('dashboard:login')
-
-        # Check brute-force lockout before verifying 2FA code
-        if is_axes_locked_out(request, username=target_user.username, ip_address=ip_address):
-            security_logger.warning(f"LOCKOUT_BLOCKED_2FA: IP={ip_address} | User={target_user.username}")
-            messages.error(request, "Too many failed attempts. Try again in 30 minutes.")
-            return render(request, 'dashboard/login.html', {'step': '2fa', 'two_factor_form': TwoFactorVerifyForm()}, status=429)
-
-        # Per-IP burst rate limit
-        if check_login_post_rate_limit(ip_address):
-            security_logger.warning(f"RATE_LIMITED_2FA: IP={ip_address} exceeded 10 POSTs/min")
-            messages.error(request, "Too many requests. Please wait a minute before trying again.")
-            return render(request, 'dashboard/login.html', {'step': '2fa', 'two_factor_form': TwoFactorVerifyForm()}, status=429)
-
-        two_factor_form = TwoFactorVerifyForm(request.POST)
-        if two_factor_form.is_valid():
-            token = two_factor_form.cleaned_data['otp_token'].strip()
-
-            # 1. Check TOTP Device (Google Authenticator / Microsoft Authenticator)
-            totp_device = TOTPDevice.objects.filter(user=target_user, confirmed=True).first()
-            verified = False
-            if totp_device and totp_device.verify_token(token):
-                verified = True
-
-            # 2. Check Static Backup Codes (Single-use)
-            if not verified:
-                static_device = StaticDevice.objects.filter(user=target_user, confirmed=True).first()
-                if static_device and static_device.verify_token(token):
-                    verified = True
-
-            if verified:
-                # Clear pre-auth session data
-                saved_next = request.session.pop('pre_2fa_next', '')
-                request.session.pop('pre_2fa_user_id', None)
-                request.session.pop('pre_2fa_timestamp', None)
-
-                # Reset lockout attempts on success
+        pre_user_id = request.session.pop('pre_2fa_user_id', None)
+        request.session.pop('pre_2fa_timestamp', None)
+        saved_next = request.session.pop('pre_2fa_next', '')
+        if pre_user_id:
+            target_user = User.objects.filter(pk=pre_user_id, is_active=True, is_staff=True).first()
+            if target_user:
                 clear_axes_records(target_user.username, ip_address)
-
-                # Log user in (session is regenerated automatically)
                 auth_login(request, target_user)
                 now = time.time()
                 request.session['admin_login_time'] = now
                 request.session['admin_last_activity'] = now
-
-                security_logger.info(f"SUCCESS_2FA_LOGIN: User='{target_user.username}' | IP={ip_address} | UserAgent={user_agent}")
+                security_logger.info(f"SUCCESS_LOGIN: User='{target_user.username}' | IP={ip_address} | UserAgent={user_agent}")
                 messages.success(request, f"Logged in as staff administrator ({target_user.username}).")
                 if saved_next:
                     return redirect(saved_next)
                 return get_safe_redirect(request, 'dashboard:index')
-            else:
-                record_axes_failure(request, username=target_user.username, ip_address=ip_address)
-                security_logger.warning(f"FAILED_2FA: User='{target_user.username}' | IP={ip_address} | UserAgent={user_agent}")
+        return redirect('dashboard:login')
 
-                if is_axes_locked_out(request, username=target_user.username, ip_address=ip_address):
-                    messages.error(request, "Too many failed attempts. Try again in 30 minutes.")
-                    return render(request, 'dashboard/login.html', {'step': '2fa', 'two_factor_form': two_factor_form}, status=429)
-
-                messages.error(request, "Invalid verification code.")
-                return render(request, 'dashboard/login.html', {'step': '2fa', 'two_factor_form': two_factor_form})
-        else:
-            return render(request, 'dashboard/login.html', {'step': '2fa', 'two_factor_form': two_factor_form})
+    # Clean up any leftover 2FA session keys
+    request.session.pop('pre_2fa_user_id', None)
+    request.session.pop('pre_2fa_timestamp', None)
+    request.session.pop('pre_2fa_next', None)
 
     # --------------------------------------------------------------------------
-    # Step 1: Username/Email + Password Authentication
+    # Username/Email + Password Authentication
     # --------------------------------------------------------------------------
     if request.method == 'POST':
         # Burst rate limiter: max 10 requests per minute per IP
@@ -325,37 +269,7 @@ def admin_login(request):
                 messages.error(request, "Invalid username/email or password.")
                 return render(request, 'dashboard/login.html', {'form': form, 'next': next_url})
 
-            # Check 2FA requirement / enrollment
-            totp_device = TOTPDevice.objects.filter(user=user, confirmed=True).first()
-            static_device = StaticDevice.objects.filter(user=user, confirmed=True).first()
-            is_2fa_enrolled = bool(totp_device or static_device)
-            is_2fa_required = user.is_superuser or getattr(settings, 'REQUIRE_2FA_FOR_STAFF', False)
-
-            if is_2fa_enrolled:
-                # Challenge user for 2FA code
-                request.session['pre_2fa_user_id'] = user.pk
-                request.session['pre_2fa_timestamp'] = time.time()
-                request.session['pre_2fa_next'] = next_url
-                security_logger.info(f"PRE_AUTH_2FA_CHALLENGE: User='{user.username}' | IP={ip_address}")
-                return render(request, 'dashboard/login.html', {
-                    'step': '2fa',
-                    'two_factor_form': TwoFactorVerifyForm(),
-                    'username': user.username,
-                    'next': next_url,
-                })
-
-            if is_2fa_required and not is_2fa_enrolled:
-                # 2FA is required by policy but not yet configured: log in and direct to setup
-                clear_axes_records(user.username, ip_address)
-                auth_login(request, user)
-                now = time.time()
-                request.session['admin_login_time'] = now
-                request.session['admin_last_activity'] = now
-                security_logger.info(f"SUCCESS_LOGIN_SETUP_2FA_REQUIRED: User='{user.username}' | IP={ip_address}")
-                messages.warning(request, "Two-factor authentication is required for your account. Please complete setup now.")
-                return redirect('dashboard:two_factor_setup')
-
-            # 2FA not required and not enrolled: complete login
+            # 2FA is removed: authenticate and log in immediately
             clear_axes_records(user.username, ip_address)
             auth_login(request, user)
             now = time.time()
@@ -364,110 +278,25 @@ def admin_login(request):
 
             security_logger.info(f"SUCCESS_LOGIN: User='{user.username}' | IP={ip_address} | UserAgent={user_agent}")
             messages.success(request, f"Logged in as staff administrator ({user.username}).")
+            if next_url:
+                return get_safe_redirect(request, next_url)
             return get_safe_redirect(request, 'dashboard:index')
 
     else:
-        # Check if pre-auth 2FA session is active on GET
-        if 'pre_2fa_user_id' in request.session:
-            pre_timestamp = request.session.get('pre_2fa_timestamp', 0)
-            if time.time() - pre_timestamp <= 300:
-                user_id = request.session['pre_2fa_user_id']
-                target_user = User.objects.filter(pk=user_id, is_active=True, is_staff=True).first()
-                if target_user:
-                    return render(request, 'dashboard/login.html', {
-                        'step': '2fa',
-                        'two_factor_form': TwoFactorVerifyForm(),
-                        'username': target_user.username,
-                        'next': next_url,
-                    })
-            else:
-                request.session.pop('pre_2fa_user_id', None)
-                request.session.pop('pre_2fa_timestamp', None)
-
         form = AdminLoginForm()
 
     return render(request, 'dashboard/login.html', {'form': form, 'next': next_url})
 
 @staff_required
 def two_factor_setup(request):
-    """
-    Setup page for Staff Two-Factor Authentication (TOTP).
-    Displays QR code for scanning in Google Authenticator / Microsoft Authenticator,
-    and upon confirmation generates 10 single-use hashed backup codes.
-    """
-    confirmed_totp = TOTPDevice.objects.filter(user=request.user, confirmed=True).first()
-    device = TOTPDevice.objects.filter(user=request.user, confirmed=False).first()
-    if not device:
-        device = TOTPDevice.objects.create(user=request.user, name='default', confirmed=False)
-
-    backup_codes = None
-
-    if request.method == 'POST':
-        form = TwoFactorSetupForm(request.POST)
-        if form.is_valid():
-            token = form.cleaned_data['token'].strip()
-            if device.verify_token(token):
-                TOTPDevice.objects.filter(user=request.user, confirmed=True).delete()
-                device.confirmed = True
-                device.save()
-
-                # Generate 10 single-use backup codes via StaticDevice
-                s_device, _ = StaticDevice.objects.get_or_create(
-                    user=request.user, name='backup', defaults={'confirmed': True}
-                )
-                s_device.confirmed = True
-                s_device.save()
-                s_device.token_set.all().delete()
-                backup_codes = []
-                for _ in range(10):
-                    code = StaticToken.random_token()
-                    s_device.token_set.create(token=code)
-                    backup_codes.append(code)
-
-                security_logger.info(f"2FA_ENROLLED: Staff '{request.user.username}' successfully enabled 2FA")
-                messages.success(request, "Two-Factor Authentication has been successfully enabled! Save your backup codes below.")
-                return render(request, 'dashboard/two_factor_setup.html', {
-                    'title': 'Two-Factor Authentication Setup',
-                    'is_enrolled': True,
-                    'backup_codes': backup_codes,
-                })
-            else:
-                messages.error(request, "Invalid verification code. Please check your authenticator app and try again.")
-    else:
-        form = TwoFactorSetupForm()
-
-    # Generate QR Code image base64
-    qr = qrcode.QRCode(version=1, box_size=6, border=2)
-    qr.add_data(device.config_url)
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white")
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
-    qr_b64 = base64.b64encode(buf.getvalue()).decode('ascii')
-
-    return render(request, 'dashboard/two_factor_setup.html', {
-        'title': 'Two-Factor Authentication Setup',
-        'form': form,
-        'qr_b64': qr_b64,
-        'secret_key': device.key,
-        'is_enrolled': bool(confirmed_totp),
-        'backup_codes': backup_codes,
-        'require_2fa': getattr(settings, 'REQUIRE_2FA_FOR_STAFF', False),
-    })
+    """2FA has been disabled across the admin portal."""
+    return redirect('dashboard:account_settings')
 
 @staff_required
 @require_POST
 def two_factor_disable(request):
-    """Allows staff to disable 2FA if not enforced by policy."""
-    if request.user.is_superuser or getattr(settings, 'REQUIRE_2FA_FOR_STAFF', False):
-        messages.error(request, "Two-Factor Authentication is enforced by institute security policy and cannot be disabled.")
-        return redirect('dashboard:two_factor_setup')
-
-    TOTPDevice.objects.filter(user=request.user).delete()
-    StaticDevice.objects.filter(user=request.user).delete()
-    security_logger.info(f"2FA_DISABLED: Staff '{request.user.username}' disabled 2FA")
-    messages.success(request, "Two-Factor Authentication has been disabled.")
-    return redirect('dashboard:two_factor_setup')
+    """2FA has been disabled across the admin portal."""
+    return redirect('dashboard:account_settings')
 
 @require_POST
 @staff_required

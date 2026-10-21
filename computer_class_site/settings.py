@@ -278,9 +278,7 @@ AXES_VERBOSE = False
 # --------------------------------------------------------------------------
 # Staff Two-Factor Authentication (TOTP 2FA)
 # --------------------------------------------------------------------------
-# Enforced for superusers/admins; optional for other staff unless set to True.
-# Defaults to False so administrators can enroll before enforcement is enabled.
-REQUIRE_2FA_FOR_STAFF = os.environ.get('REQUIRE_2FA_FOR_STAFF', 'False').lower() in ('true', '1', 't')
+REQUIRE_2FA_FOR_STAFF = False
 
 # --------------------------------------------------------------------------
 # Content Security Policy (django-csp, Report-Only Mode)

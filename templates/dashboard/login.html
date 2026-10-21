@@ -17,48 +17,25 @@
                 <input type="hidden" name="next" value="{{ next }}">
             {% endif %}
 
-            {% if step == '2fa' %}
-                <input type="hidden" name="step" value="2fa">
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}">Username or Email *</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <div class="form-error">{{ form.username.errors.0 }}</div>
+                {% endif %}
+            </div>
 
-                <div class="form-group">
-                    <label for="{{ two_factor_form.otp_token.id_for_label }}">Two-Factor Authentication Code *</label>
-                    {{ two_factor_form.otp_token }}
-                    {% if two_factor_form.otp_token.errors %}
-                        <div class="form-error">{{ two_factor_form.otp_token.errors.0 }}</div>
-                    {% endif %}
-                    <small style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.4rem;">
-                        Enter the 6-digit code from your authenticator app or a backup code.
-                    </small>
-                </div>
+            <div class="form-group">
+                <label for="{{ form.password.id_for_label }}">Password *</label>
+                {{ form.password }}
+                {% if form.password.errors %}
+                    <div class="form-error">{{ form.password.errors.0 }}</div>
+                {% endif %}
+            </div>
 
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.85rem; font-weight: 600;">
-                    Verify &amp; Sign In &rarr;
-                </button>
-
-                <div style="text-align: center; margin-top: 1.25rem;">
-                    <a href="{% url 'dashboard:login' %}" style="font-size: 0.85rem; color: var(--gray-600); text-decoration: none;">&larr; Back to Username &amp; Password</a>
-                </div>
-            {% else %}
-                <div class="form-group">
-                    <label for="{{ form.username.id_for_label }}">Username or Email *</label>
-                    {{ form.username }}
-                    {% if form.username.errors %}
-                        <div class="form-error">{{ form.username.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <label for="{{ form.password.id_for_label }}">Password *</label>
-                    {{ form.password }}
-                    {% if form.password.errors %}
-                        <div class="form-error">{{ form.password.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.85rem; font-weight: 600;">
-                    Staff Login &rarr;
-                </button>
-            {% endif %}
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.85rem; font-weight: 600;">
+                Staff Login &rarr;
+            </button>
 
         </form>
     </div>
