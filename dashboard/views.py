@@ -1445,7 +1445,7 @@ def edit_about(request):
         if form.is_valid():
             form.save()
             messages.success(request, "About section content updated successfully.")
-            return get_safe_redirect(request, 'core:about')
+            return get_safe_redirect(request, 'dashboard:edit_about')
         else:
             messages.error(request, "Error updating About content. Please check the required fields.")
     else:
@@ -1459,6 +1459,52 @@ def edit_about(request):
     return render(request, 'dashboard/edit_about.html', context)
 
 @staff_required
+@require_POST
+def sync_about_api(request):
+    """
+    Live Sync API: Real-time asynchronous synchronization for About section content.
+    Validates and persists content directly to the database.
+    """
+    about_obj = AboutContent.get_solo()
+    form = AdminAboutForm(request.POST, instance=about_obj)
+    if form.is_valid():
+        instance = form.save()
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Changes synchronized and saved to database.',
+            'updated_at': instance.updated_at.strftime('%I:%M:%S %p'),
+            'data': {
+                'heading': instance.heading,
+                'subtitle': instance.subtitle,
+                'mission_title': instance.mission_title,
+                'description': instance.description,
+                'feature_1_title': instance.feature_1_title,
+                'feature_1_desc': instance.feature_1_desc,
+                'feature_2_title': instance.feature_2_title,
+                'feature_2_desc': instance.feature_2_desc,
+                'feature_3_title': instance.feature_3_title,
+                'feature_3_desc': instance.feature_3_desc,
+            }
+        })
+    else:
+        errors = {field: [str(e) for e in err_list] for field, err_list in form.errors.items()}
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Validation failed. Please correct the highlighted errors.',
+            'errors': errors
+        }, status=400)
+
+
+def about_content_status_api(request):
+    """Returns the latest update timestamp and snapshot for Live Sync listeners."""
+    about_obj = AboutContent.get_solo()
+    return JsonResponse({
+        'updated_at': about_obj.updated_at.isoformat(),
+        'heading': about_obj.heading,
+        'subtitle': about_obj.subtitle,
+    })
+
+@staff_required
 def edit_contact(request):
     contact_obj = ContactContent.get_solo()
     if request.method == 'POST':
@@ -1466,7 +1512,7 @@ def edit_contact(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Contact section details updated successfully.")
-            return get_safe_redirect(request, 'core:contact')
+            return get_safe_redirect(request, 'dashboard:edit_contact')
         else:
             messages.error(request, "Error updating Contact details. Please check the required fields.")
     else:
@@ -1478,6 +1524,56 @@ def edit_contact(request):
         'title': 'Edit Contact Details & Location'
     }
     return render(request, 'dashboard/edit_contact.html', context)
+
+@staff_required
+@require_POST
+def sync_contact_api(request):
+    """
+    Live Sync API: Real-time asynchronous synchronization for Contact details.
+    Validates and persists contact details directly to the database.
+    """
+    contact_obj = ContactContent.get_solo()
+    form = AdminContactForm(request.POST, instance=contact_obj)
+    if form.is_valid():
+        instance = form.save()
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Contact details synchronized and saved to database.',
+            'updated_at': instance.updated_at.strftime('%I:%M:%S %p'),
+            'data': {
+                'phone': instance.phone,
+                'whatsapp_number': instance.whatsapp_number,
+                'email': instance.email,
+                'address': instance.address,
+                'working_hours': instance.working_hours,
+                'map_embed_url': instance.map_embed_url,
+                'instagram_username': instance.instagram_username,
+                'clean_instagram_url': instance.clean_instagram_url,
+                'display_instagram': instance.display_instagram,
+                'has_instagram': instance.has_instagram,
+                'facebook_name': instance.facebook_name,
+                'clean_facebook_url': instance.clean_facebook_url,
+                'display_facebook': instance.display_facebook,
+                'has_facebook': instance.has_facebook,
+            }
+        })
+    else:
+        errors = {field: [str(e) for e in err_list] for field, err_list in form.errors.items()}
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Validation failed. Please correct the highlighted errors.',
+            'errors': errors
+        }, status=400)
+
+
+def contact_content_status_api(request):
+    """Returns the latest update timestamp and snapshot for Live Sync listeners."""
+    contact_obj = ContactContent.get_solo()
+    return JsonResponse({
+        'updated_at': contact_obj.updated_at.isoformat(),
+        'phone': contact_obj.phone,
+        'email': contact_obj.email,
+    })
 
 
 @staff_required

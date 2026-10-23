@@ -52,6 +52,11 @@
             color: var(--primary);
             border-color: var(--gray-300);
         }
+        .admin-back-btn.active {
+            background-color: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
         .admin-nav-actions {
             display: flex;
             gap: 1rem;
@@ -92,11 +97,16 @@
         {% if request.resolver_match.url_name != 'index' and request.resolver_match.url_name != 'login' %}
         <div class="container" style="padding-top: 0.75rem; padding-bottom: 0;">
             <div class="admin-nav-actions">
-                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
                     <a href="{% url 'dashboard:index' %}" class="admin-back-btn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                         Back to Dashboard
                     </a>
+                    <a href="{% url 'dashboard:edit_about' %}" class="admin-back-btn {% if request.resolver_match.url_name == 'edit_about' %}active{% endif %}">ℹ️ About</a>
+                    <a href="{% url 'dashboard:edit_contact' %}" class="admin-back-btn {% if request.resolver_match.url_name == 'edit_contact' %}active{% endif %}">📞 Contact</a>
+                    <a href="{% url 'dashboard:manage_courses' %}" class="admin-back-btn {% if 'course' in request.resolver_match.url_name %}active{% endif %}">📚 Courses</a>
+                    <a href="{% url 'dashboard:manage_certificates' %}" class="admin-back-btn {% if 'certificate' in request.resolver_match.url_name %}active{% endif %}">📜 Certificates</a>
+                    <a href="{% url 'dashboard:manage_inquiries' %}" class="admin-back-btn {% if 'inquir' in request.resolver_match.url_name %}active{% endif %}">📥 Inquiries</a>
                     {% block secondary_back_btn %}{% endblock %}
                 </div>
 

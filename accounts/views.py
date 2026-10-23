@@ -11,6 +11,8 @@ from .models import StudentProfile
 
 def register_view(request):
     if request.user.is_authenticated:
+        if request.user.is_staff or request.user.is_superuser:
+            return redirect('dashboard:index')
         return redirect('accounts:dashboard')
 
     if request.method == 'POST':
@@ -53,6 +55,8 @@ def register_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
+        if request.user.is_staff or request.user.is_superuser:
+            return redirect('dashboard:index')
         return redirect('accounts:dashboard')
 
     next_url = request.GET.get('next') or request.POST.get('next')
@@ -73,9 +77,14 @@ def login_view(request):
             if user is not None:
                 auth_login(request, user)
                 messages.success(request, f"Welcome back, {user.first_name or user.username}!")
-                if next_url and url_has_allowed_host_and_scheme(url=next_url, allowed_hosts={request.get_host()}):
-                    return redirect(next_url)
-                return redirect('accounts:dashboard')
+                if user.is_staff or user.is_superuser:
+                    if next_url and url_has_allowed_host_and_scheme(url=next_url, allowed_hosts={request.get_host()}):
+                        return redirect(next_url)
+                    return redirect('dashboard:index')
+                else:
+                    if next_url and url_has_allowed_host_and_scheme(url=next_url, allowed_hosts={request.get_host()}) and not any(p in next_url for p in ['/cdac-admin', '/admin']):
+                        return redirect(next_url)
+                    return redirect('accounts:dashboard')
             else:
                 messages.error(request, "Invalid username/email or password.")
     else:
@@ -97,6 +106,8 @@ def logout_view(request):
 
 @login_required(login_url='accounts:login')
 def dashboard_view(request):
+    if request.user.is_staff or request.user.is_superuser:
+        return redirect('dashboard:index')
     profile, _ = StudentProfile.objects.get_or_create(user=request.user)
     certificates = request.user.certificates.select_related('course').all()
     return render(request, 'accounts/dashboard.html', {

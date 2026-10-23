@@ -14,8 +14,7 @@
             </p>
         </div>
         <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
-            <a href="{% url 'core:contact' %}" target="_blank" class="btn btn-outline btn-sm">👁️ View Public Contact Page</a>
-            
+            <a href="{% url 'core:contact' %}?preview=1" target="_blank" class="btn btn-outline btn-sm">👁️ View Public Contact Page</a>
         </div>
     </div>
 
@@ -25,7 +24,7 @@
         <div class="card" style="padding: 2rem;">
             <h3 style="margin-bottom: 1.5rem; color: var(--gray-900);">📝 Edit Contact Info</h3>
 
-            <form method="post">
+            <form method="post" id="contactEditForm">
                 {% csrf_token %}
 
                 <div class="form-group" style="margin-bottom: 1.25rem;">
@@ -38,8 +37,6 @@
                     {{ form.whatsapp_number }}
                     <small style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.25rem;">Separate number for direct WhatsApp chat (e.g. +91 9104994493).</small>
                 </div>
-
-
 
                 <div class="form-group" style="margin-bottom: 1.25rem;">
                     <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Official Email Address *</label>
@@ -113,36 +110,42 @@
         </div>
 
         <!-- Admin Live Preview Column -->
-        <div class="card" style="padding: 2rem; border: 2px dashed var(--gray-300);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <div class="card" style="padding: 2rem; border: 2px dashed var(--gray-300); position: sticky; top: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
                 <h3 style="margin: 0; font-size: 1.1rem; color: var(--gray-700);">🔍 Admin Live Preview</h3>
-                <span class="badge badge-primary">Live Sync</span>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span id="syncTimeLabel" style="font-size: 0.75rem; color: var(--gray-500);">Last synced: {{ contact_obj.updated_at|date:"h:i:s A" }}</span>
+                    <button type="button" id="liveSyncBtn" class="badge" style="background-color: #10B981; color: white; cursor: pointer; border: none; font-size: 0.8rem; padding: 0.35rem 0.65rem; display: inline-flex; align-items: center; gap: 0.35rem; border-radius: var(--radius-sm); font-weight: 600; transition: background-color 0.2s ease;" title="Click to sync and save changes immediately">
+                        <span id="liveSyncIcon">●</span>
+                        <span id="liveSyncStatus">Live Sync Active</span>
+                    </button>
+                </div>
             </div>
 
             <div style="background: var(--gray-50); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--gray-200);">
                 <div style="margin-bottom: 0.75rem;">
                     <strong style="color: var(--gray-900); display: block; font-size: 0.95rem;">📍 Campus Address:</strong>
-                    <div style="color: var(--gray-700); font-size: 0.9rem;">{{ contact_obj.address }}</div>
+                    <div id="preview-address" style="color: var(--gray-700); font-size: 0.9rem; white-space: pre-line;">{{ contact_obj.address }}</div>
                 </div>
 
                 <div style="margin-bottom: 0.75rem;">
                     <strong style="color: var(--gray-900); display: block; font-size: 0.95rem;">📞 Phone:</strong>
-                    <div style="color: var(--primary); font-weight: 600; font-size: 0.9rem;">{{ contact_obj.phone }}</div>
+                    <div id="preview-phone" style="color: var(--primary); font-weight: 600; font-size: 0.9rem;">{{ contact_obj.phone }}</div>
                 </div>
 
                 <div style="margin-bottom: 0.75rem;">
                     <strong style="color: var(--gray-900); display: block; font-size: 0.95rem;">💬 WhatsApp Number:</strong>
-                    <div style="color: #25D366; font-weight: 600; font-size: 0.9rem;">{% if contact_obj.whatsapp_number %}{{ contact_obj.whatsapp_number }}{% else %}{{ contact_obj.phone }} (Default){% endif %}</div>
+                    <div id="preview-whatsapp" style="color: #25D366; font-weight: 600; font-size: 0.9rem;">{% if contact_obj.whatsapp_number %}{{ contact_obj.whatsapp_number }}{% else %}{{ contact_obj.phone }} (Default){% endif %}</div>
                 </div>
 
                 <div style="margin-bottom: 0.75rem;">
                     <strong style="color: var(--gray-900); display: inline-flex; align-items: center; gap: 6px; font-size: 0.95rem; margin-bottom: 0.25rem;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg> Email:</strong>
-                    <div style="color: var(--primary); font-weight: 600; font-size: 0.9rem;">{{ contact_obj.email }}</div>
+                    <div id="preview-email" style="color: var(--primary); font-weight: 600; font-size: 0.9rem;">{{ contact_obj.email }}</div>
                 </div>
 
                 <div style="margin-bottom: 0.75rem;">
                     <strong style="color: var(--gray-900); display: block; font-size: 0.95rem;">🕒 Working Hours:</strong>
-                    <div style="color: var(--gray-600); font-size: 0.88rem;">{{ contact_obj.working_hours }}</div>
+                    <div id="preview-working-hours" style="color: var(--gray-600); font-size: 0.88rem;">{{ contact_obj.working_hours }}</div>
                 </div>
 
                 <div style="margin-bottom: 0.75rem;">
@@ -150,12 +153,9 @@
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" fill="#E1306C"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         Instagram:
                     </strong>
-                    <div style="font-size: 0.9rem; margin-top: 0.2rem;">
-                        {% if contact_obj.clean_instagram_url and contact_obj.display_instagram %}
-                            <a href="{{ contact_obj.clean_instagram_url }}" target="_blank" rel="noopener noreferrer" style="color: #E1306C; font-weight: 600; text-decoration: none;">{{ contact_obj.display_instagram }} &nearr;</a>
-                        {% else %}
-                            <span style="color: var(--gray-400); font-style: italic;">Not configured (Hidden on public site)</span>
-                        {% endif %}
+                    <div id="preview-instagram-wrapper" style="font-size: 0.9rem; margin-top: 0.2rem;">
+                        <a id="preview-instagram-link" href="{{ contact_obj.clean_instagram_url|default:'#' }}" target="_blank" rel="noopener noreferrer" style="color: #E1306C; font-weight: 600; text-decoration: none; {% if not contact_obj.clean_instagram_url or not contact_obj.display_instagram %}display: none;{% endif %}">{{ contact_obj.display_instagram }} &nearr;</a>
+                        <span id="preview-instagram-empty" style="color: var(--gray-400); font-style: italic; {% if contact_obj.clean_instagram_url and contact_obj.display_instagram %}display: none;{% endif %}">Not configured (Hidden on public site)</span>
                     </div>
                 </div>
 
@@ -164,20 +164,205 @@
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                         Facebook:
                     </strong>
-                    <div style="font-size: 0.9rem; margin-top: 0.2rem;">
-                        {% if contact_obj.clean_facebook_url and contact_obj.display_facebook %}
-                            <a href="{{ contact_obj.clean_facebook_url }}" target="_blank" rel="noopener noreferrer" style="color: #1877F2; font-weight: 600; text-decoration: none;">{{ contact_obj.display_facebook }} &nearr;</a>
-                        {% else %}
-                            <span style="color: var(--gray-400); font-style: italic;">Not configured (Hidden on public site)</span>
-                        {% endif %}
+                    <div id="preview-facebook-wrapper" style="font-size: 0.9rem; margin-top: 0.2rem;">
+                        <a id="preview-facebook-link" href="{{ contact_obj.clean_facebook_url|default:'#' }}" target="_blank" rel="noopener noreferrer" style="color: #1877F2; font-weight: 600; text-decoration: none; {% if not contact_obj.clean_facebook_url or not contact_obj.display_facebook %}display: none;{% endif %}">{{ contact_obj.display_facebook }} &nearr;</a>
+                        <span id="preview-facebook-empty" style="color: var(--gray-400); font-style: italic; {% if contact_obj.clean_facebook_url and contact_obj.display_facebook %}display: none;{% endif %}">Not configured (Hidden on public site)</span>
                     </div>
                 </div>
-            </div>
-        </div>
             </div>
         </div>
 
     </div>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('contactEditForm');
+    const syncBtn = document.getElementById('liveSyncBtn');
+    const syncStatus = document.getElementById('liveSyncStatus');
+    const syncIcon = document.getElementById('liveSyncIcon');
+    const syncTime = document.getElementById('syncTimeLabel');
+    const syncUrl = "{% url 'dashboard:sync_contact_api' %}";
+
+    const phoneInput = document.getElementById('id_phone');
+    const whatsappInput = document.getElementById('id_whatsapp_number');
+    const emailInput = document.getElementById('id_email');
+    const addressInput = document.getElementById('id_address');
+    const hoursInput = document.getElementById('id_working_hours');
+    const instaUserInput = document.getElementById('id_instagram_username');
+    const instaUrlInput = document.getElementById('id_instagram_url');
+    const fbNameInput = document.getElementById('id_facebook_name');
+    const fbUrlInput = document.getElementById('id_facebook_url');
+
+    const previewAddress = document.getElementById('preview-address');
+    const previewPhone = document.getElementById('preview-phone');
+    const previewWhatsapp = document.getElementById('preview-whatsapp');
+    const previewEmail = document.getElementById('preview-email');
+    const previewHours = document.getElementById('preview-working-hours');
+    const previewInstaLink = document.getElementById('preview-instagram-link');
+    const previewInstaEmpty = document.getElementById('preview-instagram-empty');
+    const previewFbLink = document.getElementById('preview-facebook-link');
+    const previewFbEmpty = document.getElementById('preview-facebook-empty');
+
+    let debounceTimer = null;
+    let isSyncing = false;
+
+    function formatUrl(url) {
+        if (!url) return '';
+        url = url.trim();
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            return 'https://' + url;
+        }
+        return url;
+    }
+
+    function updatePreview() {
+        if (addressInput && previewAddress) {
+            previewAddress.textContent = addressInput.value.trim() || 'Gandhinagar, Gujarat, India';
+        }
+        if (phoneInput && previewPhone) {
+            previewPhone.textContent = phoneInput.value.trim() || '+91 (020) 2570-4100';
+        }
+        if (previewWhatsapp) {
+            const waVal = whatsappInput ? whatsappInput.value.trim() : '';
+            const phVal = phoneInput ? phoneInput.value.trim() : '';
+            if (waVal) {
+                previewWhatsapp.textContent = waVal;
+            } else if (phVal) {
+                previewWhatsapp.textContent = phVal + ' (Default)';
+            } else {
+                previewWhatsapp.textContent = 'Not specified';
+            }
+        }
+        if (emailInput && previewEmail) {
+            previewEmail.textContent = emailInput.value.trim() || 'contact@cdac.in';
+        }
+        if (hoursInput && previewHours) {
+            previewHours.textContent = hoursInput.value.trim() || 'Mon - Sat: 9:00 AM - 6:00 PM';
+        }
+
+        // Instagram
+        const instaUser = instaUserInput ? instaUserInput.value.trim() : '';
+        const instaUrl = instaUrlInput ? formatUrl(instaUrlInput.value) : '';
+        if (instaUrl && (instaUser || instaUrl)) {
+            previewInstaLink.href = instaUrl;
+            previewInstaLink.innerHTML = (instaUser ? (instaUser.startsWith('@') ? instaUser : '@' + instaUser) : 'Instagram Profile') + ' &nearr;';
+            previewInstaLink.style.display = 'inline';
+            if (previewInstaEmpty) previewInstaEmpty.style.display = 'none';
+        } else {
+            previewInstaLink.style.display = 'none';
+            if (previewInstaEmpty) previewInstaEmpty.style.display = 'inline';
+        }
+
+        // Facebook
+        const fbName = fbNameInput ? fbNameInput.value.trim() : '';
+        const fbUrl = fbUrlInput ? formatUrl(fbUrlInput.value) : '';
+        if (fbUrl && (fbName || fbUrl)) {
+            previewFbLink.href = fbUrl;
+            previewFbLink.innerHTML = (fbName || 'Facebook Page') + ' &nearr;';
+            previewFbLink.style.display = 'inline';
+            if (previewFbEmpty) previewFbEmpty.style.display = 'none';
+        } else {
+            previewFbLink.style.display = 'none';
+            if (previewFbEmpty) previewFbEmpty.style.display = 'inline';
+        }
+    }
+
+    function setSyncState(state, text, tooltip) {
+        if (!syncBtn) return;
+        if (state === 'active') {
+            syncBtn.style.backgroundColor = '#10B981';
+            syncBtn.style.color = '#ffffff';
+            syncIcon.textContent = '●';
+            syncStatus.textContent = text || 'Live Sync Active';
+        } else if (state === 'typing') {
+            syncBtn.style.backgroundColor = '#F59E0B';
+            syncBtn.style.color = '#ffffff';
+            syncIcon.textContent = '✎';
+            syncStatus.textContent = text || 'Typing...';
+        } else if (state === 'syncing') {
+            syncBtn.style.backgroundColor = '#3B82F6';
+            syncBtn.style.color = '#ffffff';
+            syncIcon.textContent = '⟳';
+            syncStatus.textContent = text || 'Syncing...';
+        } else if (state === 'success') {
+            syncBtn.style.backgroundColor = '#10B981';
+            syncBtn.style.color = '#ffffff';
+            syncIcon.textContent = '✓';
+            syncStatus.textContent = text || 'Synced';
+        } else if (state === 'error') {
+            syncBtn.style.backgroundColor = '#EF4444';
+            syncBtn.style.color = '#ffffff';
+            syncIcon.textContent = '⚠';
+            syncStatus.textContent = text || 'Sync Paused';
+        }
+        if (tooltip) syncBtn.title = tooltip;
+    }
+
+    async function performSync() {
+        if (isSyncing || !form) return;
+        isSyncing = true;
+        setSyncState('syncing', 'Syncing...');
+
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch(syncUrl, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: formData
+            });
+
+            const result = await response.json();
+            if (response.ok && result.status === 'success') {
+                setSyncState('success', 'Synced');
+                if (result.updated_at && syncTime) {
+                    syncTime.textContent = 'Last synced: ' + result.updated_at;
+                }
+                setTimeout(function() {
+                    setSyncState('active', 'Live Sync Active');
+                }, 2000);
+            } else {
+                const errText = result.message || 'Validation error';
+                setSyncState('error', 'Sync Paused', errText);
+            }
+        } catch (err) {
+            setSyncState('error', 'Sync Offline', 'Network connection issue');
+        } finally {
+            isSyncing = false;
+        }
+    }
+
+    const allInputs = form ? form.querySelectorAll('input, textarea, select') : [];
+    allInputs.forEach(function(input) {
+        input.addEventListener('input', function() {
+            updatePreview();
+            setSyncState('typing', 'Typing...');
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(performSync, 1200);
+        });
+        input.addEventListener('change', function() {
+            updatePreview();
+            clearTimeout(debounceTimer);
+            performSync();
+        });
+    });
+
+    if (syncBtn) {
+        syncBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            clearTimeout(debounceTimer);
+            performSync();
+        });
+    }
+
+    updatePreview();
+    setSyncState('active', 'Live Sync Active');
+});
+</script>
 {% endblock %}

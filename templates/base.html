@@ -120,7 +120,7 @@
     <!-- Navbar Header -->
     <header class="navbar-header">
         <div class="nav-container">
-            <a href="{% url 'core:home' %}" class="nav-logo" title="RAS Computer Education">
+            <a href="{% if request.user.is_authenticated and request.user.is_staff %}{% url 'dashboard:index' %}{% else %}{% url 'core:home' %}{% endif %}" class="nav-logo" title="RAS Computer Education">
                 <img src="{% static 'images/ras.png' %}" alt="RAS Computer Education" class="cdac-nav-logo-img">
             </a>
 
@@ -133,17 +133,22 @@
             <nav class="nav-menu" id="nav-menu">
                 <ul class="nav-links" style="align-items: center;">
                     <li class="header-verify-item">
-                        <form action="{% url 'certificates:verify' %}" method="get" class="header-verify-form">
+                        <form action="{% if request.user.is_authenticated and request.user.is_staff %}{% url 'dashboard:admin_verify_search' %}{% else %}{% url 'certificates:verify' %}{% endif %}" method="get" class="header-verify-form">
                             <input type="text" name="certificate_id" placeholder="Enter Certificate ID" class="header-verify-input" required autocomplete="off">
                             <button type="submit" class="btn btn-primary header-verify-btn" style="background: var(--primary); color: white; border: none; border-radius: var(--radius-sm);">Verify</button>
                         </form>
                     </li>
+                    {% if request.user.is_authenticated and request.user.is_staff %}
+                    <li><a href="{% url 'dashboard:index' %}" class="nav-link {% if request.resolver_match.app_name == 'dashboard' and request.resolver_match.url_name == 'index' %}active{% endif %}">Dashboard</a></li>
+                    <li><a href="{% url 'dashboard:edit_about' %}" class="nav-link {% if request.resolver_match.url_name == 'edit_about' %}active{% endif %}">About</a></li>
+                    <li><a href="{% url 'dashboard:manage_courses' %}" class="nav-link {% if 'course' in request.resolver_match.url_name %}active{% endif %}">Courses</a></li>
+                    <li><a href="{% url 'dashboard:edit_contact' %}" class="nav-link {% if request.resolver_match.url_name == 'edit_contact' %}active{% endif %}">Contact</a></li>
+                    {% else %}
                     <li><a href="{% url 'core:home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a></li>
                     <li><a href="{% url 'core:about' %}" class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}">About</a></li>
                     <li><a href="{% url 'courses:course_list' %}" class="nav-link {% if request.resolver_match.url_name == 'course_list' or request.resolver_match.url_name == 'course_detail' %}active{% endif %}">Courses</a></li>
                     <li><a href="{% url 'core:contact' %}" class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">Contact</a></li>
-
-
+                    {% endif %}
                 </ul>
             </nav>
 
@@ -154,6 +159,13 @@
                 <div class="header-right-logo">
                     <img src="{% static 'images/CCC-logo copy.png' %}" alt="CITI" class="citi-header-logo-img">
                 </div>
+                {% if request.user.is_authenticated and request.user.is_staff %}
+                    <a href="{% url 'dashboard:index' %}" class="btn btn-outline btn-sm" style="font-weight: 600; white-space: nowrap; border-color: var(--primary); color: var(--primary);" title="Staff Admin Dashboard">Admin Panel</a>
+                {% elif request.user.is_authenticated %}
+                    <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline btn-sm" style="font-weight: 600; white-space: nowrap;" title="Student Dashboard">My Portal</a>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="btn btn-outline btn-sm" style="font-weight: 600; white-space: nowrap;" title="Student Sign In">Sign In</a>
+                {% endif %}
             </div>
         </div>
     </header>
@@ -238,12 +250,19 @@
             <div class="footer-col">
                 <h4>Quick Links</h4>
                 <ul>
+                    {% if request.user.is_authenticated and request.user.is_staff %}
+                    <li><a href="{% url 'dashboard:index' %}">Admin Dashboard</a></li>
+                    <li><a href="{% url 'dashboard:edit_about' %}">About Us (Edit)</a></li>
+                    <li><a href="{% url 'dashboard:manage_courses' %}">Manage Courses</a></li>
+                    <li><a href="{% url 'dashboard:admin_verify_search' %}">Certificate Verification</a></li>
+                    <li><a href="{% url 'dashboard:edit_contact' %}">Contact Details (Edit)</a></li>
+                    {% else %}
                     <li><a href="{% url 'core:home' %}">Home</a></li>
                     <li><a href="{% url 'core:about' %}">About Us</a></li>
                     <li><a href="{% url 'courses:course_list' %}">All Courses</a></li>
                     <li><a href="{% url 'core:home' %}#reviews">Student Reviews</a></li>
                     <li><a href="{% url 'certificates:verify' %}">Certificate Verification</a></li>
-
+                    {% endif %}
                 </ul>
             </div>
             <div class="footer-col">
