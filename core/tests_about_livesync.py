@@ -80,8 +80,7 @@ class AboutSectionLiveSyncTests(TestCase):
         self.assertIn('What Our Students Say', content)
         self.assertIn('Alumni Student', content)
 
-        # Bottom CTA
-        self.assertIn('Ready to Build In-Demand Computer Skills?', content)
+        # Bottom CTA (removed from public page)
 
     def test_admin_can_update_all_six_sections_via_post(self):
         self.client.login(username='about_staff_admin', password='AdminPassword123!')
