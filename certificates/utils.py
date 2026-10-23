@@ -640,7 +640,7 @@ def generate_ras_certificate_pdf(cert, request=None):
     c.setFont('Helvetica', font_size)
     c.drawCentredString(page_w * 0.50, page_h * (1 - 0.782), verify_line)
 
-    # 9. Dynamic Scannable QR Code Overlay (x 88.5%, y 64.5%)
+    # 9. Dynamic Scannable QR Code Overlay in Top-Right Corner (x 88.5%, y 12%)
     qr_verify_url = get_certificate_verify_url(cert, request=request)
     try:
         from PIL import Image
@@ -652,7 +652,7 @@ def generate_ras_certificate_pdf(cert, request=None):
 
         qr_size = 62
         qr_x = page_w * 0.885 - (qr_size / 2)
-        qr_y = page_h * (1 - 0.645) - (qr_size / 2)
+        qr_y = page_h * (1 - 0.12) - (qr_size / 2)
 
         c.setFillColor(colors.white)
         c.setStrokeColor(colors.HexColor('#CBD5E1'))

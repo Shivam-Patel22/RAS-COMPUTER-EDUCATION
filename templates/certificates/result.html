@@ -541,11 +541,13 @@
             <!-- 8. Verification Line: x 50%, y 78% -->
             <div class="ras-field cert-verify-line ras-verify-line">This Certificate can be verified on {{ certificate_verify_url }}</div>
 
-            <!-- 9. Dynamic Scannable QR Code Overlay (x: 88.5%, y: 64.5%) -->
-            <div class="ras-field ras-qr-box" style="left: 88.5%; top: 64.5%; text-align: center;">
+            <!-- 9. Dynamic Scannable QR Code Overlay in Top-Right Corner (x: 88.5%, y: 12%) -->
+            <div class="ras-field ras-qr-box" style="left: 88.5%; top: 12%; text-align: center;">
                 {% if qr_data_uri %}
-                <img src="{{ qr_data_uri }}" alt="Scan to Verify" style="width: 4.8cqw; height: 4.8cqw; min-width: 58px; min-height: 58px; max-width: 78px; max-height: 78px; object-fit: contain; background: #ffffff; padding: 2px; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: block; margin: 0 auto;">
-                <span style="font-size: 0.65cqw; font-weight: 700; color: #475569; letter-spacing: 0.4px; text-transform: uppercase; display: block; margin-top: 2px;">Scan to Verify</span>
+                <div style="background: #ffffff; padding: 3px 3px 2px 3px; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: inline-block;">
+                    <img src="{{ qr_data_uri }}" alt="Scan to Verify" style="width: 4.8cqw; height: 4.8cqw; min-width: 58px; min-height: 58px; max-width: 78px; max-height: 78px; object-fit: contain; display: block; margin: 0 auto;">
+                    <span style="font-size: 0.62cqw; font-weight: 700; color: #334155; letter-spacing: 0.4px; text-transform: uppercase; display: block; margin-top: 2px;">Scan to Verify</span>
+                </div>
                 {% endif %}
             </div>
 

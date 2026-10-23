@@ -110,15 +110,140 @@
     margin-bottom: 0.5rem;
     align-items: center;
 }
+
+/* Responsive Container & Layout */
+.about-edit-container {
+    max-width: min(100% - 2rem, 1360px);
+    width: 100%;
+    margin: 0 auto;
+    padding: 0.75rem 0.5rem 3rem;
+    box-sizing: border-box;
+}
+
+.about-header-bar {
+    background: var(--dark-surface, #0f172a);
+    color: white;
+    border-radius: var(--radius-lg, 12px);
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    box-sizing: border-box;
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.about-header-title-area {
+    min-width: 250px;
+    flex: 1 1 auto;
+}
+
+.about-header-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.about-main-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 1.5rem;
+    align-items: start;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.about-editor-col {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.about-editor-card {
+    padding: 1.75rem;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+}
+
+.about-tabs-strip {
+    border-bottom: 1px solid var(--gray-200);
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 0.25rem;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+.about-preview-col {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    position: sticky;
+    top: 1rem;
+}
+
+/* Tablet & Mobile Responsive */
+@media (max-width: 1120px) {
+    .about-main-grid {
+        grid-template-columns: minmax(0, 1fr) 330px;
+        gap: 1.25rem;
+    }
+}
+
+@media (max-width: 960px) {
+    .about-main-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    .about-preview-col {
+        position: static;
+        top: auto;
+        order: 2;
+    }
+}
+
+@media (max-width: 640px) {
+    .about-edit-container {
+        padding: 0.5rem 0.25rem 2rem;
+    }
+    .about-header-bar {
+        padding: 1.25rem 1rem;
+    }
+    .about-header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    .about-editor-card {
+        padding: 1.25rem 1rem !important;
+    }
+    .tab-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.82rem;
+    }
+    .item-card {
+        padding: 1rem;
+    }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 1400px; padding-bottom: 3rem;">
+<div class="container about-edit-container">
 
     <!-- Page Header Bar -->
-    <div style="background: var(--dark-surface); color: white; border-radius: var(--radius-lg); padding: 1.75rem 2rem; margin-bottom: 1.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-        <div>
+    <div class="about-header-bar">
+        <div class="about-header-title-area">
             <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
                 <h1 style="font-size: 1.75rem; color: white; margin: 0;">ℹ️ About Section Management</h1>
                 <span class="badge" style="background: rgba(234,88,12,0.25); color: #fb923c; font-size: 0.8rem; padding: 0.25rem 0.6rem; border-radius: 999px; border: 1px solid rgba(234,88,12,0.4);">
@@ -129,7 +254,7 @@
                 Manage all 6 sections of the public About page with real-time database persistence and live synchronization.
             </p>
         </div>
-        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+        <div class="about-header-actions">
             <a href="{% url 'core:about' %}" target="_blank" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem;">
                 👁️ View Public About Page
             </a>
@@ -142,13 +267,14 @@
     </div>
 
     <!-- Main Layout Grid -->
-    <div style="display: grid; grid-template-columns: 1fr 420px; gap: 1.75rem; align-items: start;">
+    <div class="about-main-grid">
 
         <!-- Left Column: Tabs & Forms -->
-        <div class="card" style="padding: 1.75rem;">
+        <div class="about-editor-col">
+            <div class="card about-editor-card">
 
             <!-- Section Navigation Tabs -->
-            <div style="border-bottom: 1px solid var(--gray-200); margin-bottom: 1.5rem; display: flex; gap: 0.25rem; overflow-x: auto; padding-bottom: 0;">
+            <div class="about-tabs-strip">
                 <button type="button" class="tab-btn active" data-tab="tab-intro">📌 1. Intro</button>
                 <button type="button" class="tab-btn" data-tab="tab-legacy">🏆 2. Legacy Cards</button>
                 <button type="button" class="tab-btn" data-tab="tab-why">🌟 3. Why Choose Us</button>
@@ -424,12 +550,24 @@
             </form>
         </div>
 
+        </div>
+        </div>
+
         <!-- Right Column: Live Preview & Status -->
-        <div style="position: sticky; top: 1rem;">
-            <div class="card" style="padding: 1.25rem; margin-bottom: 1rem;">
+        <div class="about-preview-col">
+            <div class="card" style="padding: 1.25rem; margin-bottom: 1rem; box-sizing: border-box;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <strong style="color: var(--gray-800); font-size: 0.95rem;">👁️ Live Preview Pane</strong>
+                    <strong style="color: var(--gray-800); font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem;">
+                        <span>👁️</span> Live Preview Pane
+                    </strong>
                     <span id="previewTabLabel" class="badge" style="background: var(--gray-100); color: var(--gray-700); font-size: 0.75rem;">1. Intro</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--gray-100); font-size: 0.8rem; flex-wrap: wrap; gap: 0.5rem;">
+                    <span style="color: var(--gray-500); font-weight: 500;">Live Sync:</span>
+                    <button type="button" id="liveSyncBtnSidebar" class="badge" style="background-color: #10B981; color: white; cursor: pointer; border: none; font-size: 0.78rem; padding: 0.35rem 0.75rem; display: inline-flex; align-items: center; gap: 0.4rem; border-radius: var(--radius-sm); font-weight: 600; transition: background-color 0.2s ease;" title="Click to sync and save all changes immediately">
+                        <span class="live-sync-icon">●</span>
+                        <span class="live-sync-status-text">Live Sync Active</span>
+                    </button>
                 </div>
             </div>
 
@@ -493,34 +631,46 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Sync State Indicator UI
     function setSyncState(status, text, tooltip) {
-        if (!syncBtn) return;
-        if (status === 'active') {
-            syncBtn.style.backgroundColor = '#10B981';
-            syncBtn.style.color = '#ffffff';
-            syncIcon.textContent = '●';
-            syncStatus.textContent = text || 'Live Sync Active';
-        } else if (status === 'typing') {
-            syncBtn.style.backgroundColor = '#F59E0B';
-            syncBtn.style.color = '#ffffff';
-            syncIcon.textContent = '✎';
-            syncStatus.textContent = text || 'Typing...';
-        } else if (status === 'syncing') {
-            syncBtn.style.backgroundColor = '#3B82F6';
-            syncBtn.style.color = '#ffffff';
-            syncIcon.textContent = '⟳';
-            syncStatus.textContent = text || 'Syncing...';
-        } else if (status === 'success') {
-            syncBtn.style.backgroundColor = '#10B981';
-            syncBtn.style.color = '#ffffff';
-            syncIcon.textContent = '✓';
-            syncStatus.textContent = text || 'Synced';
-        } else if (status === 'error') {
-            syncBtn.style.backgroundColor = '#EF4444';
-            syncBtn.style.color = '#ffffff';
-            syncIcon.textContent = '⚠';
-            syncStatus.textContent = text || 'Sync Paused';
-        }
-        if (tooltip) syncBtn.title = tooltip;
+        const syncButtons = [
+            document.getElementById('liveSyncBtn'),
+            document.getElementById('liveSyncBtnSidebar')
+        ];
+        const statusColors = {
+            'active': '#10B981',
+            'typing': '#F59E0B',
+            'syncing': '#3B82F6',
+            'success': '#10B981',
+            'error': '#EF4444'
+        };
+        const statusIcons = {
+            'active': '●',
+            'typing': '✎',
+            'syncing': '⟳',
+            'success': '✓',
+            'error': '⚠'
+        };
+        const defaultTexts = {
+            'active': 'Live Sync Active',
+            'typing': 'Typing...',
+            'syncing': 'Syncing...',
+            'success': 'Synced & Saved',
+            'error': 'Sync Paused'
+        };
+
+        const bg = statusColors[status] || '#10B981';
+        const iconChar = statusIcons[status] || '●';
+        const labelText = text || defaultTexts[status] || 'Live Sync Active';
+
+        syncButtons.forEach(btn => {
+            if (!btn) return;
+            btn.style.backgroundColor = bg;
+            btn.style.color = '#ffffff';
+            const iconEl = btn.querySelector('.live-sync-icon') || btn.querySelector('#liveSyncIcon') || btn.querySelector('span:first-child');
+            const statusEl = btn.querySelector('.live-sync-status-text') || btn.querySelector('#liveSyncStatus') || btn.querySelector('span:last-child');
+            if (iconEl) iconEl.textContent = iconChar;
+            if (statusEl) statusEl.textContent = labelText;
+            if (tooltip) btn.title = tooltip;
+        });
     }
 
     // Serialize state lists into hidden inputs
@@ -1310,23 +1460,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Manual Sync Button
-    if (syncBtn) {
-        syncBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            clearTimeout(debounceTimer);
-            performSync();
-        });
-    }
-
+    // Manual Sync Buttons
+    const syncBtn = document.getElementById('liveSyncBtn');
+    const sidebarSyncBtn = document.getElementById('liveSyncBtnSidebar');
     const manualBtn = document.getElementById('btnManualSync');
-    if (manualBtn) {
-        manualBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            clearTimeout(debounceTimer);
-            performSync();
-        });
-    }
+
+    [syncBtn, sidebarSyncBtn, manualBtn].forEach(b => {
+        if (b) {
+            b.addEventListener('click', (e) => {
+                e.preventDefault();
+                clearTimeout(debounceTimer);
+                performSync();
+            });
+        }
+    });
 
     // Ensure hidden inputs are populated on normal form submit
     form.addEventListener('submit', function() {
