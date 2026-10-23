@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}About Us | RAS Computer Education &amp; Training Gandhinagar{% endblock %}
-{% block meta_description %}Learn about RAS Computer Education in Gandhinagar, dedicated to practical computer courses, hands-on IT laboratory training, experienced faculty, and verified career certifications.{% endblock %}
+{% block meta_description %}Welcome to RAS Computer Education Gandhinagar – 20+ years of excellence, 15,000+ students trained. 100% practical training in Tally Prime &amp; GST, Python, Web Development, CCC, and Advanced Excel.{% endblock %}
 
 {% block structured_data %}
 {{ block.super }}
@@ -28,62 +29,371 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="page-header animate__animated animate__fadeInDown" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
-        <div>
-            <h1 class="page-title">
-                {% if about_content and about_content.heading %}{{ about_content.heading }}{% else %}About C-DAC{% endif %}
+<div class="container about-page-container">
+
+    <!-- Section 1: Introduction -->
+    <section class="about-section about-intro-section animate__animated animate__fadeInUp" aria-labelledby="about-intro-title">
+        <div class="card about-hero-card">
+            <div class="about-header-badge">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                <span>Premier Computer Institute in Gandhinagar</span>
+            </div>
+            <h1 id="about-intro-title" class="page-title about-main-title">
+                Welcome to RAS Computer Education – Empowering Futures Through Technology
             </h1>
-            <p class="page-subtitle">{% if about_content and about_content.subtitle %}{{ about_content.subtitle }}{% else %}Dedicated to excellence in practical computer education, advanced computing research, and skills training.{% endif %}</p>
-        </div>
-    </div>
-
-    <div class="card about-hero-card animate__animated animate__fadeInUp" style="margin-bottom: 2.5rem;">
-        <h2 style="margin-bottom: 1rem; color: var(--primary);">{% if about_content and about_content.mission_title %}{{ about_content.mission_title }}{% else %}Our Mission{% endif %}</h2>
-        <p style="font-size: 1.1rem; color: var(--gray-700); line-height: 1.8; margin-bottom: 1.5rem;">
-            {% if about_content and about_content.description %}{{ about_content.description }}{% else %}At the Centre for Development of Advanced Computing (C-DAC), our mission is to carry out R&D in IT, Electronics and associated areas, empowering students and professionals with high-end IT education.{% endif %}
-        </p>
-
-        <div class="grid grid-3" style="margin-top: 2rem;">
-            <div style="background: var(--gray-50); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--gray-200);">
-                <h3 style="font-size: 1.2rem; color: var(--gray-900); margin-bottom: 0.5rem;">{% if about_content and about_content.feature_1_title %}{{ about_content.feature_1_title }}{% else %}🎯 Practical Learning{% endif %}</h3>
-                <p style="color: var(--gray-600); font-size: 0.95rem;">{% if about_content and about_content.feature_1_desc %}{{ about_content.feature_1_desc }}{% else %}Every course emphasizes real-world projects and coding exercises over passive lecture theory.{% endif %}</p>
-            </div>
-            <div style="background: var(--gray-50); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--gray-200);">
-                <h3 style="font-size: 1.2rem; color: var(--gray-900); margin-bottom: 0.5rem;">{% if about_content and about_content.feature_2_title %}{{ about_content.feature_2_title }}{% else %}🏆 Authentic Certification{% endif %}</h3>
-                <p style="color: var(--gray-600); font-size: 0.95rem;">{% if about_content and about_content.feature_2_desc %}{{ about_content.feature_2_desc }}{% else %}Certificates issued by C-DAC feature unique cryptographic IDs verifiable by employers globally.{% endif %}</p>
-            </div>
-            <div style="background: var(--gray-50); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--gray-200);">
-                <h3 style="font-size: 1.2rem; color: var(--gray-900); margin-bottom: 0.5rem;">{% if about_content and about_content.feature_3_title %}{{ about_content.feature_3_title }}{% else %}👥 Community Support{% endif %}</h3>
-                <p style="color: var(--gray-600); font-size: 0.95rem;">{% if about_content and about_content.feature_3_desc %}{{ about_content.feature_3_desc }}{% else %}Dedicated lab assistants, mentor hours, and career placement assistance for all active students.{% endif %}</p>
+            <div class="about-intro-content">
+                <p class="about-lead-text">
+                    Welcome to RAS Computer Education, Gandhinagar’s premier destination for comprehensive computer training, skill development, and professional IT education. For over two decades, we have been dedicated to bridging the gap between traditional learning and modern industry demands.
+                </p>
+                <p class="about-text">
+                    Whether you are a student aiming to build a career in technology, a job seeker preparing for government examinations, or a professional looking to upskill, RAS Computer Education is the best students' choice for learning computer skills in Gandhinagar, Gujarat.
+                </p>
             </div>
         </div>
-    </div>
+    </section>
 
-    <div class="grid grid-2 animate__animated animate__fadeInUp anim-delay-2">
-        <div class="card">
-            <h3>🏢 Campus Facilities</h3>
-            <ul style="margin-top: 1rem; line-height: 2;">
-                <li>✔️ High-speed gigabit internet lab environment</li>
-                <li>✔️ Individual workstation assignment for each student</li>
-                <li>✔️ 24/7 access to cloud dev sandboxes</li>
-                <li>✔️ Air-conditioned multimedia seminar halls</li>
-            </ul>
+    <!-- Section 2: Our Legacy of Excellence -->
+    <section class="about-section about-legacy-section animate__animated animate__fadeInUp anim-delay-1" aria-labelledby="about-legacy-title">
+        <div class="about-section-header">
+            <h2 id="about-legacy-title" class="about-section-title">
+                <span class="about-accent-line" aria-hidden="true"></span>
+                <span>Our Legacy of Excellence</span>
+            </h2>
+            <p class="about-section-desc">
+                Since our inception, we have maintained an unwavering commitment to quality education, practical learning, and student success.
+            </p>
         </div>
-        <div class="card">
-            <h3>📊 Institute Statistics</h3>
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1rem; text-align: center;">
-                <div style="background: var(--primary-light); padding: 1rem; border-radius: var(--radius-md);">
-                    <h4 style="font-size: 2rem; color: var(--primary);">2,500+</h4>
-                    <p style="font-size: 0.85rem; color: var(--gray-600);">Graduated Students</p>
+
+        <div class="about-legacy-grid">
+            <!-- Achievement 1 -->
+            <div class="card about-legacy-card card-hover">
+                <div class="about-card-top">
+                    <div class="about-stat-icon orange-icon" aria-hidden="true">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    </div>
+                    <div class="about-stat-number">20+</div>
                 </div>
-                <div style="background: var(--primary-light); padding: 1rem; border-radius: var(--radius-md);">
-                    <h4 style="font-size: 2rem; color: var(--primary);">15+</h4>
-                    <p style="font-size: 0.85rem; color: var(--gray-600);">Specialized Courses</p>
+                <h3 class="about-stat-title">20+ Years of Establishment</h3>
+                <p class="about-stat-desc">Over two decades of proven excellence, trust, and leadership in computer training.</p>
+            </div>
+
+            <!-- Achievement 2 -->
+            <div class="card about-legacy-card card-hover">
+                <div class="about-card-top">
+                    <div class="about-stat-icon blue-icon" aria-hidden="true">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    </div>
+                    <div class="about-stat-number">15,000+</div>
+                </div>
+                <h3 class="about-stat-title">15,000+ Students Trained</h3>
+                <p class="about-stat-desc">A vast alumni network working successfully in top companies, MNCs, and government sectors across Gujarat and beyond.</p>
+            </div>
+
+            <!-- Achievement 3 -->
+            <div class="card about-legacy-card card-hover">
+                <div class="about-card-top">
+                    <div class="about-stat-icon primary-icon" aria-hidden="true">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                    </div>
+                    <div class="about-stat-number">100%</div>
+                </div>
+                <h3 class="about-stat-title">100% Practical Training</h3>
+                <p class="about-stat-desc">Hands-on experience with modern software, real-world projects, and dedicated lab sessions.</p>
+            </div>
+
+            <!-- Achievement 4 -->
+            <div class="card about-legacy-card card-hover">
+                <div class="about-card-top">
+                    <div class="about-stat-icon green-icon" aria-hidden="true">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                    </div>
+                    <div class="about-stat-number stat-badge-text">Certified</div>
+                </div>
+                <h3 class="about-stat-title">Certified &amp; Experienced Instructors</h3>
+                <p class="about-stat-desc">Learn directly from industry experts with deep domain knowledge and personalized teaching approaches.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: Why We Are the Best Computer Class in Gandhinagar, Gujarat -->
+    <section class="about-section about-why-us-section animate__animated animate__fadeInUp anim-delay-2" aria-labelledby="about-why-title">
+        <div class="card about-why-card">
+            <div class="about-section-header">
+                <h2 id="about-why-title" class="about-section-title">
+                    <span class="about-accent-line" aria-hidden="true"></span>
+                    <span>Why We Are the Best Computer Class in Gandhinagar, Gujarat</span>
+                </h2>
+                <p class="about-section-desc">
+                    At RAS Computer Education, we believe that quality education should be practical, affordable, and career-oriented. Located strategically in Gandhinagar, our institute provides a state-of-the-art learning environment equipped with modern infrastructure and flexible batch timings to accommodate students, working professionals, and job seekers.
+                </p>
+            </div>
+
+            <h3 class="about-subheading">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                <span>What Sets Us Apart?</span>
+            </h3>
+
+            <div class="about-benefits-grid">
+                <!-- Benefit 1 -->
+                <div class="about-benefit-card">
+                    <div class="about-benefit-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    </div>
+                    <div>
+                        <h4 class="about-benefit-title">Industry-Aligned Curriculum</h4>
+                        <p class="about-benefit-desc">Updated regularly to keep pace with evolving technological standards.</p>
+                    </div>
+                </div>
+
+                <!-- Benefit 2 -->
+                <div class="about-benefit-card">
+                    <div class="about-benefit-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><circle cx="19" cy="11" r="2"></circle></svg>
+                    </div>
+                    <div>
+                        <h4 class="about-benefit-title">Small Batch Sizes</h4>
+                        <p class="about-benefit-desc">Ensures individual focus and personal attention for every student.</p>
+                    </div>
+                </div>
+
+                <!-- Benefit 3 -->
+                <div class="about-benefit-card">
+                    <div class="about-benefit-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 15 15"></polyline></svg>
+                    </div>
+                    <div>
+                        <h4 class="about-benefit-title">Flexible Timings</h4>
+                        <p class="about-benefit-desc">Morning, evening, and weekend batches tailored for convenience.</p>
+                    </div>
+                </div>
+
+                <!-- Benefit 4 -->
+                <div class="about-benefit-card">
+                    <div class="about-benefit-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    </div>
+                    <div>
+                        <h4 class="about-benefit-title">Affordable Fees Structure</h4>
+                        <p class="about-benefit-desc">Quality computer education accessible to everyone.</p>
+                    </div>
+                </div>
+
+                <!-- Benefit 5 -->
+                <div class="about-benefit-card">
+                    <div class="about-benefit-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                    </div>
+                    <div>
+                        <h4 class="about-benefit-title">Career Guidance &amp; Placement Support</h4>
+                        <p class="about-benefit-desc">Assistance with resume building, interview preparation, and job placement.</p>
+                    </div>
                 </div>
             </div>
         </div>
+    </section>
+
+    <!-- Section 4: Our Core Specializations -->
+    <section class="about-section about-specs-section animate__animated animate__fadeInUp anim-delay-3" aria-labelledby="about-specs-title">
+        <div class="about-section-header">
+            <h2 id="about-specs-title" class="about-section-title">
+                <span class="about-accent-line" aria-hidden="true"></span>
+                <span>Our Core Specializations</span>
+            </h2>
+            <p class="about-section-desc">
+                Comprehensive training programs designed to develop in-demand technical expertise, professional competence, and career readiness.
+            </p>
+        </div>
+
+        <div class="about-specs-grid">
+            <!-- Specialization 1: Tally -->
+            <div class="card about-spec-card card-hover">
+                <div>
+                    <div class="about-spec-badge orange">Accounting &amp; Taxation</div>
+                    <h3 class="about-spec-title">1. Best Tally Training Institute in Gandhinagar</h3>
+                    <p class="about-spec-desc">
+                        Master accounting and GST with our specialized Tally Prime &amp; GST Certification Course. Designed for commerce students, job seekers, and business owners, our course covers Tally with real-time financial accounting, inventory management, taxation, and GST compliance. Gain practical bookkeeping skills to pursue roles in accounting and finance.
+                    </p>
+                </div>
+                <div class="about-spec-footer">
+                    <span class="about-tag">Tally Prime</span>
+                    <span class="about-tag">GST Compliance</span>
+                    <span class="about-tag">Inventory</span>
+                    <span class="about-tag">Bookkeeping</span>
+                </div>
+            </div>
+
+            <!-- Specialization 2: Coding Languages -->
+            <div class="card about-spec-card card-hover">
+                <div>
+                    <div class="about-spec-badge">Software Development &amp; IT</div>
+                    <h3 class="about-spec-title">2. Best Coding Languages Institute in Gandhinagar</h3>
+                    <p class="about-spec-desc">
+                        Kickstart your career in software development and IT. We offer comprehensive training in core and advanced programming languages:
+                    </p>
+                    <div class="about-code-highlights">
+                        <div class="about-code-item">
+                            <strong>Python Programming:</strong>
+                            From Python basics to advanced OOPs and data manipulation.
+                        </div>
+                        <div class="about-code-item">
+                            <strong>C &amp; C++ Fundamentals:</strong>
+                            Build strong logic, algorithm, and object-oriented programming concepts.
+                        </div>
+                        <div class="about-code-item">
+                            <strong>Web Development (HTML, CSS, JavaScript):</strong>
+                            Learn full-stack skills to build modern, responsive websites.
+                        </div>
+                        <div class="about-code-item">
+                            <strong>Java &amp; Data Structures:</strong>
+                            Master core logic and enterprise-level development.
+                        </div>
+                    </div>
+                </div>
+                <div class="about-spec-footer">
+                    <span class="about-tag">Python</span>
+                    <span class="about-tag">C / C++</span>
+                    <span class="about-tag">Full-Stack Web</span>
+                    <span class="about-tag">Java &amp; DSA</span>
+                </div>
+            </div>
+
+            <!-- Specialization 3: CCC -->
+            <div class="card about-spec-card card-hover">
+                <div>
+                    <div class="about-spec-badge cyan">Government Certification</div>
+                    <h3 class="about-spec-title">3. Best CCC Training Institute</h3>
+                    <p class="about-spec-desc">
+                        Prepare for government job requirements and administrative skill certifications with our CCC (Course on Computer Concepts) training program.
+                    </p>
+                    <p class="about-spec-desc">
+                        We offer expert guidance on fundamental computer skills, MS Office (Word, Excel, PowerPoint), internet basics, email management, and government portal navigation, ensuring a high pass rate for all aspirants.
+                    </p>
+                </div>
+                <div class="about-spec-footer">
+                    <span class="about-tag">CCC Exam Prep</span>
+                    <span class="about-tag">MS Office</span>
+                    <span class="about-tag">Internet &amp; Email</span>
+                    <span class="about-tag">Govt Portals</span>
+                </div>
+            </div>
+
+            <!-- Specialization 4: Advanced Office & Data Analysis -->
+            <div class="card about-spec-card card-hover">
+                <div>
+                    <div class="about-spec-badge">Productivity &amp; Analytics</div>
+                    <h3 class="about-spec-title">4. Advanced Office &amp; Data Analysis Skills</h3>
+                    <p class="about-spec-desc">
+                        Become an expert in office productivity tools. Master Advanced Excel for Data Analysis, formula creation, data visualization, pivot tables, and database management through hands-on practice.
+                    </p>
+                </div>
+                <div class="about-spec-footer">
+                    <span class="about-tag">Advanced Excel</span>
+                    <span class="about-tag">Data Analysis</span>
+                    <span class="about-tag">Pivot Tables</span>
+                    <span class="about-tag">Data Visualization</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 5: Our Mission & Vision -->
+    <section class="about-section about-mv-section animate__animated animate__fadeInUp anim-delay-4" aria-labelledby="about-mv-title">
+        <div class="about-section-header">
+            <h2 id="about-mv-title" class="about-section-title">
+                <span class="about-accent-line" aria-hidden="true"></span>
+                <span>Our Mission &amp; Vision</span>
+            </h2>
+        </div>
+
+        <div class="about-mv-grid">
+            <!-- Mission Column -->
+            <div class="card about-mv-card mission card-hover">
+                <div class="about-mv-icon" aria-hidden="true">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                </div>
+                <h3 class="about-mv-title">Our Mission</h3>
+                <p class="about-mv-text">
+                    To empower individuals with cutting-edge computer skills, practical knowledge, and technical confidence required to excel in today’s digital world.
+                </p>
+            </div>
+
+            <!-- Vision Column -->
+            <div class="card about-mv-card vision card-hover">
+                <div class="about-mv-icon" aria-hidden="true">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </div>
+                <h3 class="about-mv-title">Our Vision</h3>
+                <p class="about-mv-text">
+                    To remain the most trusted, innovative, and student-centric computer training institute in Gandhinagar, continuously raising the standard of IT education.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 6: What Our Students Say -->
+    <section class="about-section about-testimonials-section animate__animated animate__fadeInUp anim-delay-5" aria-labelledby="about-testimonials-title">
+        <div class="about-section-header">
+            <h2 id="about-testimonials-title" class="about-section-title">
+                <span class="about-accent-line" aria-hidden="true"></span>
+                <span>What Our Students Say</span>
+            </h2>
+            <p class="about-section-desc">
+                Genuine feedback from our students on their learning journeys and career milestones.
+            </p>
+        </div>
+
+        <div class="about-testimonials-grid">
+            <!-- Testimonial 1 -->
+            <div class="card about-testimonial-card card-hover">
+                <div class="about-testimonial-content">
+                    <div class="about-stars" aria-label="5 out of 5 stars">
+                        ★★★★★
+                    </div>
+                    <blockquote class="about-quote-text">
+                        &ldquo;Joining RAS Computer Education was the best decision for my career. The practical exposure in Python and Advanced Excel gave me the confidence to clear my interviews easily.&rdquo;
+                    </blockquote>
+                </div>
+                <div class="about-quote-author">
+                    <div class="about-author-avatar" aria-hidden="true">AS</div>
+                    <div class="about-author-info">
+                        <cite class="about-author-name">Alumni Student</cite>
+                        <span class="about-author-tag">RAS Computer Education Alum</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Testimonial 2 -->
+            <div class="card about-testimonial-card card-hover">
+                <div class="about-testimonial-content">
+                    <div class="about-stars" aria-label="5 out of 5 stars">
+                        ★★★★★
+                    </div>
+                    <blockquote class="about-quote-text">
+                        &ldquo;The best Tally training institute in Gandhinagar! The faculty explains complex GST concepts with real-world examples.&rdquo;
+                    </blockquote>
+                </div>
+                <div class="about-quote-author">
+                    <div class="about-author-avatar" aria-hidden="true">CG</div>
+                    <div class="about-author-info">
+                        <cite class="about-author-name">Commerce Graduate</cite>
+                        <span class="about-author-tag">Tally Prime &amp; GST Graduate</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bottom Navigation / Action Banner -->
+    <div class="card about-cta-bar animate__animated animate__fadeInUp anim-delay-6">
+        <div>
+            <h3 class="about-cta-title">Ready to Build In-Demand Computer Skills?</h3>
+            <p class="about-cta-desc">Join thousands of successful students and professionals in Gandhinagar.</p>
+        </div>
+        <div class="about-cta-buttons">
+            <a href="{% url 'courses:course_list' %}" class="btn btn-primary">View All Courses &rarr;</a>
+            <a href="{% url 'core:contact' %}" class="btn btn-outline-dark">Contact Us</a>
+        </div>
     </div>
+
 </div>
-
 {% endblock %}

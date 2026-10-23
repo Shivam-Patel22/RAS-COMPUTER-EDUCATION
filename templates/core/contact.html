@@ -204,9 +204,9 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════
-         GOOGLE MAPS EMBED — CDAC Computer Class,
+         GOOGLE MAPS EMBED — RAS Computer Education,
          Gandhinagar, Gujarat
-         Coordinates: 23.1852303 N, 72.632726 E
+         Coordinates: 23.2344055 N, 72.652802 E
     ════════════════════════════════════════════════ -->
     <div style="
         background: var(--card-bg);
@@ -220,14 +220,14 @@
         <div style="border-radius: 12px 12px 0 0; overflow: hidden; line-height: 0;">
             <iframe
                 id="cdac-gandhinagar-map"
-                src="{% if contact_content and contact_content.map_embed_url %}{{ contact_content.map_embed_url }}{% else %}https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d471.09!2d72.6320823!3d23.1852315!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395c2b921555555d%3A0x50e94504c763b697!2sCDAC%20Computer%20Class!5e0!3m2!1sen!2sin!4v1722593000000!5m2!1sen!2sin{% endif %}"
+                src="{% if contact_content and contact_content.map_embed_url and '/maps/embed' in contact_content.map_embed_url %}{{ contact_content.map_embed_url }}{% else %}https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3667.432845625442!2d72.6502271!3d23.2344055!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395c2b98680613c5%3A0xe36f138dbac2da1a!2sRas%20Computer%20Education%20%26%20Spoken%20English!5e0!3m2!1sen!2sin!4v1729668000000!5m2!1sen!2sin{% endif %}"
                 width="100%"
                 height="500"
                 style="border: none; display: block; width: 100%;"
                 allowfullscreen=""
                 loading="lazy"
                 referrerpolicy="no-referrer-when-downgrade"
-                title="CDAC Computer Class location on Google Maps — Gandhinagar, Gujarat"
+                title="RAS Computer Education location on Google Maps — Gandhinagar, Gujarat"
             ></iframe>
         </div>
 
@@ -246,7 +246,7 @@
                 <div style="display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.92rem; color: var(--gray-700);">
                     <span style="font-size: 1.1rem; flex-shrink: 0;">📍</span>
                     <div>
-                        <div style="font-weight: 700; color: var(--gray-900);">CDAC Computer Class</div>
+                        <div style="font-weight: 700; color: var(--gray-900);">RAS Computer Education</div>
                         <div>{% if contact_content and contact_content.address %}{{ contact_content.address }}{% else %}Gandhinagar, Gujarat, India{% endif %}</div>
                     </div>
                 </div>
@@ -270,7 +270,7 @@
             <!-- Get Directions button -->
             <a
                 id="map-get-directions-btn"
-                href="https://www.google.com/maps/place/CDAC+Computer+Class/@23.1852315,72.6320823,19z/data=!3m1!4b1!4m6!3m5!1s0x395c2b921555555d:0x50e94504c763b697!8m2!3d23.1852303!4d72.632726!16s%2Fg%2F11bx9sjgsh"
+                href="https://www.google.com/maps/dir//Ras+Computer+Education+%26+Spoken+English,+Surbhi+complex,+F-5,+2nd+Floor,+Above+Bharat+Library.+Gh-5,+Circle,+GH+Rd,+Sector+22,+Gandhinagar,+Gujarat+382021/@23.2344055,72.6502271,781m/data=!3m1!1e3!4m16!1m7!3m6!1s0x395c2b98680613c5:0xe36f138dbac2da1a!2sRas+Computer+Education+%26+Spoken+English!8m2!3d23.2344055!4d72.652802!16s%2Fg%2F12hlzsybt!4m7!1m0!1m5!1m1!1s0x395c2b98680613c5:0xe36f138dbac2da1a!2m2!1d72.652802!2d23.2344055!5m1!1e1"
                 target="_blank"
                 rel="noopener noreferrer"
                 style="
