@@ -1,0 +1,14 @@
+---
+deployment:
+  tasks:
+    - export SRC=/home/faesgvfk/RAS-COMPUTER-EDUCATION/templates
+    - export DEST=/home/faesgvfk/cdac-class-website/templates
+    - export BACKUP=/home/faesgvfk/rascomputer-template-backups/$(/bin/date +%Y%m%d-%H%M%S)
+    - test -f "$SRC/home.html"
+    - test -f "$SRC/contact.html"
+    - test -d "$DEST"
+    - /bin/mkdir -p "$BACKUP"
+    - /bin/cp -p "$DEST/home.html" "$BACKUP/home.html"
+    - /bin/cp -p "$DEST/contact.html" "$BACKUP/contact.html"
+    - /bin/cp "$SRC/home.html" "$DEST/home.html"
+    - /bin/cp "$SRC/contact.html" "$DEST/contact.html"
