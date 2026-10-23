@@ -57,7 +57,7 @@ class SEOPublicPagesMetadataTests(TestCase):
         content = response.content.decode('utf-8')
 
         # Title
-        self.assertIn('<title>Home | Centre for Development of Advanced Computing (C-DAC)</title>', content)
+        self.assertIn('<title>Home | RAS Computer Education</title>', content)
 
         # Base Schema.org EducationalOrganization JSON-LD from base.html
         self.assertIn('application/ld+json', content)

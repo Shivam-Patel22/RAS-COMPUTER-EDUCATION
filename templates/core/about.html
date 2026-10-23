@@ -262,14 +262,6 @@
 
 </div>
 
-<!-- Staff Live Sync Float Pill -->
-{% if request.user.is_authenticated and request.user.is_staff %}
-<div id="staffLiveSyncPill" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); border: 1px solid rgba(16, 185, 129, 0.4); color: white; padding: 0.5rem 0.9rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.4); transition: all 0.3s ease;">
-    <span style="display: inline-block; width: 8px; height: 8px; background: #10B981; border-radius: 50%; box-shadow: 0 0 6px #10B981;" id="staffPillDot"></span>
-    <span id="staffPillText">Live Sync Active (v{{ sync_version|default:1 }})</span>
-    <a href="{% url 'dashboard:edit_about' %}" style="color: var(--secondary); text-decoration: underline; margin-left: 0.35rem; font-size: 0.75rem;">Edit</a>
-</div>
-{% endif %}
 
 <style>
 @keyframes liveSyncPulse {
@@ -520,18 +512,6 @@
             container.classList.add('live-sync-pulse');
         }
 
-        // Staff pill feedback
-        const staffPill = document.getElementById('staffLiveSyncPill');
-        const staffText = document.getElementById('staffPillText');
-        const staffDot = document.getElementById('staffPillDot');
-        if (staffPill && staffText) {
-            staffText.textContent = '✨ Synced v' + d.sync_version;
-            if (staffDot) staffDot.style.background = '#3B82F6';
-            setTimeout(() => {
-                staffText.textContent = 'Live Sync Active (v' + d.sync_version + ')';
-                if (staffDot) staffDot.style.background = '#10B981';
-            }, 3000);
-        }
     }
 
     async function checkLiveSync() {

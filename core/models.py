@@ -359,9 +359,9 @@ class ContactContent(models.Model):
     phone = models.CharField(max_length=100, default="+91 (020) 2570-4100")
     whatsapp_number = models.CharField(max_length=30, default="919876543210", help_text="WhatsApp number with country code (e.g. 919876543210)")
     email = models.EmailField(default="contact@cdac.in")
-    address = models.TextField(default="Gandhinagar, Gujarat, India")
+    address = models.TextField(default="Surbhi complex, F-5, 2nd Floor, Above Bharat Library. Gh-5, Circle, GH Rd, Sector 22, Gandhinagar, Gujarat 382021")
     working_hours = models.CharField(max_length=150, default="Mon - Sat: 9:00 AM - 6:00 PM")
-    map_embed_url = models.URLField(blank=True, null=True, max_length=500, default="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d471.09!2d72.6320823!3d23.1852315!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395c2b921555555d%3A0x50e94504c763b697!2sCDAC%20Computer%20Class!5e0!3m2!1sen!2sin!4v1722593000000!5m2!1sen!2sin")
+    map_embed_url = models.URLField(blank=True, null=True, max_length=500, default="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3667.432845625442!2d72.6502271!3d23.2344055!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395c2b98680613c5%3A0xe36f138dbac2da1a!2sRas%20Computer%20Education%20%26%20Spoken%20English!5e0!3m2!1sen!2sin!4v1729668000000!5m2!1sen!2sin")
     
     # Social Media Links
     instagram_username = models.CharField(
