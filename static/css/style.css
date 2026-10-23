@@ -2943,6 +2943,14 @@ textarea.form-control {
     margin-bottom: 3.5rem;
 }
 
+.about-hero-card {
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: 2.75rem 2.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
 .about-header-badge {
     display: inline-flex;
     align-items: center;
@@ -2962,14 +2970,19 @@ textarea.form-control {
 .about-main-title {
     font-size: 2.25rem;
     font-weight: 800;
-    line-height: 1.28;
+    line-height: 1.3;
     color: var(--gray-900);
     margin-bottom: 1.25rem;
     font-family: var(--font-heading);
+    letter-spacing: -0.01em;
+}
+
+.about-intro-content {
+    max-width: 1050px;
 }
 
 .about-lead-text {
-    font-size: 1.12rem;
+    font-size: 1.15rem;
     line-height: 1.8;
     color: var(--gray-700);
     margin-bottom: 1.15rem;
@@ -2993,18 +3006,21 @@ textarea.form-control {
     color: var(--gray-900);
     margin-bottom: 0.75rem;
     display: flex;
-    align-items: center;
-    gap: 0.65rem;
+    align-items: flex-start;
+    gap: 0.75rem;
     font-family: var(--font-heading);
+    line-height: 1.3;
 }
 
 .about-accent-line {
     width: 4px;
-    height: 1.4rem;
+    min-height: 1.25em;
+    height: 1.25em;
     background: var(--secondary);
     border-radius: 2px;
     display: inline-block;
     flex-shrink: 0;
+    margin-top: 0.08em;
 }
 
 .about-section-desc {
@@ -3018,8 +3034,9 @@ textarea.form-control {
 /* Legacy / Stats Grid */
 .about-legacy-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 1.5rem;
+    align-items: stretch;
 }
 
 .about-legacy-card {
@@ -3029,11 +3046,11 @@ textarea.form-control {
     padding: 1.75rem 1.5rem;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
     height: 100%;
     transition: var(--transition);
     position: relative;
     overflow: hidden;
+    box-shadow: var(--shadow-sm);
 }
 
 .about-legacy-card::before {
@@ -3063,6 +3080,7 @@ textarea.form-control {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.25rem;
+    min-height: 48px;
 }
 
 .about-stat-icon {
@@ -3117,6 +3135,7 @@ textarea.form-control {
     color: var(--gray-900);
     margin-bottom: 0.5rem;
     font-family: var(--font-heading);
+    line-height: 1.35;
 }
 
 .about-stat-desc {
@@ -3124,42 +3143,50 @@ textarea.form-control {
     line-height: 1.6;
     color: var(--gray-600);
     margin: 0;
+    flex-grow: 1;
 }
 
 /* Why We Are The Best / Benefits */
 .about-why-card {
-    padding: 2.5rem;
+    padding: 2.75rem 2.5rem;
     border-radius: var(--radius-lg);
     border: 1px solid var(--gray-200);
     background: var(--card-bg, #ffffff);
+    box-shadow: var(--shadow-sm);
 }
 
 .about-subheading {
-    font-size: 1.3rem;
+    font-size: 1.35rem;
     font-weight: 700;
     color: var(--gray-900);
-    margin: 2rem 0 1.25rem;
-    display: flex;
+    margin: 2.25rem 0 1.25rem;
+    display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
     font-family: var(--font-heading);
 }
 
 .about-benefits-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.25rem;
+    align-items: stretch;
 }
 
 .about-benefit-card {
     background: var(--gray-50);
     border: 1px solid var(--gray-200);
     border-radius: var(--radius-md);
-    padding: 1.25rem;
+    padding: 1.35rem 1.5rem;
     display: flex;
     align-items: flex-start;
-    gap: 1rem;
+    gap: 1.15rem;
     transition: var(--transition);
+    height: 100%;
+}
+
+.about-benefit-card:last-child {
+    grid-column: 1 / -1;
 }
 
 .about-benefit-card:hover {
@@ -3170,14 +3197,19 @@ textarea.form-control {
 
 .about-benefit-icon {
     flex-shrink: 0;
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     border-radius: 10px;
     background: rgba(244, 127, 35, 0.12);
     color: var(--secondary);
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-top: 2px;
+}
+
+.about-benefit-body {
+    flex: 1;
 }
 
 .about-benefit-title {
@@ -3186,11 +3218,12 @@ textarea.form-control {
     color: var(--gray-900);
     margin-bottom: 0.35rem;
     font-family: var(--font-heading);
+    line-height: 1.35;
 }
 
 .about-benefit-desc {
-    font-size: 0.92rem;
-    line-height: 1.55;
+    font-size: 0.93rem;
+    line-height: 1.6;
     color: var(--gray-600);
     margin: 0;
 }
@@ -3198,8 +3231,9 @@ textarea.form-control {
 /* Core Specializations */
 .about-specs-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 500px), 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.75rem;
+    align-items: stretch;
 }
 
 .about-spec-card {
@@ -3212,6 +3246,7 @@ textarea.form-control {
     justify-content: space-between;
     height: 100%;
     transition: var(--transition);
+    box-shadow: var(--shadow-sm);
 }
 
 .about-spec-card:hover {
@@ -3220,8 +3255,16 @@ textarea.form-control {
     border-color: var(--primary);
 }
 
+.about-spec-body {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
 .about-spec-badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
     background: rgba(38, 70, 150, 0.08);
     color: var(--primary);
     font-size: 0.76rem;
@@ -3249,6 +3292,7 @@ textarea.form-control {
     color: var(--gray-900);
     margin-bottom: 0.85rem;
     font-family: var(--font-heading);
+    line-height: 1.35;
 }
 
 .about-spec-desc {
@@ -3258,13 +3302,17 @@ textarea.form-control {
     margin-bottom: 1rem;
 }
 
+.about-spec-desc:last-of-type {
+    margin-bottom: 0;
+}
+
 .about-code-highlights {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.85rem;
-    margin: 1.25rem 0;
+    margin: 1.25rem 0 1.5rem;
     background: var(--gray-50);
-    padding: 1.25rem;
+    padding: 1.15rem;
     border-radius: var(--radius-md);
     border: 1px solid var(--gray-200);
 }
@@ -3273,21 +3321,28 @@ textarea.form-control {
     font-size: 0.9rem;
     line-height: 1.55;
     color: var(--gray-700);
+    background: var(--card-bg, #ffffff);
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--gray-200);
+    display: flex;
+    flex-direction: column;
 }
 
 .about-code-item strong {
     color: var(--gray-900);
     display: block;
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.35rem;
     font-weight: 700;
+    font-size: 0.93rem;
 }
 
 .about-spec-footer {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin-top: 1.25rem;
-    padding-top: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.15rem;
     border-top: 1px solid var(--gray-200);
 }
 
@@ -3304,8 +3359,9 @@ textarea.form-control {
 /* Mission & Vision */
 .about-mv-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.75rem;
+    align-items: stretch;
 }
 
 .about-mv-card {
@@ -3319,6 +3375,7 @@ textarea.form-control {
     display: flex;
     flex-direction: column;
     transition: var(--transition);
+    box-shadow: var(--shadow-sm);
 }
 
 .about-mv-card:hover {
@@ -3335,8 +3392,8 @@ textarea.form-control {
 }
 
 .about-mv-icon {
-    width: 48px;
-    height: 48px;
+    width: 50px;
+    height: 50px;
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -3361,6 +3418,7 @@ textarea.form-control {
     color: var(--gray-900);
     margin-bottom: 0.75rem;
     font-family: var(--font-heading);
+    line-height: 1.35;
 }
 
 .about-mv-text {
@@ -3368,25 +3426,27 @@ textarea.form-control {
     line-height: 1.75;
     color: var(--gray-700);
     margin: 0;
+    flex-grow: 1;
 }
 
 /* Testimonials */
 .about-testimonials-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 450px), 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.75rem;
+    align-items: stretch;
 }
 
 .about-testimonial-card {
     background: var(--card-bg, #ffffff);
     border: 1px solid var(--gray-200);
     border-radius: var(--radius-lg);
-    padding: 2rem;
+    padding: 2.25rem 2rem;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     height: 100%;
     transition: var(--transition);
+    box-shadow: var(--shadow-sm);
 }
 
 .about-testimonial-card:hover {
@@ -3400,6 +3460,7 @@ textarea.form-control {
     font-size: 1.15rem;
     letter-spacing: 2px;
     margin-bottom: 0.85rem;
+    line-height: 1;
 }
 
 .about-quote-text {
@@ -3416,12 +3477,13 @@ textarea.form-control {
     align-items: center;
     gap: 0.85rem;
     border-top: 1px solid var(--gray-200);
-    padding-top: 1.1rem;
+    padding-top: 1.15rem;
+    margin-top: auto;
 }
 
 .about-author-avatar {
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
     border-radius: var(--radius-full);
     background: linear-gradient(135deg, var(--secondary), var(--accent));
     color: #ffffff;
@@ -3455,33 +3517,43 @@ textarea.form-control {
     background: var(--card-bg, #ffffff);
     border: 1px solid var(--gray-200);
     border-radius: var(--radius-lg);
-    padding: 1.75rem 2rem;
+    padding: 2rem 2.25rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 1.25rem;
-    margin-top: 1rem;
-    margin-bottom: 2rem;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 2.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.about-cta-content {
+    flex: 1;
+    min-width: 280px;
 }
 
 .about-cta-title {
     margin: 0 0 0.35rem;
-    font-size: 1.25rem;
+    font-size: 1.35rem;
+    font-weight: 700;
     color: var(--gray-900);
     font-family: var(--font-heading);
+    line-height: 1.35;
 }
 
 .about-cta-desc {
     margin: 0;
     color: var(--gray-600);
-    font-size: 0.95rem;
+    font-size: 0.98rem;
+    line-height: 1.55;
 }
 
 .about-cta-buttons {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.85rem;
     flex-wrap: wrap;
+    align-items: center;
+    flex-shrink: 0;
 }
 
 /* Dark Mode Overrides for About Page */
@@ -3514,6 +3586,7 @@ textarea.form-control {
     color: #ffffff !important;
 }
 
+[data-theme="dark"] .about-hero-card,
 [data-theme="dark"] .about-legacy-card,
 [data-theme="dark"] .about-why-card,
 [data-theme="dark"] .about-spec-card,
@@ -3528,6 +3601,11 @@ textarea.form-control {
 [data-theme="dark"] .about-code-highlights {
     background: #211F1C;
     border-color: #4a4b4e;
+}
+
+[data-theme="dark"] .about-code-item {
+    background: #2A2B2E;
+    border-color: #3f4044;
 }
 
 [data-theme="dark"] .about-tag {
@@ -3566,6 +3644,19 @@ textarea.form-control {
 }
 
 /* Responsive Breakpoints for About Page */
+@media (max-width: 991px) {
+    .about-legacy-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .about-specs-grid {
+        grid-template-columns: 1fr;
+    }
+    .about-hero-card,
+    .about-why-card {
+        padding: 2.25rem 2rem;
+    }
+}
+
 @media (max-width: 768px) {
     .about-page-container {
         padding: 1.5rem 1rem 3rem;
@@ -3576,19 +3667,21 @@ textarea.form-control {
     .about-section-title {
         font-size: 1.55rem;
     }
-    .about-legacy-grid,
     .about-benefits-grid,
-    .about-specs-grid,
     .about-mv-grid,
     .about-testimonials-grid {
         grid-template-columns: 1fr;
     }
+    .about-benefit-card:last-child {
+        grid-column: span 1;
+    }
+    .about-hero-card,
     .about-why-card,
     .about-spec-card,
     .about-mv-card,
     .about-testimonial-card,
     .about-cta-bar {
-        padding: 1.5rem;
+        padding: 1.6rem 1.4rem;
     }
     .about-section {
         margin-bottom: 2.75rem;
@@ -3607,6 +3700,15 @@ textarea.form-control {
     }
 }
 
+@media (max-width: 640px) {
+    .about-legacy-grid {
+        grid-template-columns: 1fr;
+    }
+    .about-code-highlights {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 480px) {
     .about-main-title {
         font-size: 1.55rem;
@@ -3617,15 +3719,13 @@ textarea.form-control {
     .about-stat-number {
         font-size: 1.85rem;
     }
+    .about-hero-card,
     .about-why-card,
     .about-spec-card,
     .about-mv-card,
     .about-testimonial-card,
     .about-cta-bar {
         padding: 1.25rem;
-    }
-    .about-code-highlights {
-        grid-template-columns: 1fr;
     }
     .about-cta-buttons {
         flex-direction: column;
