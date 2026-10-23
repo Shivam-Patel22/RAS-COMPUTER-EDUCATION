@@ -419,11 +419,19 @@ class AdminCertificateForm(forms.ModelForm):
         if id_gen_mode != 'manual' and not self.errors:
             if fn and ln and initials:
                 try:
+                    submitted_cert_id = self.cleaned_data.get('certificate_id', '').strip().upper()
+                    extracted_code = None
+                    if submitted_cert_id:
+                        parts = submitted_cert_id.split('-')
+                        if len(parts) >= 6 and parts[4].isdigit() and len(parts[4]) == 6:
+                            extracted_code = int(parts[4])
+
                     cert_id = generate_certificate_id(
                         prefix=prefix,
                         first_name=fn,
                         last_name=ln,
                         initials=initials,
+                        random_code=extracted_code,
                         reserve=True
                     )
                     cleaned_data['certificate_id'] = cert_id

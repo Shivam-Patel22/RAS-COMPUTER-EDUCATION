@@ -372,8 +372,22 @@ def generate_certificate_id(
                 else:
                     curr_seq = reserve_next_certificate_sequence(clean_prefix)
 
-                if explicit_random_code is not None:
-                    curr_random_code = explicit_random_code
+                if explicit_random_code is not None and attempt == 0:
+                    code_str = str(explicit_random_code)
+                    # Check if this explicit random code is available (not already in Certificate or Registry)
+                    if not Certificate.objects.filter(certificate_id__contains=f"-{code_str}-").exists():
+                        try:
+                            with transaction.atomic():
+                                CertificateRandomCodeRegistry.objects.create(
+                                    code=code_str,
+                                    certificate_id="",
+                                    status='allocated'
+                                )
+                            curr_random_code = code_str
+                        except IntegrityError:
+                            curr_random_code = allocate_unique_random_code()
+                    else:
+                        curr_random_code = allocate_unique_random_code()
                 else:
                     curr_random_code = allocate_unique_random_code()
 
@@ -392,7 +406,10 @@ def generate_certificate_id(
             raise SequenceExhaustedError("Unable to allocate a unique Certificate ID after multiple collision attempts.")
     else:
         preview_seq = target_seq if target_seq is not None else peek_next_certificate_sequence(clean_prefix)
-        preview_random_code = explicit_random_code if explicit_random_code is not None else 100000
+        if explicit_random_code is not None:
+            preview_random_code = explicit_random_code
+        else:
+            preview_random_code = secrets.randbelow(900000) + 100000
         return format_certificate_id(
             clean_prefix, year, month, initials,
             random_code=preview_random_code,
@@ -400,7 +417,7 @@ def generate_certificate_id(
         )
 
 
-def preview_certificate_id(prefix="RAS", year=None, month=None, first_name="", last_name="", student_name="", initials=None):
+def preview_certificate_id(prefix="RAS", year=None, month=None, first_name="", last_name="", student_name="", initials=None, random_code=None):
     """
     Generates an ID preview for the frontend without consuming any sequence or random code.
     """
@@ -412,6 +429,7 @@ def preview_certificate_id(prefix="RAS", year=None, month=None, first_name="", l
         last_name=last_name,
         student_name=student_name,
         initials=initials,
+        random_code=random_code,
         reserve=False
     )
 

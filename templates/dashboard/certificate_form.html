@@ -62,7 +62,7 @@
             <div class="form-group">
                 <label for="{{ form.certificate_id.id_for_label }}">Certificate ID *</label>
                 {{ form.certificate_id }}
-                <small id="id-mode-hint" style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.3rem;">⚡ Auto mode active: Format PREFIX-YYYY-MM-FF-RRRRRR-SSSS (Server auto-generated)</small>
+                <small id="id-mode-hint" style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.3rem;">⚡ Auto mode active: Format PREFIX-YYYY-MM-FL-XXXXXX-SERIAL (Server auto-generated)</small>
                 <div id="cert-id-duplicate-warning" class="form-error" style="display: none; margin-top: 0.35rem; font-size: 0.82rem; color: #dc2626; font-weight: 600;">
                     ⚠ Certificate ID already exists. Please enter a unique ID.
                 </div>
@@ -277,11 +277,29 @@ function getStudentInitials() {
     return 'FL';
 }
 
-function computeCertId(prefix, initials, seq) {
+var currentRandomCode = null;
+
+function getOrGenerateRandomCode() {
+    var certInput = document.getElementById('id_certificate_id');
+    if (certInput && certInput.value) {
+        var parts = certInput.value.trim().split('-');
+        if (parts.length >= 6 && /^\d{6}$/.test(parts[4])) {
+            currentRandomCode = parts[4];
+            return currentRandomCode;
+        }
+    }
+    if (!currentRandomCode) {
+        currentRandomCode = String(Math.floor(100000 + Math.random() * 900000));
+    }
+    return currentRandomCode;
+}
+
+function computeCertId(prefix, initials, seq, code) {
     var now = new Date();
     var month = String(now.getMonth() + 1).padStart(2, '0');
     var cleanInit = initials && initials.length === 2 ? initials : 'FL';
-    return prefix + '-' + currentYear + '-' + month + '-' + cleanInit + '-100000-' + seq;
+    var rCode = code || getOrGenerateRandomCode();
+    return prefix + '-' + currentYear + '-' + month + '-' + cleanInit + '-' + rCode + '-' + seq;
 }
 
 function updateCertId() {
@@ -295,7 +313,8 @@ function updateCertId() {
     var seq = nextSeqs[prefix] || (prefix === 'RAS' ? 1001 : 5001);
 
     if (!isManual) {
-        certInput.value = computeCertId(prefix, initials, seq);
+        var randomCode = getOrGenerateRandomCode();
+        certInput.value = computeCertId(prefix, initials, seq, randomCode);
 
         var fnInput = document.getElementById('id_first_name');
         var lnInput = document.getElementById('id_last_name');
@@ -304,7 +323,8 @@ function updateCertId() {
 
         var apiUrl = nextIdApiUrl + '?prefix=' + encodeURIComponent(prefix) +
                      '&first_name=' + encodeURIComponent(fn) +
-                     '&last_name=' + encodeURIComponent(ln);
+                     '&last_name=' + encodeURIComponent(ln) +
+                     '&random_code=' + encodeURIComponent(randomCode);
 
         fetch(apiUrl)
             .then(function(res) { return res.json(); })
@@ -315,6 +335,9 @@ function updateCertId() {
                     var currentManualRadio = document.querySelector('input[name="id_gen_mode"][value="manual"]');
                     if (currentPrefix === prefix && (!currentManualRadio || !currentManualRadio.checked)) {
                         certInput.value = data.certificate_id;
+                        if (data.random_code) {
+                            currentRandomCode = data.random_code;
+                        }
                     }
                 }
             })
@@ -334,10 +357,11 @@ function toggleIdMode(mode) {
     if (!certInput) return;
 
     if (mode === 'manual') {
+        var randomCode = getOrGenerateRandomCode();
         certInput.removeAttribute('readonly');
-        certInput.placeholder = 'e.g. ' + computeCertId(prefix, initials, seq);
+        certInput.placeholder = 'e.g. ' + computeCertId(prefix, initials, seq, randomCode);
         if (hint) {
-            hint.textContent = '✏️ Manual mode active: Format ' + prefix + '-YYYY-MM-FF-RRRRRR-SSSS (e.g. ' + computeCertId(prefix, initials, seq) + ').';
+            hint.textContent = '✏️ Manual mode active: Format ' + prefix + '-YYYY-MM-FL-XXXXXX-SERIAL (e.g. ' + computeCertId(prefix, initials, seq, randomCode) + ').';
         }
         certInput.focus();
         if (certInput.value.trim()) {
@@ -346,7 +370,7 @@ function toggleIdMode(mode) {
     } else {
         certInput.setAttribute('readonly', 'readonly');
         if (hint) {
-            hint.textContent = '⚡ Auto mode active: Format ' + prefix + '-YYYY-MM-FF-RRRRRR-SSSS (Server auto-generated)';
+            hint.textContent = '⚡ Auto mode active: Format ' + prefix + '-YYYY-MM-FL-XXXXXX-SERIAL (Server auto-generated)';
         }
         if (warningEl) warningEl.style.display = 'none';
         if (serverErrorEl) serverErrorEl.style.display = 'none';
@@ -489,11 +513,12 @@ document.addEventListener('DOMContentLoaded', function() {
             var seq = nextSeqs[prefix] || (prefix === 'RAS' ? 1001 : 5001);
             var certInput = document.getElementById('id_certificate_id');
             var hint = document.getElementById('id-mode-hint');
+            var randomCode = getOrGenerateRandomCode();
             if (certInput) {
-                certInput.placeholder = 'e.g. ' + computeCertId(prefix, initials, seq);
+                certInput.placeholder = 'e.g. ' + computeCertId(prefix, initials, seq, randomCode);
             }
             if (hint) {
-                hint.textContent = '✏️ Manual mode active: Format ' + prefix + '-YYYY-FLSEQUENCE (e.g. ' + computeCertId(prefix, initials, seq) + ').';
+                hint.textContent = '✏️ Manual mode active: Format ' + prefix + '-YYYY-MM-FL-XXXXXX-SERIAL (e.g. ' + computeCertId(prefix, initials, seq, randomCode) + ').';
             }
         }
     }
@@ -596,7 +621,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (certInput) certInput.setAttribute('readonly', 'readonly');
             var hint = document.getElementById('id-mode-hint');
             if (hint) {
-                hint.textContent = '⚡ Auto mode active: Format PREFIX-YYYY-MM-FF-RRRRRR-SSSS (Server auto-generated)';
+                hint.textContent = '⚡ Auto mode active: Format PREFIX-YYYY-MM-FL-XXXXXX-SERIAL (Server auto-generated)';
             }
         }
     }

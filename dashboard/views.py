@@ -789,6 +789,15 @@ def get_next_certificate_id_api(request):
         prefix = 'RAS'
     first_name = request.GET.get('first_name', '')
     last_name = request.GET.get('last_name', '')
+    random_code = request.GET.get('random_code')
+    if random_code:
+        try:
+            rc_int = int(str(random_code).strip())
+            if not (100000 <= rc_int <= 999999):
+                random_code = None
+        except (ValueError, TypeError):
+            random_code = None
+
     now = datetime.date.today()
     current_year = now.year
     current_month = now.month
@@ -798,12 +807,16 @@ def get_next_certificate_id_api(request):
         year=current_year,
         month=current_month,
         first_name=first_name,
-        last_name=last_name
+        last_name=last_name,
+        random_code=random_code
     )
     try:
         initials = extract_recipient_initials(first_name=first_name, last_name=last_name)
     except ValueError:
         initials = get_student_initials(first_name=first_name, last_name=last_name)
+
+    parts = cert_id.split('-')
+    rc_used = parts[4] if len(parts) >= 5 else None
 
     return JsonResponse({
         'status': 'success',
@@ -812,6 +825,7 @@ def get_next_certificate_id_api(request):
         'year': current_year,
         'month': f"{current_month:02d}",
         'certificate_id': cert_id,
+        'random_code': rc_used,
         'initials': initials
     })
 

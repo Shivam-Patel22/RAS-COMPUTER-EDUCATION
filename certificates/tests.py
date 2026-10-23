@@ -926,12 +926,18 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
         url = reverse('dashboard:get_next_certificate_id')
         res_ras = self.client.get(url, {'prefix': 'RAS', 'first_name': 'Harshal', 'last_name': 'Chauhan'})
         self.assertEqual(res_ras.status_code, 200)
-        self.assertEqual(res_ras.json()['certificate_id'], f'RAS-{current_year}-{current_month:02d}-HC-100000-1001')
+        ras_parts = res_ras.json()['certificate_id'].split('-')
+        self.assertEqual(ras_parts[0], 'RAS')
+        self.assertEqual(ras_parts[1], str(current_year))
+        self.assertEqual(ras_parts[2], f'{current_month:02d}')
+        self.assertEqual(ras_parts[3], 'HC')
+        self.assertTrue(100000 <= int(ras_parts[4]) <= 999999)
+        self.assertEqual(ras_parts[5], '1001')
         self.assertEqual(res_ras.json()['initials'], 'HC')
 
-        res_citi = self.client.get(url, {'prefix': 'CITI', 'first_name': 'Harshal', 'last_name': 'Chauhan'})
+        res_citi = self.client.get(url, {'prefix': 'CITI', 'first_name': 'Harshal', 'last_name': 'Chauhan', 'random_code': '855104'})
         self.assertEqual(res_citi.status_code, 200)
-        self.assertEqual(res_citi.json()['certificate_id'], f'CITI-{current_year}-{current_month:02d}-HC-100000-5001')
+        self.assertEqual(res_citi.json()['certificate_id'], f'CITI-{current_year}-{current_month:02d}-HC-855104-5001')
 
     def test_11_student_initials_rules(self):
         """11. Verify initials generation rules according to prompt specification."""
