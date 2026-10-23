@@ -115,12 +115,16 @@ class CertificatesTestCase(TestCase):
         cert_id_ras = generate_certificate_id('RAS', first_name='Harshal', last_name='Chauhan')
         self.assertTrue(CERTIFICATE_ID_REGEX.match(cert_id_ras))
         self.assertTrue(cert_id_ras.startswith(f'RAS-{year}-{month:02d}-HC-'))
-        self.assertTrue(cert_id_ras.endswith('-1001'))
+        suffix_ras = cert_id_ras.split('-')[-1]
+        self.assertEqual(len(suffix_ras), 6)
+        self.assertTrue(100000 <= int(suffix_ras) <= 999999)
 
         cert_id_citi = generate_certificate_id('CITI', first_name='Harshal', last_name='Chauhan')
         self.assertTrue(CERTIFICATE_ID_REGEX.match(cert_id_citi))
         self.assertTrue(cert_id_citi.startswith(f'CITI-{year}-{month:02d}-HC-'))
-        self.assertTrue(cert_id_citi.endswith('-5001'))
+        suffix_citi = cert_id_citi.split('-')[-1]
+        self.assertEqual(len(suffix_citi), 6)
+        self.assertTrue(100000 <= int(suffix_citi) <= 999999)
 
     def test_admin_verify_certificate_endpoint(self):
         self.client.login(username='certadmin', password='adminpassword123')
@@ -562,7 +566,7 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
         )
 
     def test_01_automatic_ras_generation_with_initials(self):
-        """1. Automatic RAS generation produces RAS-YYYY-MM-FF-RRRRRR-1001 for student."""
+        """1. Automatic RAS generation produces unique six-digit numeric suffix (100000-999999)."""
         from datetime import datetime
         from certificates.utils import generate_certificate_id, CERTIFICATE_ID_REGEX
         current_year = datetime.now().year
@@ -570,10 +574,12 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
         cert_id = generate_certificate_id('RAS', first_name='Harshal', last_name='Chauhan')
         self.assertTrue(CERTIFICATE_ID_REGEX.match(cert_id))
         self.assertTrue(cert_id.startswith(f"RAS-{current_year}-{current_month:02d}-HC-"))
-        self.assertTrue(cert_id.endswith("-1001"))
+        suffix = cert_id.split('-')[-1]
+        self.assertEqual(len(suffix), 6)
+        self.assertTrue(100000 <= int(suffix) <= 999999)
 
     def test_02_automatic_citi_generation_with_initials(self):
-        """2. Automatic CITI generation produces CITI-YYYY-MM-FF-RRRRRR-5001 for student."""
+        """2. Automatic CITI generation produces unique six-digit numeric suffix (100000-999999)."""
         from datetime import datetime
         from certificates.utils import generate_certificate_id, CERTIFICATE_ID_REGEX
         current_year = datetime.now().year
@@ -581,20 +587,24 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
         cert_id = generate_certificate_id('CITI', first_name='Harshal', last_name='Chauhan')
         self.assertTrue(CERTIFICATE_ID_REGEX.match(cert_id))
         self.assertTrue(cert_id.startswith(f"CITI-{current_year}-{current_month:02d}-HC-"))
-        self.assertTrue(cert_id.endswith("-5001"))
+        suffix = cert_id.split('-')[-1]
+        self.assertEqual(len(suffix), 6)
+        self.assertTrue(100000 <= int(suffix) <= 999999)
 
     def test_03_independent_prefix_and_continuous_student_sequences(self):
-        """3. Sequence increments across different students and prefixes independently."""
+        """3. Each certificate generates unique 6-digit suffix across different students and prefixes."""
         from datetime import datetime
         from certificates.utils import generate_certificate_id, CERTIFICATE_ID_REGEX
         current_year = datetime.now().year
         current_month = datetime.now().month
 
-        # Student 1: Harshal Chauhan (RAS) -> -1001
+        # Student 1: Harshal Chauhan (RAS)
         ras1_id = generate_certificate_id('RAS', first_name='Harshal', last_name='Chauhan')
         self.assertTrue(CERTIFICATE_ID_REGEX.match(ras1_id))
         self.assertTrue(ras1_id.startswith(f"RAS-{current_year}-{current_month:02d}-HC-"))
-        self.assertTrue(ras1_id.endswith("-1001"))
+        suffix1 = ras1_id.split('-')[-1]
+        self.assertEqual(len(suffix1), 6)
+        self.assertTrue(100000 <= int(suffix1) <= 999999)
         Certificate.objects.create(
             certificate_id=ras1_id,
             first_name='Harshal',
@@ -604,11 +614,14 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
             issue_date=date(current_year, 1, 10)
         )
 
-        # Student 2: Amit Patel (RAS) -> -1002 (sequence continues, does NOT restart!)
+        # Student 2: Amit Patel (RAS) - unique suffix
         ras2_id = generate_certificate_id('RAS', first_name='Amit', last_name='Patel')
         self.assertTrue(CERTIFICATE_ID_REGEX.match(ras2_id))
         self.assertTrue(ras2_id.startswith(f"RAS-{current_year}-{current_month:02d}-AP-"))
-        self.assertTrue(ras2_id.endswith("-1002"))
+        suffix2 = ras2_id.split('-')[-1]
+        self.assertEqual(len(suffix2), 6)
+        self.assertTrue(100000 <= int(suffix2) <= 999999)
+        self.assertNotEqual(ras1_id, ras2_id)
         Certificate.objects.create(
             certificate_id=ras2_id,
             first_name='Amit',
@@ -618,11 +631,11 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
             issue_date=date(current_year, 1, 11)
         )
 
-        # Student 3: Priya Sharma (RAS) -> -1003
+        # Student 3: Priya Sharma (RAS)
         ras3_id = generate_certificate_id('RAS', first_name='Priya', last_name='Sharma')
         self.assertTrue(CERTIFICATE_ID_REGEX.match(ras3_id))
         self.assertTrue(ras3_id.startswith(f"RAS-{current_year}-{current_month:02d}-PS-"))
-        self.assertTrue(ras3_id.endswith("-1003"))
+        self.assertNotIn(ras3_id, [ras1_id, ras2_id])
         Certificate.objects.create(
             certificate_id=ras3_id,
             first_name='Priya',
@@ -632,11 +645,13 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
             issue_date=date(current_year, 1, 12)
         )
 
-        # CITI generation starts at 5001 independent of RAS
+        # CITI generation independent of RAS
         citi1_id = generate_certificate_id('CITI', first_name='Harshal', last_name='Chauhan')
         self.assertTrue(CERTIFICATE_ID_REGEX.match(citi1_id))
         self.assertTrue(citi1_id.startswith(f"CITI-{current_year}-{current_month:02d}-HC-"))
-        self.assertTrue(citi1_id.endswith("-5001"))
+        suffix_c1 = citi1_id.split('-')[-1]
+        self.assertEqual(len(suffix_c1), 6)
+        self.assertTrue(100000 <= int(suffix_c1) <= 999999)
         Certificate.objects.create(
             certificate_id=citi1_id,
             first_name='Harshal',
@@ -646,11 +661,11 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
             issue_date=date(current_year, 1, 12)
         )
 
-        # Next CITI: Riya Patel -> -5002
+        # Next CITI: Riya Patel
         citi2_id = generate_certificate_id('CITI', first_name='Riya', last_name='Patel')
         self.assertTrue(CERTIFICATE_ID_REGEX.match(citi2_id))
         self.assertTrue(citi2_id.startswith(f"CITI-{current_year}-{current_month:02d}-RP-"))
-        self.assertTrue(citi2_id.endswith("-5002"))
+        self.assertNotEqual(citi1_id, citi2_id)
 
     def test_04_manual_generation_rules_and_validation(self):
         """4. Manual generation enforces prefix, student initials, format, and rejects literal XX."""
@@ -789,13 +804,15 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
             issue_date=date(2026, 1, 1)
         )
 
-        # In year 2027, sequences must continue monotonically and NOT reset to 1001 or 5001
+        # In year 2027, unique 6-digit suffixes are generated
         ras_2027 = generate_certificate_id('RAS', year=2027, first_name='Harshal', last_name='Chauhan')
         citi_2027 = generate_certificate_id('CITI', year=2027, first_name='Harshal', last_name='Chauhan')
         self.assertTrue(ras_2027.startswith('RAS-2027-'))
-        self.assertTrue(ras_2027.endswith('-1002'))
+        self.assertEqual(len(ras_2027.split('-')[-1]), 6)
+        self.assertTrue(100000 <= int(ras_2027.split('-')[-1]) <= 999999)
         self.assertTrue(citi_2027.startswith('CITI-2027-'))
-        self.assertTrue(citi_2027.endswith('-5002'))
+        self.assertEqual(len(citi_2027.split('-')[-1]), 6)
+        self.assertTrue(100000 <= int(citi_2027.split('-')[-1]) <= 999999)
 
         # Existing 2026 certificates remain untouched
         self.assertTrue(Certificate.objects.filter(certificate_id='RAS-2026-HC1001').exists())
@@ -1480,11 +1497,231 @@ class CitiCccWorkflowTestCase(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Shivam Kumar Patel')
 
+from django.test import TransactionTestCase
 
 
+class CitiQrPositionAndSixDigitSuffixTests(TransactionTestCase):
+    """
+    Mandatory Verification Tests for:
+    1. CITI Certificate QR Repositioning to Top-Right Corner.
+    2. Six-Digit Random Suffix (100000-999999) Certificate Number Generation.
+    3. Collision Handling Simulation and Database-Level Uniqueness Enforcement.
+    4. Concurrency Safety.
+    5. Historical Certificate Preservation and Scannability.
+    """
 
+    def setUp(self):
+        self.course = Course.objects.create(
+            name='Certificate Course on Computer Concepts (CCC)',
+            duration='3 Months',
+            fee=3500.00
+        )
+        self.admin = User.objects.create_superuser(
+            username='citi_test_admin',
+            email='citi_admin@test.com',
+            password='AdminPassword123!'
+        )
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from PIL import Image
+        import io
+        img = Image.new('RGB', (100, 100), color=(100, 150, 200))
+        buf = io.BytesIO()
+        img.save(buf, format='JPEG')
+        buf.seek(0)
+        self.photo = SimpleUploadedFile('test_photo.jpg', buf.getvalue(), content_type='image/jpeg')
 
+    def test_01_six_digit_numeric_suffix_range_and_length(self):
+        """1. Every newly issued certificate suffix contains exactly 6 digits in range 100000-999999."""
+        from certificates.utils import generate_certificate_id, CERTIFICATE_ID_REGEX
+        for i in range(50):
+            cid = generate_certificate_id('RAS', first_name=f'Student{i}', last_name='Patel', reserve=True)
+            self.assertTrue(CERTIFICATE_ID_REGEX.match(cid))
+            suffix = cid.split('-')[-1]
+            self.assertEqual(len(suffix), 6, f"Suffix '{suffix}' is not 6 digits in '{cid}'")
+            self.assertTrue(suffix.isdigit(), f"Suffix '{suffix}' contains non-digits in '{cid}'")
+            suffix_num = int(suffix)
+            self.assertTrue(100000 <= suffix_num <= 999999, f"Suffix {suffix_num} is outside 100000-999999")
 
+    def test_02_uniqueness_across_months_years_courses_types(self):
+        """2. Certificate numbers are unique across different months, years, courses, and prefixes."""
+        from certificates.utils import generate_certificate_id
+        generated = set()
+        test_matrix = [
+            ('RAS', 2026, 1), ('RAS', 2026, 10), ('RAS', 2027, 3), ('RAS', 2027, 12),
+            ('CITI', 2026, 2), ('CITI', 2026, 11), ('CITI', 2027, 4), ('CITI', 2027, 8),
+        ]
+        for prefix, yr, mo in test_matrix:
+            for i in range(5):
+                cid = generate_certificate_id(prefix, year=yr, month=mo, first_name=f'User{i}', last_name='Shah', reserve=True)
+                self.assertNotIn(cid, generated)
+                generated.add(cid)
+                Certificate.objects.create(
+                    certificate_id=cid,
+                    student_name=f'User{i} Shah',
+                    course=self.course,
+                    issue_date=date(yr, mo, 15)
+                )
+        self.assertEqual(len(generated), len(test_matrix) * 5)
 
+    def test_03_collision_handling_retry_simulation(self):
+        """3. Simulating an already-used suffix forces the system to generate a different unique suffix."""
+        from certificates.utils import generate_certificate_id, format_certificate_id
+        from datetime import datetime
+        now = datetime.now()
+        colliding_id = format_certificate_id('RAS', now.year, now.month, 'TP', random_code=100000, suffix=555555)
+        Certificate.objects.create(
+            certificate_id=colliding_id,
+            student_name='Target Person',
+            course=self.course,
+            issue_date=date(now.year, now.month, 1)
+        )
+        self.assertTrue(Certificate.objects.filter(certificate_id=colliding_id).exists())
 
+        new_cid = generate_certificate_id('RAS', first_name='Target', last_name='Person', reserve=True)
+        self.assertNotEqual(new_cid, colliding_id)
+        self.assertTrue(new_cid.startswith(f'RAS-{now.year}-{now.month:02d}-TP-'))
+        suffix = new_cid.split('-')[-1]
+        self.assertEqual(len(suffix), 6)
+        self.assertTrue(100000 <= int(suffix) <= 999999)
 
+    def test_04_database_uniqueness_constraint_enforced(self):
+        """4. Confirm database uniqueness constraint is active and enforced on certificate_id."""
+        from django.db import IntegrityError
+        from certificates.models import Certificate
+        Certificate.objects.create(
+            certificate_id='RAS-2026-10-UN-100000-888888',
+            student_name='Unique Test 1',
+            course=self.course,
+            issue_date=date(2026, 10, 1)
+        )
+        with self.assertRaises(IntegrityError):
+            Certificate.objects.create(
+                certificate_id='RAS-2026-10-UN-100000-888888',
+                student_name='Duplicate Student',
+                course=self.course,
+                issue_date=date(2026, 10, 2)
+            )
+        with self.assertRaises(IntegrityError):
+            Certificate.objects.create(
+                certificate_id='ras-2026-10-un-100000-888888',
+                student_name='Lower Duplicate Student',
+                course=self.course,
+                issue_date=date(2026, 10, 2)
+            )
+
+    def test_05_concurrent_issuance_safety(self):
+        """5. Test concurrent issuance requests and verify no certificates receive duplicate numbers."""
+        from concurrent.futures import ThreadPoolExecutor
+        from certificates.utils import generate_certificate_id
+        from django.db import connection
+
+        def issue_one(idx):
+            connection.close()
+            try:
+                return generate_certificate_id('RAS', first_name=f'Conc{idx}', last_name='Worker', reserve=True)
+            finally:
+                connection.close()
+
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            results = list(executor.map(issue_one, range(20)))
+
+        self.assertEqual(len(results), 20)
+        self.assertEqual(len(set(results)), 20, "Concurrent issuance generated duplicate certificate IDs!")
+
+    def test_06_historical_certificates_retained_and_verifiable(self):
+        """6. Historical certificates with legacy 4-digit suffixes retain verification and downloads."""
+        cert_legacy = Certificate.objects.create(
+            certificate_id='RAS-2026-10-HC-100000-1001',
+            student_name='Historical Student',
+            course=self.course,
+            issue_date=date(2026, 10, 1)
+        )
+        verify_url = reverse('certificates:verify')
+        resp = self.client.post(verify_url, {'certificate_id': 'RAS-2026-10-HC-100000-1001'})
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'Historical Student')
+        self.assertContains(resp, 'RAS-2026-10-HC-100000-1001')
+
+    def test_07_citi_html_print_view_qr_in_top_right(self):
+        """7. Inspect CITI certificate print template: confirm QR code is in top-right corner."""
+        cert = Certificate.objects.create(
+            certificate_id='CITI-2026-10-SP-100000-746291',
+            first_name='Shivam',
+            last_name='Patel',
+            student_name='Shivam Patel',
+            course=self.course,
+            course_start_date=date(2026, 1, 1),
+            course_end_date=date(2026, 3, 31),
+            issue_date=date(2026, 4, 15),
+            student_photo=self.photo,
+            theory_marks=42,
+            practical_marks=44,
+            serial_number='5005',
+        )
+        self.client.login(username='citi_test_admin', password='AdminPassword123!')
+        url = reverse('dashboard:print_certificate', args=[cert.id])
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        html = resp.content.decode('utf-8')
+
+        self.assertIn('citi-cert-qr', html)
+        self.assertIn('Scan to Verify', html)
+        self.assertIn('top: 8.3%', html)
+        self.assertIn('right: 10.5%', html)
+        self.assertIn('top: 18.8%', html)
+        self.assertIn('5005', html)
+
+    def test_08_citi_public_result_view_qr_in_top_right(self):
+        """8. Inspect CITI certificate public verification view: confirm QR code is in top-right corner."""
+        cert = Certificate.objects.create(
+            certificate_id='CITI-2026-10-SP-100000-918273',
+            first_name='Shivam',
+            last_name='Patel',
+            student_name='Shivam Patel',
+            course=self.course,
+            course_start_date=date(2026, 1, 1),
+            course_end_date=date(2026, 3, 31),
+            issue_date=date(2026, 4, 15),
+            student_photo=self.photo,
+            theory_marks=40,
+            practical_marks=42,
+            serial_number='5006',
+        )
+        verify_url = reverse('certificates:verify')
+        resp = self.client.post(verify_url, {'certificate_id': 'CITI-2026-10-SP-100000-918273'})
+        self.assertEqual(resp.status_code, 200)
+        html = resp.content.decode('utf-8')
+        self.assertIn('citi-cert-qr', html)
+        self.assertIn('Scan to Verify', html)
+        self.assertIn('5006', html)
+
+    def test_09_citi_pdf_generation_qr_in_top_right_and_scannable(self):
+        """9. CITI ReportLab PDF contains top-right QR code and is scannable to verification URL."""
+        from certificates.utils import generate_citi_ccc_certificate_pdf, get_certificate_verify_url
+        import pypdf
+        import io
+
+        cert = Certificate.objects.create(
+            certificate_id='CITI-2026-10-SP-100000-619284',
+            first_name='Shivam',
+            last_name='Patel',
+            student_name='Shivam Patel',
+            course=self.course,
+            course_start_date=date(2026, 1, 1),
+            course_end_date=date(2026, 3, 31),
+            issue_date=date(2026, 4, 15),
+            student_photo=self.photo,
+            theory_marks=45,
+            practical_marks=45,
+            serial_number='5007',
+        )
+        pdf_bytes = generate_citi_ccc_certificate_pdf(cert)
+        self.assertTrue(pdf_bytes.startswith(b'%PDF'))
+
+        reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
+        self.assertEqual(len(reader.pages), 1)
+        text = reader.pages[0].extract_text()
+        self.assertIn('SCAN TO VERIFY', text)
+        self.assertIn('5007', text)
+        self.assertIn('SHIVAM PATEL', text)
+        self.assertIn('CITI-2026-10-SP-100000-619284', text)

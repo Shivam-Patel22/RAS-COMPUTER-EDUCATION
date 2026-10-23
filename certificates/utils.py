@@ -6,7 +6,15 @@ from django.db import transaction, IntegrityError
 
 _cert_gen_lock = threading.Lock()
 
-CERTIFICATE_ID_REGEX = re.compile(r'^(RAS|CITI)-\d{4}-(0[1-9]|1[0-2])-[A-Z]{2}-[1-9]\d{5}-\d{4}$')
+CERTIFICATE_ID_REGEX = re.compile(r'^(RAS|CITI)-\d{4}-(0[1-9]|1[0-2])-[A-Z]{2}-[1-9]\d{5}-(\d{6}|\d{4})$')
+
+
+def generate_six_digit_suffix():
+    """
+    Generates a cryptographically secure 6-digit numeric suffix in the inclusive range 100000-999999.
+    Uses Python's secrets module (backed by os.urandom) to guarantee unguessability and high entropy.
+    """
+    return secrets.randbelow(900000) + 100000
 
 
 class SequenceExhaustedError(Exception):
@@ -57,19 +65,19 @@ def extract_recipient_initials(first_name="", last_name="", student_name=""):
     return f"{f_char}{l_char}"
 
 
-def format_certificate_id(prefix, year, month, initials, random_code, sequence):
+def format_certificate_id(prefix, year, month, initials, random_code=100000, sequence=None, suffix=None):
     """
-    Formats the authoritative Certificate ID according to the exact standard:
-    PREFIX-YYYY-MM-FF-RRRRRR-SSSS
+    Formats the authoritative Certificate ID according to the standard:
+    PREFIX-YYYY-MM-FF-100000-SSSSSS (or legacy -SSSS)
     Example:
-    RAS-2026-10-DV-482716-1001
+    RAS-2026-10-FL-100000-483271
 
     - PREFIX: Selected certificate class (RAS or CITI)
     - YYYY: Current four-digit year
     - MM: Current two-digit month (01-12)
     - FF: Recipient initials (two uppercase letters)
-    - RRRRRR: Unique six-digit numeric code (100000-999999)
-    - SSSS: Four-digit sequence per prefix (1001-9999)
+    - RRRRRR: Six-digit numeric segment (100000-999999, default: 100000)
+    - SSSSSS: Six-digit numeric suffix (100000-999999) or legacy 4-digit sequence (1000-9999)
     """
     clean_prefix = str(prefix).strip().upper() if prefix else "RAS"
     if clean_prefix not in ('RAS', 'CITI'):
@@ -94,20 +102,27 @@ def format_certificate_id(prefix, year, month, initials, random_code, sequence):
         raise ValueError(f"Invalid recipient initials '{clean_initials}'. Must be exactly 2 letters.")
 
     try:
-        r_int = int(random_code)
+        r_int = int(random_code) if random_code is not None else 100000
         if not (100000 <= r_int <= 999999):
             raise ValueError()
     except (ValueError, TypeError):
         raise ValueError(f"Invalid random code '{random_code}'. Must be a 6-digit number between 100000 and 999999.")
 
+    target_suffix = suffix if suffix is not None else sequence
+    if target_suffix is None:
+        target_suffix = 100000
+
     try:
-        s_int = int(sequence)
-        if not (1000 <= s_int <= 9999):
+        s_int = int(target_suffix)
+        if not ((1000 <= s_int <= 9999) or (100000 <= s_int <= 999999)):
             raise ValueError()
     except (ValueError, TypeError):
-        raise ValueError(f"Invalid sequence number '{sequence}'. Must be a 4-digit number between 1000 and 9999.")
+        raise ValueError(f"Invalid suffix/sequence number '{target_suffix}'. Must be a 6-digit number (100000-999999) or 4-digit sequence (1000-9999).")
 
-    formatted_id = f"{clean_prefix}-{y_int:04d}-{m_int:02d}-{clean_initials}-{r_int:06d}-{s_int:04d}"
+    if s_int >= 100000:
+        formatted_id = f"{clean_prefix}-{y_int:04d}-{m_int:02d}-{clean_initials}-{r_int:06d}-{s_int:06d}"
+    else:
+        formatted_id = f"{clean_prefix}-{y_int:04d}-{m_int:02d}-{clean_initials}-{r_int:06d}-{s_int:04d}"
 
     if not CERTIFICATE_ID_REGEX.match(formatted_id):
         raise ValueError(f"Formatted certificate ID '{formatted_id}' failed standard pattern verification.")
@@ -268,17 +283,32 @@ def allocate_unique_random_code(certificate_id="", max_retries=20):
     raise RandomCodeExhaustedError("Unable to allocate a unique random code after multiple collision retries. Please try again.")
 
 
-def generate_certificate_id(prefix="RAS", year=None, month=None, first_name="", last_name="", student_name="", initials=None, reserve=True, *args, **kwargs):
+def generate_certificate_id(
+    prefix="RAS",
+    year=None,
+    month=None,
+    first_name="",
+    last_name="",
+    student_name="",
+    initials=None,
+    reserve=True,
+    sequence=None,
+    suffix=None,
+    *args,
+    **kwargs
+):
     """
     Authoritative Certificate ID generator following:
-    PREFIX-YYYY-MM-FF-RRRRRR-SSSS
+    PREFIX-YYYY-MM-FF-100000-SSSSSS
     Example:
-    RAS-2026-10-DV-482716-1001
+    RAS-2026-10-FL-100000-483271
 
-    - If reserve=True (default during actual certificate issuance):
-      Atomically increments the prefix sequence and allocates a permanent random code.
-    - If reserve=False (preview mode):
-      Peeks at next sequence and uses a non-persisted preview code without consuming sequence or registry allocations.
+    - Every newly issued certificate (reserve=True) receives a unique,
+      cryptographically secure six-digit numeric suffix (100000-999999).
+    - Database uniqueness is checked and collisions are automatically resolved by regenerating the suffix.
+    - If sequence or suffix is explicitly provided (e.g. for testing/backward-compat),
+      it is respected.
+    - If reserve=False (preview mode), returns a preview ID with a 6-digit preview suffix.
     """
     clean_prefix = str(prefix).strip().upper() if prefix else "RAS"
     if clean_prefix not in ('RAS', 'CITI'):
@@ -321,22 +351,52 @@ def generate_certificate_id(prefix="RAS", year=None, month=None, first_name="", 
         else:
             initials = "XX"
 
+    random_code = kwargs.get('random_code')
+    target_suffix = suffix if suffix is not None else sequence
+
     if reserve:
         with _cert_gen_lock:
             from .models import Certificate, CertificateRandomCodeRegistry
             max_retries = 100
             for attempt in range(max_retries):
-                seq = reserve_next_certificate_sequence(clean_prefix)
-                random_code = allocate_unique_random_code()
-                cert_id = format_certificate_id(clean_prefix, year, month, initials, random_code, seq)
+                if target_suffix is not None and attempt == 0:
+                    curr_suffix = target_suffix
+                else:
+                    curr_suffix = generate_six_digit_suffix()
+
+                if random_code is not None:
+                    curr_random_code = random_code
+                else:
+                    try:
+                        curr_random_code = allocate_unique_random_code()
+                    except Exception:
+                        curr_random_code = 100000
+
+                cert_id = format_certificate_id(
+                    clean_prefix, year, month, initials,
+                    random_code=curr_random_code,
+                    suffix=curr_suffix
+                )
                 if not Certificate.objects.filter(certificate_id__iexact=cert_id).exists():
-                    CertificateRandomCodeRegistry.objects.filter(code=random_code).update(certificate_id=cert_id, status='active')
+                    CertificateRandomCodeRegistry.objects.filter(code=str(curr_random_code)).update(
+                        certificate_id=cert_id,
+                        status='active'
+                    )
                     return cert_id
+
             raise SequenceExhaustedError("Unable to allocate a unique Certificate ID after multiple collision attempts.")
     else:
-        seq = peek_next_certificate_sequence(clean_prefix)
-        preview_code = 100000
-        return format_certificate_id(clean_prefix, year, month, initials, preview_code, seq)
+        if target_suffix is not None:
+            preview_suffix = target_suffix
+        else:
+            preview_suffix = peek_next_certificate_sequence(clean_prefix)
+
+        preview_random_code = random_code if random_code is not None else 100000
+        return format_certificate_id(
+            clean_prefix, year, month, initials,
+            random_code=preview_random_code,
+            suffix=preview_suffix
+        )
 
 
 def preview_certificate_id(prefix="RAS", year=None, month=None, first_name="", last_name="", student_name="", initials=None):
@@ -416,7 +476,7 @@ def validate_certificate_id_format(cert_id, prefix=None, expected_initials=None,
         elif len(parts) >= 3 and parts[0] == 'CERT':
             return True, None
 
-    return False, "Certificate ID must follow the format 'PREFIX-YYYY-MM-FF-RRRRRR-SSSS' (e.g. RAS-2026-10-DV-482716-1001)."
+    return False, "Certificate ID must follow the format 'PREFIX-YYYY-MM-FF-100000-SSSSSS' (e.g. RAS-2026-10-FL-100000-483271)."
 
 
 
@@ -898,14 +958,39 @@ def generate_citi_ccc_certificate_pdf(cert, request=None):
     c.setLineWidth(0.8)
     c.rect(photo_x, photo_y, photo_w, photo_h, fill=False, stroke=True)
 
-    # 3. Serial Number (right edge at about 87.7% of page width, y 14.4% from top, bold, ~12 pt)
+    # 3. Dynamic Scannable QR Code (Top-Right Corner, symmetrical to Student Photo: top 8.3%, right 10.5%)
+    qr_verify_url = get_certificate_verify_url(cert, request=request)
+    qr_size = 52
+    qr_x = width * (1 - 0.105) - qr_size
+    qr_y = height * (1 - 0.083) - qr_size
+    try:
+        from PIL import Image
+        from reportlab.lib.utils import ImageReader
+        qr_img = generate_qr_code_image(qr_verify_url, box_size=4, border=1)
+        qr_buf = io.BytesIO()
+        qr_img.save(qr_buf, format='PNG')
+        qr_buf.seek(0)
+
+        c.setFillColor(colors.white)
+        c.setStrokeColor(colors.HexColor('#CBD5E1'))
+        c.setLineWidth(0.8)
+        c.roundRect(qr_x - 3, qr_y - 9, qr_size + 6, qr_size + 12, 3, fill=True, stroke=True)
+        c.drawImage(ImageReader(qr_buf), qr_x, qr_y, width=qr_size, height=qr_size)
+
+        c.setFont('Helvetica-Bold', 5)
+        c.setFillColor(colors.HexColor('#475569'))
+        c.drawCentredString(qr_x + (qr_size / 2.0), qr_y - 6.5, 'SCAN TO VERIFY')
+    except Exception:
+        pass
+
+    # 4. Serial Number (right side under QR code, centered with QR card, y 18.8% from top, bold, ~12 pt)
     serial_val = (cert.serial_number or '').strip()
     if not serial_val and cert.certificate_id and '-' in cert.certificate_id:
         serial_val = cert.certificate_id.split('-')[-1]
     if serial_val:
         c.setFillColor(colors.black)
         c.setFont('Helvetica-Bold', 12)
-        c.drawRightString(width * 0.877, height * (1 - 0.144) - (12 * 0.35), serial_val)
+        c.drawCentredString(qr_x + (qr_size / 2.0), height * (1 - 0.188) - (12 * 0.35), serial_val)
 
     # Center axis: x = 51% of page width
     center_x = width * 0.51
@@ -1012,32 +1097,6 @@ def generate_citi_ccc_certificate_pdf(cert, request=None):
     if date_str:
         c.drawString(left_dp_x, height * (1 - 0.908) - (14 * 0.35), f"Date  : {date_str}")
     c.drawString(left_dp_x, height * (1 - 0.929) - (14 * 0.35), "Place: Gandhinagar")
-
-    # Dynamic Scannable QR Code centered horizontally at x 51%, y 88.5%
-    qr_verify_url = get_certificate_verify_url(cert, request=request)
-    try:
-        from PIL import Image
-        from reportlab.lib.utils import ImageReader
-        qr_img = generate_qr_code_image(qr_verify_url, box_size=4, border=1)
-        qr_buf = io.BytesIO()
-        qr_img.save(qr_buf, format='PNG')
-        qr_buf.seek(0)
-
-        qr_size = 52
-        qr_x = center_x - (qr_size / 2)
-        qr_y = height * (1 - 0.885) - (qr_size / 2)
-
-        c.setFillColor(colors.white)
-        c.setStrokeColor(colors.HexColor('#CBD5E1'))
-        c.setLineWidth(0.8)
-        c.roundRect(qr_x - 3, qr_y - 9, qr_size + 6, qr_size + 12, 3, fill=True, stroke=True)
-        c.drawImage(ImageReader(qr_buf), qr_x, qr_y, width=qr_size, height=qr_size)
-
-        c.setFont('Helvetica-Bold', 5)
-        c.setFillColor(colors.HexColor('#475569'))
-        c.drawCentredString(center_x, qr_y - 6.5, 'SCAN TO VERIFY')
-    except Exception:
-        pass
 
     c.save()
     buf.seek(0)

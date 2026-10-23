@@ -277,17 +277,25 @@
         display: block;
     }
 
+    .citi-cert-qr {
+        position: absolute;
+        top: 8.3%;
+        right: 10.5%;
+        z-index: 3;
+        text-align: center;
+    }
+
     .citi-cert-serial {
         position: absolute;
-        right: 12.3%;
-        top: 14.4%;
+        right: 10.5%;
+        top: 18.8%;
         transform: translateY(-50%);
         font-weight: bold;
         font-size: 2.02cqw;
         color: #000000;
         z-index: 2;
         white-space: nowrap;
-        text-align: right;
+        text-align: center;
         line-height: 1;
     }
 
@@ -461,7 +469,19 @@
             print-color-adjust: exact !important;
         }
 
-        .citi-cert-serial { font-size: 12pt !important; }
+        .citi-cert-qr {
+            position: absolute !important;
+            top: 8.3% !important;
+            right: 10.5% !important;
+            z-index: 3 !important;
+        }
+        .citi-cert-serial {
+            position: absolute !important;
+            top: 18.8% !important;
+            right: 10.5% !important;
+            font-size: 12pt !important;
+            text-align: center !important;
+        }
         .citi-cert-certify { font-size: 13.5pt !important; }
         .citi-cert-name { font-size: 19pt !important; }
         .citi-cert-completed { font-size: 13.5pt !important; }
@@ -570,7 +590,17 @@
                 {% endif %}
             </div>
 
-            <!-- 2. Serial Number (top right, x: 87.7%, y: 14.4%) -->
+            <!-- Dynamic Scannable QR Code (Top-Right Corner, x: 89.5%, y: 8.3%) -->
+            <div class="citi-cert-qr">
+                {% if qr_data_uri %}
+                <div style="background: #ffffff; padding: 3px; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: inline-block;">
+                    <img src="{{ qr_data_uri }}" alt="Scan to Verify" style="width: 4.5cqw; height: 4.5cqw; min-width: 48px; min-height: 48px; max-width: 62px; max-height: 62px; object-fit: contain; display: block; margin: 0 auto;">
+                    <span style="font-size: 0.62cqw; font-weight: 700; color: #475569; letter-spacing: 0.4px; text-transform: uppercase; display: block; margin-top: 2px;">Scan to Verify</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 2. Serial Number (top right under QR code, right: 10.5%, y: 18.8%) -->
             <div class="citi-cert-serial">{{ certificate.serial_number|default:"" }}</div>
 
             <!-- 3. Centered Content Lines on Axis x: 51% -->
@@ -606,14 +636,6 @@
 
             <!-- Verification Line -->
             <div class="citi-cert-line citi-cert-verify">This Certificate can be verified on {{ certificate_verify_url }}</div>
-
-            <!-- Dynamic Scannable QR Code (Bottom Center, x: 51%, y: 88.5%) -->
-            <div class="citi-cert-line citi-cert-qr" style="top: 88.5%; text-align: center;">
-                {% if qr_data_uri %}
-                <img src="{{ qr_data_uri }}" alt="Scan to Verify" style="width: 4.5cqw; height: 4.5cqw; min-width: 50px; min-height: 50px; max-width: 65px; max-height: 65px; object-fit: contain; background: #ffffff; padding: 2px; border: 1px solid #cbd5e1; border-radius: 3px; display: block; margin: 0 auto;">
-                <span style="font-size: 0.65cqw; font-weight: 700; color: #475569; letter-spacing: 0.4px; text-transform: uppercase; display: block; margin-top: 2px;">Scan to Verify</span>
-                {% endif %}
-            </div>
 
             {% if certificate.is_revoked %}
             <div class="revoked-overlay-watermark">REVOKED</div>
