@@ -66,8 +66,8 @@
 <section id="reviews" class="container" style="margin-bottom: 3.5rem; padding-top: 1.5rem; padding-bottom: 1.5rem; scroll-margin-top: 100px;">
     <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; border-bottom: 2px solid var(--gray-200); padding-bottom: 1rem;">
         <div>
-            <span style="display: inline-block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #ff5a00; margin-bottom: 0.35rem;">Verified Student Feedback</span>
-            <h2 style="font-size: 1.85rem; margin: 0; color: var(--gray-900);">Reviews from <span style="color: var(--primary);">Justdial &amp; Google</span></h2>
+            <span style="display: inline-block; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #ff5a00; margin-bottom: 0.35rem;">Customer Reviews</span>
+            <h2 style="font-size: 1.85rem; margin: 0; color: var(--gray-900);">What Our Students Say <span style="font-size: 1.15rem; font-weight: 600; color: var(--gray-600);">(Reviews from <span style="color: var(--primary);">Justdial &amp; Google</span>)</span></h2>
             <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem; flex-wrap: wrap;">
                 <span style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.95rem; font-weight: 700; color: var(--gray-900);">
                     <span style="color: #fbbc04; font-size: 1.15rem; letter-spacing: 2px;">★★★★★</span>
@@ -92,8 +92,8 @@
             </a>
             {% endif %}
             {% if justdial_page_url %}
-            <a href="{{ justdial_page_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1.1rem; font-size: 0.88rem; text-decoration: none;">
-                <span>View all on Justdial &rarr;</span>
+            <a href="{{ justdial_page_url }}" target="_blank" rel="noopener noreferrer" id="justdial-all-reviews-link" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1.1rem; font-size: 0.88rem; text-decoration: none;">
+                <span>Read More Reviews on Justdial &rarr;</span>
             </a>
             {% endif %}
         </div>

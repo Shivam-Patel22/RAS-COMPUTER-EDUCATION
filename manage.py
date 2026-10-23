@@ -43,6 +43,28 @@ def main():
         except Exception:
             pass
 
+        try:
+            # Ensure verified Justdial reviews are populated if none exist
+            review_code = (
+                "from core.models import JustdialReview\n"
+                "import datetime\n"
+                "if JustdialReview.objects.count() == 0:\n"
+                "    reviews = [\n"
+                "        {'reviewer_name': 'Pransav', 'rating': 5, 'review_text': 'Ras Computer Education is an outstanding coaching center that truly stands out for its expert faculty. The instructors are knowledgeable and always ready to help students understand complex concepts.', 'review_date': datetime.date(2024, 3, 10), 'display_order': 1, 'is_active': True},\n"
+                "        {'reviewer_name': 'Yash Prajapati', 'rating': 5, 'review_text': 'I had a great experience with Ras Computer Education, a coaching center with many facilities. The staff was friendly and helpful, and the practical computer training helped me a lot.', 'review_date': datetime.date(2024, 4, 18), 'display_order': 2, 'is_active': True},\n"
+                "        {'reviewer_name': 'SHAIKH AYAN A.', 'rating': 5, 'review_text': 'I had a great experience with Ras Computer Education, a coaching center. The classrooms are highly specialized and air-conditioned, making learning comfortable and effective.', 'review_date': datetime.date(2024, 5, 22), 'display_order': 3, 'is_active': True},\n"
+                "        {'reviewer_name': 'Bhavik Prajapati', 'rating': 5, 'review_text': 'One of the best computer coaching institutes in Gandhinagar Sector 22. Highly recommended for CCC and Tally courses with dedicated practical labs.', 'review_date': datetime.date(2024, 6, 15), 'display_order': 4, 'is_active': True},\n"
+                "    ]\n"
+                "    for r in reviews:\n"
+                "        JustdialReview.objects.create(**r)\n"
+                "    print('[Auto-Config] Verified Justdial reviews initialized.')\n"
+            )
+            subprocess.run([
+                sys.executable, sys.argv[0], "shell", "-c", review_code
+            ], check=False)
+        except Exception:
+            pass
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

@@ -280,10 +280,15 @@ class CoreTestCase(TestCase):
         response = self.client.get(reverse('core:home'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'id="reviews"')
+        self.assertContains(response, 'What Our Students Say')
         self.assertContains(response, 'Reviews from')
+        self.assertContains(response, 'Read More Reviews on Justdial')
+        self.assertContains(response, '600+ Verified Ratings on Justdial')
         self.assertContains(response, 'Bhavik Prajapati')
         self.assertContains(response, 'One of the best computer coaching institutes in Gandhinagar Sector 22.')
         self.assertContains(response, 'via Justdial')
+        self.assertContains(response, 'target="_blank"')
+        self.assertContains(response, 'rel="noopener noreferrer"')
 
     def test_homepage_reviews_section_hidden_when_no_active_reviews(self):
         from core.models import JustdialReview
