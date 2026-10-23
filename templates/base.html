@@ -163,8 +163,6 @@
                     <a href="{% url 'dashboard:index' %}" class="btn btn-outline btn-sm" style="font-weight: 600; white-space: nowrap; border-color: var(--primary); color: var(--primary);" title="Staff Admin Dashboard">Admin Panel</a>
                 {% elif request.user.is_authenticated %}
                     <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline btn-sm" style="font-weight: 600; white-space: nowrap;" title="Student Dashboard">My Portal</a>
-                {% else %}
-                    <a href="{% url 'accounts:login' %}" class="btn btn-outline btn-sm" style="font-weight: 600; white-space: nowrap;" title="Student Sign In">Sign In</a>
                 {% endif %}
             </div>
         </div>
