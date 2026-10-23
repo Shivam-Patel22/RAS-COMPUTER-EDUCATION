@@ -68,16 +68,17 @@ def extract_recipient_initials(first_name="", last_name="", student_name=""):
 def format_certificate_id(prefix, year, month, initials, random_code=100000, sequence=None, suffix=None):
     """
     Formats the authoritative Certificate ID according to the standard:
-    PREFIX-YYYY-MM-FF-100000-SSSSSS (or legacy -SSSS)
+    PREFIX-YYYY-MM-FL-XXXXXX-SERIAL
     Example:
-    RAS-2026-10-FL-100000-483271
+    RAS-2026-10-SP-483271-1001
+    CITI-2026-10-SP-728194-5001
 
     - PREFIX: Selected certificate class (RAS or CITI)
     - YYYY: Current four-digit year
     - MM: Current two-digit month (01-12)
-    - FF: Recipient initials (two uppercase letters)
-    - RRRRRR: Six-digit numeric segment (100000-999999, default: 100000)
-    - SSSSSS: Six-digit numeric suffix (100000-999999) or legacy 4-digit sequence (1000-9999)
+    - FL: Recipient initials (two uppercase letters)
+    - XXXXXX: Six-digit random numeric code (100000-999999, unique across all certificates)
+    - SERIAL: Institute sequential counter (RAS: 1001, 1002...; CITI: 5001, 5002...)
     """
     clean_prefix = str(prefix).strip().upper() if prefix else "RAS"
     if clean_prefix not in ('RAS', 'CITI'):
@@ -108,21 +109,21 @@ def format_certificate_id(prefix, year, month, initials, random_code=100000, seq
     except (ValueError, TypeError):
         raise ValueError(f"Invalid random code '{random_code}'. Must be a 6-digit number between 100000 and 999999.")
 
-    target_suffix = suffix if suffix is not None else sequence
-    if target_suffix is None:
-        target_suffix = 100000
+    target_seq = sequence if sequence is not None else suffix
+    if target_seq is None:
+        target_seq = 1001 if clean_prefix == 'RAS' else 5001
 
     try:
-        s_int = int(target_suffix)
+        s_int = int(target_seq)
         if not ((1000 <= s_int <= 9999) or (100000 <= s_int <= 999999)):
             raise ValueError()
     except (ValueError, TypeError):
-        raise ValueError(f"Invalid suffix/sequence number '{target_suffix}'. Must be a 6-digit number (100000-999999) or 4-digit sequence (1000-9999).")
+        raise ValueError(f"Invalid suffix/sequence number '{target_seq}'. Must be a 4-digit sequence (1000-9999) or 6-digit number.")
 
-    if s_int >= 100000:
-        formatted_id = f"{clean_prefix}-{y_int:04d}-{m_int:02d}-{clean_initials}-{r_int:06d}-{s_int:06d}"
-    else:
+    if s_int < 10000:
         formatted_id = f"{clean_prefix}-{y_int:04d}-{m_int:02d}-{clean_initials}-{r_int:06d}-{s_int:04d}"
+    else:
+        formatted_id = f"{clean_prefix}-{y_int:04d}-{m_int:02d}-{clean_initials}-{r_int:06d}-{s_int:06d}"
 
     if not CERTIFICATE_ID_REGEX.match(formatted_id):
         raise ValueError(f"Formatted certificate ID '{formatted_id}' failed standard pattern verification.")
@@ -254,20 +255,25 @@ def get_next_certificate_sequence(prefix="RAS", year=None):
     return peek_next_certificate_sequence(prefix=prefix)
 
 
-def allocate_unique_random_code(certificate_id="", max_retries=20):
+def allocate_unique_random_code(certificate_id="", max_retries=100):
     """
     Allocates a cryptographically secure, globally unique six-digit numeric code (100000-999999).
     Persists the code in CertificateRandomCodeRegistry with database-level uniqueness.
-    Never releases or reuses previously allocated codes, including after deletion or cancellation.
+    Never releases or reuses previously allocated codes, across both RAS and CITI.
     Safely retries on collision. If 900,000 values are exhausted, raises RandomCodeExhaustedError.
     """
-    from .models import CertificateRandomCodeRegistry
+    from .models import Certificate, CertificateRandomCodeRegistry
 
     if CertificateRandomCodeRegistry.objects.count() >= 900000:
         raise RandomCodeExhaustedError("All 900,000 unique six-digit random codes have been exhausted.")
 
     for _ in range(max_retries):
         code_str = str(secrets.randbelow(900000) + 100000)
+
+        # Check against existing Certificate records (5th segment: -XXXXXX-)
+        if Certificate.objects.filter(certificate_id__contains=f"-{code_str}-").exists():
+            continue
+
         try:
             with transaction.atomic():
                 CertificateRandomCodeRegistry.objects.create(
@@ -294,21 +300,23 @@ def generate_certificate_id(
     reserve=True,
     sequence=None,
     suffix=None,
+    random_code=None,
     *args,
     **kwargs
 ):
     """
     Authoritative Certificate ID generator following:
-    PREFIX-YYYY-MM-FF-100000-SSSSSS
+    PREFIX-YYYY-MM-FL-XXXXXX-SERIAL
     Example:
-    RAS-2026-10-FL-100000-483271
+    RAS-2026-10-SP-483271-1001
+    CITI-2026-10-SP-728194-5001
 
-    - Every newly issued certificate (reserve=True) receives a unique,
-      cryptographically secure six-digit numeric suffix (100000-999999).
-    - Database uniqueness is checked and collisions are automatically resolved by regenerating the suffix.
-    - If sequence or suffix is explicitly provided (e.g. for testing/backward-compat),
-      it is respected.
-    - If reserve=False (preview mode), returns a preview ID with a 6-digit preview suffix.
+    - Every newly issued certificate (reserve=True):
+      - Allocates a unique, cryptographically secure 6-digit random code (100000-999999) unique across RAS and CITI.
+      - Allocates the next sequential serial counter (RAS starts at 1001, CITI starts at 5001).
+      - Checks database uniqueness and handles collisions with automated retry.
+    - If reserve=False (preview mode):
+      - Returns preview ID with 100000 as random code and next peeked serial without consuming sequences.
     """
     clean_prefix = str(prefix).strip().upper() if prefix else "RAS"
     if clean_prefix not in ('RAS', 'CITI'):
@@ -351,31 +359,28 @@ def generate_certificate_id(
         else:
             initials = "XX"
 
-    random_code = kwargs.get('random_code')
-    target_suffix = suffix if suffix is not None else sequence
+    explicit_random_code = random_code if random_code is not None else kwargs.get('random_code')
+    target_seq = sequence if sequence is not None else suffix
 
     if reserve:
         with _cert_gen_lock:
             from .models import Certificate, CertificateRandomCodeRegistry
             max_retries = 100
             for attempt in range(max_retries):
-                if target_suffix is not None and attempt == 0:
-                    curr_suffix = target_suffix
+                if target_seq is not None:
+                    curr_seq = target_seq
                 else:
-                    curr_suffix = generate_six_digit_suffix()
+                    curr_seq = reserve_next_certificate_sequence(clean_prefix)
 
-                if random_code is not None:
-                    curr_random_code = random_code
+                if explicit_random_code is not None:
+                    curr_random_code = explicit_random_code
                 else:
-                    try:
-                        curr_random_code = allocate_unique_random_code()
-                    except Exception:
-                        curr_random_code = 100000
+                    curr_random_code = allocate_unique_random_code()
 
                 cert_id = format_certificate_id(
                     clean_prefix, year, month, initials,
                     random_code=curr_random_code,
-                    suffix=curr_suffix
+                    sequence=curr_seq
                 )
                 if not Certificate.objects.filter(certificate_id__iexact=cert_id).exists():
                     CertificateRandomCodeRegistry.objects.filter(code=str(curr_random_code)).update(
@@ -386,16 +391,12 @@ def generate_certificate_id(
 
             raise SequenceExhaustedError("Unable to allocate a unique Certificate ID after multiple collision attempts.")
     else:
-        if target_suffix is not None:
-            preview_suffix = target_suffix
-        else:
-            preview_suffix = peek_next_certificate_sequence(clean_prefix)
-
-        preview_random_code = random_code if random_code is not None else 100000
+        preview_seq = target_seq if target_seq is not None else peek_next_certificate_sequence(clean_prefix)
+        preview_random_code = explicit_random_code if explicit_random_code is not None else 100000
         return format_certificate_id(
             clean_prefix, year, month, initials,
             random_code=preview_random_code,
-            suffix=preview_suffix
+            sequence=preview_seq
         )
 
 
@@ -419,13 +420,13 @@ def preview_certificate_id(prefix="RAS", year=None, month=None, first_name="", l
 def validate_certificate_id_format(cert_id, prefix=None, expected_initials=None, allow_legacy=True):
     """
     Validates certificate ID format.
-    Standard new format: PREFIX-YYYY-MM-FF-RRRRRR-SSSS (e.g. RAS-2026-10-DV-482716-1001)
+    Standard new format: PREFIX-YYYY-MM-FL-XXXXXX-SERIAL (e.g. RAS-2026-10-SP-483271-1001)
     - PREFIX: must be RAS or CITI (or match selected prefix)
     - YYYY: valid 4-digit year
     - MM: valid 2-digit month (01-12)
-    - FF: 2 uppercase letters matching expected recipient initials
-    - RRRRRR: 6-digit unique random code (100000-999999)
-    - SSSS: 4-digit sequence per prefix (1001-9999)
+    - FL: 2 uppercase letters matching expected recipient initials
+    - XXXXXX: 6-digit unique random code (100000-999999)
+    - SERIAL: sequential serial number per institute (RAS: 1001-9999, CITI: 5001-9999)
 
     If allow_legacy=True, also accepts valid legacy formats:
     - PREFIX-YYYY-FLSEQUENCE (e.g. RAS-2026-HC1001)
@@ -436,7 +437,7 @@ def validate_certificate_id_format(cert_id, prefix=None, expected_initials=None,
 
     cert_id = str(cert_id).strip().upper()
 
-    # 1. Check New Standard Format: PREFIX-YYYY-MM-FF-RRRRRR-SSSS
+    # 1. Check New Standard Format: PREFIX-YYYY-MM-FL-XXXXXX-SERIAL
     match_new = CERTIFICATE_ID_REGEX.match(cert_id)
     if match_new:
         cert_prefix = match_new.group(1)
@@ -444,7 +445,7 @@ def validate_certificate_id_format(cert_id, prefix=None, expected_initials=None,
             return False, f"Certificate ID must start with the selected prefix '{prefix.strip().upper()}'."
 
         parts = cert_id.split('-')
-        # parts: [PREFIX, YYYY, MM, FF, RRRRRR, SSSS]
+        # parts: [PREFIX, YYYY, MM, FL, XXXXXX, SERIAL]
         extracted_initials = parts[3]
         if expected_initials and expected_initials != 'FL':
             clean_expected = re.sub(r'[^A-Z]', '', expected_initials.strip().upper())
@@ -476,7 +477,7 @@ def validate_certificate_id_format(cert_id, prefix=None, expected_initials=None,
         elif len(parts) >= 3 and parts[0] == 'CERT':
             return True, None
 
-    return False, "Certificate ID must follow the format 'PREFIX-YYYY-MM-FF-100000-SSSSSS' (e.g. RAS-2026-10-FL-100000-483271)."
+    return False, "Certificate ID must follow the format 'PREFIX-YYYY-MM-FL-XXXXXX-SERIAL' (e.g. RAS-2026-10-SP-483271-1001)."
 
 
 

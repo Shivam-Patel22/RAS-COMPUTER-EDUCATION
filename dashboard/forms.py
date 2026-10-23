@@ -321,20 +321,7 @@ class AdminCertificateForm(forms.ModelForm):
                             code=parts[4],
                             defaults={'certificate_id': cert_id, 'status': 'active'}
                         )
-        else:
-            # Auto Mode: generate authoritative Certificate ID if no prior errors
-            if not self.errors and fn and ln and initials:
-                try:
-                    cert_id = generate_certificate_id(
-                        prefix=prefix,
-                        first_name=fn,
-                        last_name=ln,
-                        initials=initials,
-                        reserve=True
-                    )
-                    cleaned_data['certificate_id'] = cert_id
-                except (SequenceExhaustedError, RandomCodeExhaustedError) as e:
-                    self.add_error('certificate_id', str(e))
+
 
         if prefix == 'CITI':
             # 1. Course validation - must be CCC
@@ -428,6 +415,20 @@ class AdminCertificateForm(forms.ModelForm):
 
             if not cleaned_data.get('course_duration'):
                 cleaned_data['course_duration'] = '3 Months'
+
+        if id_gen_mode != 'manual' and not self.errors:
+            if fn and ln and initials:
+                try:
+                    cert_id = generate_certificate_id(
+                        prefix=prefix,
+                        first_name=fn,
+                        last_name=ln,
+                        initials=initials,
+                        reserve=True
+                    )
+                    cleaned_data['certificate_id'] = cert_id
+                except (SequenceExhaustedError, RandomCodeExhaustedError) as e:
+                    self.add_error('certificate_id', str(e))
 
         return cleaned_data
 

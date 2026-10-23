@@ -702,7 +702,7 @@ def add_certificate(request):
                 prefix = form.cleaned_data.get('prefix', 'RAS')
                 fn = form.cleaned_data.get('first_name', '')
                 ln = form.cleaned_data.get('last_name', '')
-                if request.POST.get('id_gen_mode') != 'manual' or not cert.certificate_id:
+                if request.POST.get('id_gen_mode') != 'manual' and not cert.certificate_id:
                     cert.certificate_id = generate_certificate_id(prefix=prefix, first_name=fn, last_name=ln, reserve=True)
 
                 # Concurrency-safe save with retry
