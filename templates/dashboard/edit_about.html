@@ -2,128 +2,439 @@
 
 {% block title %}{{ title }} | C-DAC Admin{% endblock %}
 
-{% block content %}
-<div class="container">
+{% block extra_head %}
+<style>
+.tab-btn {
+    padding: 0.65rem 1rem;
+    border: none;
+    background: transparent;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--gray-600);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.tab-btn:hover {
+    color: var(--primary);
+    background: rgba(234, 88, 12, 0.05);
+}
+.tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    background: rgba(234, 88, 12, 0.08);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+.tab-pane {
+    display: none;
+}
+.tab-pane.active {
+    display: block;
+}
+.item-card {
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.item-card:hover {
+    border-color: var(--gray-300);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+}
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--gray-100);
+}
+.item-actions {
+    display: flex;
+    gap: 0.35rem;
+    align-items: center;
+}
+.item-btn {
+    background: none;
+    border: 1px solid var(--gray-300);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.75rem;
+    color: var(--gray-600);
+    transition: all 0.15s ease;
+}
+.item-btn:hover {
+    background: var(--gray-100);
+    color: var(--gray-900);
+}
+.item-btn.delete-btn:hover {
+    background: #FEE2E2;
+    color: #DC2626;
+    border-color: #FCA5A5;
+}
+.preview-box {
+    background: var(--dark-surface, #0f172a);
+    color: #f8fafc;
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    max-height: 75vh;
+    overflow-y: auto;
+}
+.preview-box .badge {
+    background: rgba(234, 88, 12, 0.2);
+    color: #fb923c;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.preview-card-item {
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+}
+.highlight-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    align-items: center;
+}
+</style>
+{% endblock %}
 
-    <!-- Page Header -->
-    <div style="background: var(--dark-surface); color: white; border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+{% block content %}
+<div class="container" style="max-width: 1400px; padding-bottom: 3rem;">
+
+    <!-- Page Header Bar -->
+    <div style="background: var(--dark-surface); color: white; border-radius: var(--radius-lg); padding: 1.75rem 2rem; margin-bottom: 1.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
         <div>
-            <h1 style="font-size: 1.8rem; color: white;">ℹ️ Edit About Section Content</h1>
-            <p style="color: var(--gray-400); margin-top: 0.25rem;">
-                Update Institute heading, mission statement, and highlight cards shown on the public About page.
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                <h1 style="font-size: 1.75rem; color: white; margin: 0;">ℹ️ About Section Management</h1>
+                <span class="badge" style="background: rgba(234,88,12,0.25); color: #fb923c; font-size: 0.8rem; padding: 0.25rem 0.6rem; border-radius: 999px; border: 1px solid rgba(234,88,12,0.4);">
+                    v<span id="headerSyncVersion">{{ about_obj.sync_version|default:1 }}</span>
+                </span>
+            </div>
+            <p style="color: var(--gray-400); margin: 0.4rem 0 0 0; font-size: 0.92rem;">
+                Manage all 6 sections of the public About page with real-time database persistence and live synchronization.
             </p>
         </div>
         <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
-            <a href="{% url 'core:about' %}?preview=1" target="_blank" class="btn btn-outline btn-sm">👁️ View Public About Page</a>
+            <a href="{% url 'core:about' %}" target="_blank" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                👁️ View Public About Page
+            </a>
+            <button type="button" id="liveSyncBtn" class="badge" style="background-color: #10B981; color: white; cursor: pointer; border: none; font-size: 0.82rem; padding: 0.45rem 0.85rem; display: inline-flex; align-items: center; gap: 0.45rem; border-radius: var(--radius-sm); font-weight: 600; transition: background-color 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" title="Click to sync and save all changes immediately">
+                <span id="liveSyncIcon">●</span>
+                <span id="liveSyncStatus">Live Sync Active</span>
+            </button>
+            <span id="syncTimeLabel" style="font-size: 0.75rem; color: var(--gray-400);">Last synced: {{ about_obj.updated_at|date:"h:i:s A" }}</span>
         </div>
     </div>
 
-    <div class="grid grid-2" style="gap: 2rem; align-items: start;">
+    <!-- Main Layout Grid -->
+    <div style="display: grid; grid-template-columns: 1fr 420px; gap: 1.75rem; align-items: start;">
 
-        <!-- Form Column -->
-        <div class="card" style="padding: 2rem;">
-            <h3 style="margin-bottom: 1.5rem; color: var(--gray-900);">📝 Edit Content Fields</h3>
+        <!-- Left Column: Tabs & Forms -->
+        <div class="card" style="padding: 1.75rem;">
+
+            <!-- Section Navigation Tabs -->
+            <div style="border-bottom: 1px solid var(--gray-200); margin-bottom: 1.5rem; display: flex; gap: 0.25rem; overflow-x: auto; padding-bottom: 0;">
+                <button type="button" class="tab-btn active" data-tab="tab-intro">📌 1. Intro</button>
+                <button type="button" class="tab-btn" data-tab="tab-legacy">🏆 2. Legacy Cards</button>
+                <button type="button" class="tab-btn" data-tab="tab-why">🌟 3. Why Choose Us</button>
+                <button type="button" class="tab-btn" data-tab="tab-specs">💻 4. Specializations</button>
+                <button type="button" class="tab-btn" data-tab="tab-mv">🎯 5. Mission &amp; Vision</button>
+                <button type="button" class="tab-btn" data-tab="tab-testimonials">💬 6. Testimonials</button>
+                <button type="button" class="tab-btn" data-tab="tab-cta">🚀 7. CTA Bar</button>
+            </div>
 
             <form method="post" id="aboutEditForm">
                 {% csrf_token %}
 
-                <div class="form-group" style="margin-bottom: 1.25rem;">
-                    <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Page Heading *</label>
+                <!-- Hidden inputs for JSON structured data -->
+                {{ form.legacy_cards_data }}
+                {{ form.why_benefits_data }}
+                {{ form.specs_cards_data }}
+                {{ form.testimonials_data }}
+
+                <!-- Backward compatibility fields kept in background -->
+                <div style="display: none;">
                     {{ form.heading }}
-                </div>
-
-                <div class="form-group" style="margin-bottom: 1.25rem;">
-                    <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Page Subtitle</label>
                     {{ form.subtitle }}
-                </div>
-
-                <div class="form-group" style="margin-bottom: 1.25rem;">
-                    <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Section Heading</label>
-                    {{ form.mission_title }}
-                </div>
-
-                <div class="form-group" style="margin-bottom: 1.5rem;">
-                    <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Main Description / Mission Statement</label>
                     {{ form.description }}
+                    {{ form.feature_1_title }}
+                    {{ form.feature_1_desc }}
+                    {{ form.feature_2_title }}
+                    {{ form.feature_2_desc }}
+                    {{ form.feature_3_title }}
+                    {{ form.feature_3_desc }}
                 </div>
 
-                <hr style="border: 0; border-top: 1px solid var(--gray-200); margin: 1.5rem 0;">
-                <h4 style="margin-bottom: 1rem; color: var(--primary);">Highlights & Feature Cards</h4>
-
-                <div style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; border: 1px solid var(--gray-200);">
-                    <div class="form-group" style="margin-bottom: 0.5rem;">
-                        <label style="font-weight: 600; font-size: 0.85rem;">Card 1 Title</label>
-                        {{ form.feature_1_title }}
+                <!-- TAB 1: Introduction -->
+                <div class="tab-pane active" id="tab-intro">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="margin: 0; font-size: 1.15rem; color: var(--gray-900);">Section 1: Introduction</h3>
+                        <span style="font-size: 0.8rem; color: var(--gray-500);">Hero banner and welcoming statement</span>
                     </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label style="font-weight: 600; font-size: 0.85rem;">Card 1 Description</label>
-                        {{ form.feature_1_desc }}
+
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Header Badge Text</label>
+                        {{ form.intro_badge }}
+                        <small style="color: var(--gray-500); font-size: 0.8rem;">Displayed with an icon above the main title.</small>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Main Welcome Heading *</label>
+                        {{ form.intro_heading }}
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Introduction Lead Paragraph</label>
+                        {{ form.intro_lead }}
+                        <small style="color: var(--gray-500); font-size: 0.8rem;">Prominently styled opening paragraph.</small>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Secondary Paragraph / Supporting Text</label>
+                        {{ form.intro_text }}
                     </div>
                 </div>
 
-                <div style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; border: 1px solid var(--gray-200);">
-                    <div class="form-group" style="margin-bottom: 0.5rem;">
-                        <label style="font-weight: 600; font-size: 0.85rem;">Card 2 Title</label>
-                        {{ form.feature_2_title }}
+                <!-- TAB 2: Legacy Cards -->
+                <div class="tab-pane" id="tab-legacy">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.15rem; color: var(--gray-900);">Section 2: Our Legacy of Excellence</h3>
+                            <span style="font-size: 0.8rem; color: var(--gray-500);">Milestone cards and achievements</span>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button type="button" class="btn btn-outline btn-sm" id="btnResetLegacy" title="Restore original 4 default cards">↺ Restore Defaults</button>
+                            <button type="button" class="btn btn-primary btn-sm" id="btnAddLegacyCard">+ Add Achievement Card</button>
+                        </div>
                     </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label style="font-weight: 600; font-size: 0.85rem;">Card 2 Description</label>
-                        {{ form.feature_2_desc }}
+
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Section Heading</label>
+                        {{ form.legacy_title }}
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Section Description</label>
+                        {{ form.legacy_desc }}
+                    </div>
+
+                    <div id="legacyCardsList">
+                        <!-- Rendered by JS -->
                     </div>
                 </div>
 
-                <div style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; border: 1px solid var(--gray-200);">
-                    <div class="form-group" style="margin-bottom: 0.5rem;">
-                        <label style="font-weight: 600; font-size: 0.85rem;">Card 3 Title</label>
-                        {{ form.feature_3_title }}
+                <!-- TAB 3: Why Choose Us -->
+                <div class="tab-pane" id="tab-why">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.15rem; color: var(--gray-900);">Section 3: Why We Are the Best Computer Class</h3>
+                            <span style="font-size: 0.8rem; color: var(--gray-500);">Value proposition and key institutional benefits</span>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button type="button" class="btn btn-outline btn-sm" id="btnResetBenefits" title="Restore original 5 benefits">↺ Restore Defaults</button>
+                            <button type="button" class="btn btn-primary btn-sm" id="btnAddBenefit">+ Add Benefit Item</button>
+                        </div>
                     </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label style="font-weight: 600; font-size: 0.85rem;">Card 3 Description</label>
-                        {{ form.feature_3_desc }}
+
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Section Heading</label>
+                        {{ form.why_title }}
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Section Description</label>
+                        {{ form.why_desc }}
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Subheading ("What Sets Us Apart?")</label>
+                        {{ form.why_subheading }}
+                    </div>
+
+                    <div id="benefitsList">
+                        <!-- Rendered by JS -->
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 1rem;">
-                    <button type="submit" class="btn btn-primary" style="flex: 1;">💾 Save & Publish Changes</button>
-                    <a href="{% url 'dashboard:index' %}" class="btn btn-outline-dark">Cancel</a>
+                <!-- TAB 4: Core Specializations -->
+                <div class="tab-pane" id="tab-specs">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.15rem; color: var(--gray-900);">Section 4: Our Core Specializations</h3>
+                            <span style="font-size: 0.8rem; color: var(--gray-500);">Tally, Coding Languages, CCC, and Data Analysis</span>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button type="button" class="btn btn-outline btn-sm" id="btnResetSpecs" title="Restore original 4 specialization cards">↺ Restore Defaults</button>
+                            <button type="button" class="btn btn-primary btn-sm" id="btnAddSpec">+ Add Specialization</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Section Heading</label>
+                        {{ form.specs_title }}
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Section Description</label>
+                        {{ form.specs_desc }}
+                    </div>
+
+                    <div id="specsList">
+                        <!-- Rendered by JS -->
+                    </div>
                 </div>
+
+                <!-- TAB 5: Mission & Vision -->
+                <div class="tab-pane" id="tab-mv">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="margin: 0; font-size: 1.15rem; color: var(--gray-900);">Section 5: Our Mission &amp; Vision</h3>
+                        <span style="font-size: 0.8rem; color: var(--gray-500);">Strategic direction and educational philosophy</span>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Section Heading</label>
+                        {{ form.mv_title }}
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+                        <div style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--gray-200);">
+                            <h4 style="margin: 0 0 0.75rem 0; color: var(--primary);">🎯 Mission Statement</h4>
+                            <div class="form-group" style="margin-bottom: 0.75rem;">
+                                <label style="font-weight: 600; font-size: 0.85rem;">Mission Heading</label>
+                                {{ form.mission_title }}
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-weight: 600; font-size: 0.85rem;">Mission Description</label>
+                                {{ form.mission_text }}
+                            </div>
+                        </div>
+
+                        <div style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--gray-200);">
+                            <h4 style="margin: 0 0 0.75rem 0; color: #2F9BD4;">👁️ Vision Statement</h4>
+                            <div class="form-group" style="margin-bottom: 0.75rem;">
+                                <label style="font-weight: 600; font-size: 0.85rem;">Vision Heading</label>
+                                {{ form.vision_title }}
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-weight: 600; font-size: 0.85rem;">Vision Description</label>
+                                {{ form.vision_text }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 6: Testimonials -->
+                <div class="tab-pane" id="tab-testimonials">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.15rem; color: var(--gray-900);">Section 6: Student Testimonials</h3>
+                            <span style="font-size: 0.8rem; color: var(--gray-500);">Real quotes, ratings, and student stories</span>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button type="button" class="btn btn-outline btn-sm" id="btnResetTestimonials" title="Restore default testimonials">↺ Restore Defaults</button>
+                            <button type="button" class="btn btn-primary btn-sm" id="btnAddTestimonial">+ Add Testimonial</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Section Heading</label>
+                        {{ form.testimonials_title }}
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Section Description</label>
+                        {{ form.testimonials_desc }}
+                    </div>
+
+                    <div id="testimonialsList">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- TAB 7: CTA Bar -->
+                <div class="tab-pane" id="tab-cta">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="margin: 0; font-size: 1.15rem; color: var(--gray-900);">Section 7: Bottom CTA Bar</h3>
+                        <span style="font-size: 0.8rem; color: var(--gray-500);">Call to action banner at bottom of page</span>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Banner Heading</label>
+                        {{ form.cta_title }}
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label style="font-weight: 600; color: var(--gray-800); margin-bottom: 0.35rem; display: block;">Banner Description</label>
+                        {{ form.cta_desc }}
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+                        <div style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--gray-200);">
+                            <h4 style="margin: 0 0 0.5rem 0; font-size: 0.9rem;">Primary Button</h4>
+                            <div class="form-group" style="margin-bottom: 0.5rem;">
+                                <label style="font-weight: 600; font-size: 0.85rem;">Button Label</label>
+                                {{ form.cta_btn1_text }}
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-weight: 600; font-size: 0.85rem;">Target URL</label>
+                                {{ form.cta_btn1_url }}
+                            </div>
+                        </div>
+
+                        <div style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--gray-200);">
+                            <h4 style="margin: 0 0 0.5rem 0; font-size: 0.9rem;">Secondary Button</h4>
+                            <div class="form-group" style="margin-bottom: 0.5rem;">
+                                <label style="font-weight: 600; font-size: 0.85rem;">Button Label</label>
+                                {{ form.cta_btn2_text }}
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-weight: 600; font-size: 0.85rem;">Target URL</label>
+                                {{ form.cta_btn2_url }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Bottom Action Buttons -->
+                <div style="display: flex; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--gray-200);">
+                    <button type="submit" class="btn btn-primary" style="flex: 1; padding: 0.75rem 1.5rem; font-size: 1rem;">
+                        💾 Save &amp; Publish All Changes
+                    </button>
+                    <button type="button" class="btn btn-outline" id="btnManualSync" style="padding: 0.75rem 1.25rem;">
+                        ⚡ Sync Now
+                    </button>
+                    <a href="{% url 'dashboard:index' %}" class="btn btn-outline-dark" style="padding: 0.75rem 1.25rem;">Cancel</a>
+                </div>
+
             </form>
         </div>
 
-        <!-- Admin Live Preview Column -->
-        <div class="card" style="padding: 2rem; border: 2px dashed var(--gray-300); position: sticky; top: 1rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
-                <h3 style="margin: 0; font-size: 1.1rem; color: var(--gray-700);">🔍 Admin Live Preview</h3>
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span id="syncTimeLabel" style="font-size: 0.75rem; color: var(--gray-500);">Last synced: {{ about_obj.updated_at|date:"h:i:s A" }}</span>
-                    <button type="button" id="liveSyncBtn" class="badge" style="background-color: #10B981; color: white; cursor: pointer; border: none; font-size: 0.8rem; padding: 0.35rem 0.65rem; display: inline-flex; align-items: center; gap: 0.35rem; border-radius: var(--radius-sm); font-weight: 600; transition: background-color 0.2s ease;" title="Click to sync and save changes immediately">
-                        <span id="liveSyncIcon">●</span>
-                        <span id="liveSyncStatus">Live Sync Active</span>
-                    </button>
+        <!-- Right Column: Live Preview & Status -->
+        <div style="position: sticky; top: 1rem;">
+            <div class="card" style="padding: 1.25rem; margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <strong style="color: var(--gray-800); font-size: 0.95rem;">👁️ Live Preview Pane</strong>
+                    <span id="previewTabLabel" class="badge" style="background: var(--gray-100); color: var(--gray-700); font-size: 0.75rem;">1. Intro</span>
                 </div>
             </div>
 
-            <div style="background: var(--gray-50); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--gray-200);">
-                <h2 id="preview-heading" style="font-size: 1.5rem; color: var(--gray-900); margin-bottom: 0.25rem;">{{ about_obj.heading }}</h2>
-                <p id="preview-subtitle" style="color: var(--gray-500); font-size: 0.9rem; margin-bottom: 1.25rem;">{{ about_obj.subtitle }}</p>
-
-                <h4 id="preview-mission-title" style="color: var(--primary); margin-bottom: 0.5rem;">{{ about_obj.mission_title }}</h4>
-                <p id="preview-description" style="font-size: 0.95rem; color: var(--gray-700); line-height: 1.6; margin-bottom: 1.25rem; white-space: pre-line;">{{ about_obj.description }}</p>
-
-                <div style="display: grid; gap: 0.75rem;">
-                    <div style="background: var(--card-bg, #ffffff); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--gray-200);">
-                        <strong id="preview-f1-title">{{ about_obj.feature_1_title }}</strong>
-                        <div id="preview-f1-desc" style="font-size: 0.85rem; color: var(--gray-600); margin-top: 0.2rem; white-space: pre-line;">{{ about_obj.feature_1_desc }}</div>
-                    </div>
-                    <div style="background: var(--card-bg, #ffffff); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--gray-200);">
-                        <strong id="preview-f2-title">{{ about_obj.feature_2_title }}</strong>
-                        <div id="preview-f2-desc" style="font-size: 0.85rem; color: var(--gray-600); margin-top: 0.2rem; white-space: pre-line;">{{ about_obj.feature_2_desc }}</div>
-                    </div>
-                    <div style="background: var(--card-bg, #ffffff); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--gray-200);">
-                        <strong id="preview-f3-title">{{ about_obj.feature_3_title }}</strong>
-                        <div id="preview-f3-desc" style="font-size: 0.85rem; color: var(--gray-600); margin-top: 0.2rem; white-space: pre-line;">{{ about_obj.feature_3_desc }}</div>
-                    </div>
-                </div>
+            <div class="preview-box" id="livePreviewContainer">
+                <!-- Dynamically populated preview of current active tab -->
             </div>
         </div>
 
@@ -140,58 +451,70 @@ document.addEventListener('DOMContentLoaded', function() {
     const syncStatus = document.getElementById('liveSyncStatus');
     const syncIcon = document.getElementById('liveSyncIcon');
     const syncTime = document.getElementById('syncTimeLabel');
+    const headerVersion = document.getElementById('headerSyncVersion');
+    const previewContainer = document.getElementById('livePreviewContainer');
+    const previewTabLabel = document.getElementById('previewTabLabel');
     const syncUrl = "{% url 'dashboard:sync_about_api' %}";
 
-    const fields = [
-        { inputId: 'id_heading', previewId: 'preview-heading', fallback: 'About C-DAC' },
-        { inputId: 'id_subtitle', previewId: 'preview-subtitle', fallback: '' },
-        { inputId: 'id_mission_title', previewId: 'preview-mission-title', fallback: 'Our Mission' },
-        { inputId: 'id_description', previewId: 'preview-description', fallback: '' },
-        { inputId: 'id_feature_1_title', previewId: 'preview-f1-title', fallback: 'Card 1 Title' },
-        { inputId: 'id_feature_1_desc', previewId: 'preview-f1-desc', fallback: '' },
-        { inputId: 'id_feature_2_title', previewId: 'preview-f2-title', fallback: 'Card 2 Title' },
-        { inputId: 'id_feature_2_desc', previewId: 'preview-f2-desc', fallback: '' },
-        { inputId: 'id_feature_3_title', previewId: 'preview-f3-title', fallback: 'Card 3 Title' },
-        { inputId: 'id_feature_3_desc', previewId: 'preview-f3-desc', fallback: '' },
-    ];
+    // Initial state data from server context
+    let state = {
+        legacy_cards: {{ legacy_cards_json|safe }},
+        why_benefits: {{ why_benefits_json|safe }},
+        specs_cards: {{ specs_cards_json|safe }},
+        testimonials: {{ testimonials_json|safe }},
+    };
 
+    let activeTab = 'tab-intro';
     let debounceTimer = null;
     let isSyncing = false;
 
-    function updatePreview() {
-        fields.forEach(function(item) {
-            const el = document.getElementById(item.inputId);
-            const target = document.getElementById(item.previewId);
-            if (el && target) {
-                const val = el.value.trim();
-                target.textContent = val || item.fallback;
-            }
-        });
+    // Helper: Escaping HTML
+    function esc(s) {
+        if (!s) return '';
+        const d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
     }
 
-    function setSyncState(state, text, tooltip) {
+    // Modal Confirmation Dialog Wrapper
+    function confirmAction(message, onConfirm) {
+        if (typeof window.showCustomConfirm === 'function') {
+            window.showCustomConfirm(
+                'Confirm Action',
+                message,
+                onConfirm,
+                'Confirm',
+                'btn-danger'
+            );
+        } else if (confirm(message)) {
+            onConfirm();
+        }
+    }
+
+    // Sync State Indicator UI
+    function setSyncState(status, text, tooltip) {
         if (!syncBtn) return;
-        if (state === 'active') {
+        if (status === 'active') {
             syncBtn.style.backgroundColor = '#10B981';
             syncBtn.style.color = '#ffffff';
             syncIcon.textContent = '●';
             syncStatus.textContent = text || 'Live Sync Active';
-        } else if (state === 'typing') {
+        } else if (status === 'typing') {
             syncBtn.style.backgroundColor = '#F59E0B';
             syncBtn.style.color = '#ffffff';
             syncIcon.textContent = '✎';
             syncStatus.textContent = text || 'Typing...';
-        } else if (state === 'syncing') {
+        } else if (status === 'syncing') {
             syncBtn.style.backgroundColor = '#3B82F6';
             syncBtn.style.color = '#ffffff';
             syncIcon.textContent = '⟳';
             syncStatus.textContent = text || 'Syncing...';
-        } else if (state === 'success') {
+        } else if (status === 'success') {
             syncBtn.style.backgroundColor = '#10B981';
             syncBtn.style.color = '#ffffff';
             syncIcon.textContent = '✓';
             syncStatus.textContent = text || 'Synced';
-        } else if (state === 'error') {
+        } else if (status === 'error') {
             syncBtn.style.backgroundColor = '#EF4444';
             syncBtn.style.color = '#ffffff';
             syncIcon.textContent = '⚠';
@@ -200,34 +523,47 @@ document.addEventListener('DOMContentLoaded', function() {
         if (tooltip) syncBtn.title = tooltip;
     }
 
+    // Serialize state lists into hidden inputs
+    function syncStateToInputs() {
+        const legacyInput = document.getElementById('id_legacy_cards_data');
+        const benefitsInput = document.getElementById('id_why_benefits_data');
+        const specsInput = document.getElementById('id_specs_cards_data');
+        const testInput = document.getElementById('id_testimonials_data');
+
+        if (legacyInput) legacyInput.value = JSON.stringify(state.legacy_cards);
+        if (benefitsInput) benefitsInput.value = JSON.stringify(state.why_benefits);
+        if (specsInput) specsInput.value = JSON.stringify(state.specs_cards);
+        if (testInput) testInput.value = JSON.stringify(state.testimonials);
+    }
+
+    // Perform background AJAX Sync
     async function performSync() {
         if (isSyncing || !form) return;
         isSyncing = true;
         setSyncState('syncing', 'Syncing...');
+        syncStateToInputs();
 
         const formData = new FormData(form);
 
         try {
-            const response = await fetch(syncUrl, {
+            const res = await fetch(syncUrl, {
                 method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 body: formData
             });
 
-            const result = await response.json();
-            if (response.ok && result.status === 'success') {
-                setSyncState('success', 'Synced');
+            const result = await res.json();
+            if (res.ok && result.status === 'success') {
+                setSyncState('success', 'Synced & Saved');
                 if (result.updated_at && syncTime) {
                     syncTime.textContent = 'Last synced: ' + result.updated_at;
                 }
-                setTimeout(function() {
-                    setSyncState('active', 'Live Sync Active');
-                }, 2000);
+                if (result.version && headerVersion) {
+                    headerVersion.textContent = result.version;
+                }
+                setTimeout(() => setSyncState('active', 'Live Sync Active'), 2000);
             } else {
-                const errText = result.message || 'Validation error';
-                setSyncState('error', 'Sync Paused', errText);
+                setSyncState('error', 'Sync Paused', result.message || 'Validation error');
             }
         } catch (err) {
             setSyncState('error', 'Sync Offline', 'Network connection issue');
@@ -236,31 +572,772 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    fields.forEach(function(item) {
-        const el = document.getElementById(item.inputId);
+    function triggerAutoSync() {
+        setSyncState('typing', 'Typing...');
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(performSync, 1200);
+        updatePreview();
+    }
+
+    // -------------------------------------------------------------------------
+    // Renderers for Repeatable Lists
+    // -------------------------------------------------------------------------
+
+    // 1. Legacy Cards Renderer
+    function renderLegacyCards() {
+        const container = document.getElementById('legacyCardsList');
+        if (!container) return;
+        let html = '';
+
+        state.legacy_cards.forEach((card, idx) => {
+            html += `
+            <div class="item-card" data-idx="${idx}">
+                <div class="item-header">
+                    <strong style="color: var(--gray-800); font-size: 0.95rem;">#${idx + 1} - ${esc(card.title || 'Card')}</strong>
+                    <div class="item-actions">
+                        <button type="button" class="item-btn move-legacy-up" ${idx === 0 ? 'disabled' : ''} title="Move Up">↑</button>
+                        <button type="button" class="item-btn move-legacy-down" ${idx === state.legacy_cards.length - 1 ? 'disabled' : ''} title="Move Down">↓</button>
+                        <button type="button" class="item-btn delete-btn delete-legacy-card" title="Delete Card">🗑️</button>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.2rem;">Stat / Number</label>
+                        <input type="text" class="form-control legacy-stat" value="${esc(card.stat)}" placeholder="e.g. 20+, 100%, Certified">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.2rem;">Color Accent</label>
+                        <select class="form-control legacy-color">
+                            <option value="orange" ${card.color === 'orange' ? 'selected' : ''}>Orange</option>
+                            <option value="blue" ${card.color === 'blue' ? 'selected' : ''}>Blue</option>
+                            <option value="primary" ${card.color === 'primary' ? 'selected' : ''}>Primary (Cyan/Teal)</option>
+                            <option value="green" ${card.color === 'green' ? 'selected' : ''}>Green</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.2rem;">Title</label>
+                        <input type="text" class="form-control legacy-title" value="${esc(card.title)}">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.2rem;">Icon</label>
+                        <select class="form-control legacy-icon">
+                            <option value="clock" ${card.icon === 'clock' ? 'selected' : ''}>Clock / History</option>
+                            <option value="users" ${card.icon === 'users' ? 'selected' : ''}>Users / Community</option>
+                            <option value="desktop" ${card.icon === 'desktop' ? 'selected' : ''}>Desktop / Computer</option>
+                            <option value="award" ${card.icon === 'award' ? 'selected' : ''}>Award / Certified</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.2rem;">Description</label>
+                    <textarea class="form-control legacy-desc" rows="2">${esc(card.desc)}</textarea>
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+        bindLegacyEvents();
+        updatePreview();
+    }
+
+    function bindLegacyEvents() {
+        const container = document.getElementById('legacyCardsList');
+        if (!container) return;
+
+        container.querySelectorAll('.legacy-stat').forEach((input, i) => {
+            input.oninput = () => { state.legacy_cards[i].stat = input.value; triggerAutoSync(); };
+        });
+        container.querySelectorAll('.legacy-color').forEach((select, i) => {
+            select.onchange = () => { state.legacy_cards[i].color = select.value; triggerAutoSync(); };
+        });
+        container.querySelectorAll('.legacy-title').forEach((input, i) => {
+            input.oninput = () => { state.legacy_cards[i].title = input.value; triggerAutoSync(); };
+        });
+        container.querySelectorAll('.legacy-icon').forEach((select, i) => {
+            select.onchange = () => { state.legacy_cards[i].icon = select.value; triggerAutoSync(); };
+        });
+        container.querySelectorAll('.legacy-desc').forEach((textarea, i) => {
+            textarea.oninput = () => { state.legacy_cards[i].desc = textarea.value; triggerAutoSync(); };
+        });
+        container.querySelectorAll('.move-legacy-up').forEach((btn, i) => {
+            btn.onclick = () => {
+                if (i > 0) {
+                    const temp = state.legacy_cards[i];
+                    state.legacy_cards[i] = state.legacy_cards[i - 1];
+                    state.legacy_cards[i - 1] = temp;
+                    renderLegacyCards();
+                    triggerAutoSync();
+                }
+            };
+        });
+        container.querySelectorAll('.move-legacy-down').forEach((btn, i) => {
+            btn.onclick = () => {
+                if (i < state.legacy_cards.length - 1) {
+                    const temp = state.legacy_cards[i];
+                    state.legacy_cards[i] = state.legacy_cards[i + 1];
+                    state.legacy_cards[i + 1] = temp;
+                    renderLegacyCards();
+                    triggerAutoSync();
+                }
+            };
+        });
+        container.querySelectorAll('.delete-legacy-card').forEach((btn, i) => {
+            btn.onclick = () => {
+                confirmAction('Are you sure you want to remove this achievement card?', () => {
+                    state.legacy_cards.splice(i, 1);
+                    renderLegacyCards();
+                    triggerAutoSync();
+                });
+            };
+        });
+    }
+
+    // 2. Why Choose Us Benefits Renderer
+    function renderBenefits() {
+        const container = document.getElementById('benefitsList');
+        if (!container) return;
+        let html = '';
+
+        state.why_benefits.forEach((item, idx) => {
+            html += `
+            <div class="item-card" data-idx="${idx}">
+                <div class="item-header">
+                    <strong style="color: var(--gray-800); font-size: 0.95rem;">#${idx + 1} - ${esc(item.title || 'Benefit')}</strong>
+                    <div class="item-actions">
+                        <button type="button" class="item-btn move-ben-up" ${idx === 0 ? 'disabled' : ''}>↑</button>
+                        <button type="button" class="item-btn move-ben-down" ${idx === state.why_benefits.length - 1 ? 'disabled' : ''}>↓</button>
+                        <button type="button" class="item-btn delete-btn delete-benefit">🗑️</button>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.2rem;">Title</label>
+                        <input type="text" class="form-control ben-title" value="${esc(item.title)}">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.2rem;">Icon</label>
+                        <select class="form-control ben-icon">
+                            <option value="book" ${item.icon === 'book' ? 'selected' : ''}>Book (Curriculum)</option>
+                            <option value="users" ${item.icon === 'users' ? 'selected' : ''}>Users (Batch Size)</option>
+                            <option value="clock" ${item.icon === 'clock' ? 'selected' : ''}>Clock (Flexible Timings)</option>
+                            <option value="dollar" ${item.icon === 'dollar' ? 'selected' : ''}>Currency (Affordable Fees)</option>
+                            <option value="briefcase" ${item.icon === 'briefcase' ? 'selected' : ''}>Briefcase (Career Support)</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.2rem;">Description</label>
+                    <textarea class="form-control ben-desc" rows="2">${esc(item.desc)}</textarea>
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+        bindBenefitEvents();
+        updatePreview();
+    }
+
+    function bindBenefitEvents() {
+        const container = document.getElementById('benefitsList');
+        if (!container) return;
+
+        container.querySelectorAll('.ben-title').forEach((inp, i) => {
+            inp.oninput = () => { state.why_benefits[i].title = inp.value; triggerAutoSync(); };
+        });
+        container.querySelectorAll('.ben-icon').forEach((sel, i) => {
+            sel.onchange = () => { state.why_benefits[i].icon = sel.value; triggerAutoSync(); };
+        });
+        container.querySelectorAll('.ben-desc').forEach((txt, i) => {
+            txt.oninput = () => { state.why_benefits[i].desc = txt.value; triggerAutoSync(); };
+        });
+        container.querySelectorAll('.move-ben-up').forEach((btn, i) => {
+            btn.onclick = () => {
+                if (i > 0) {
+                    const temp = state.why_benefits[i];
+                    state.why_benefits[i] = state.why_benefits[i - 1];
+                    state.why_benefits[i - 1] = temp;
+                    renderBenefits();
+                    triggerAutoSync();
+                }
+            };
+        });
+        container.querySelectorAll('.move-ben-down').forEach((btn, i) => {
+            btn.onclick = () => {
+                if (i < state.why_benefits.length - 1) {
+                    const temp = state.why_benefits[i];
+                    state.why_benefits[i] = state.why_benefits[i + 1];
+                    state.why_benefits[i + 1] = temp;
+                    renderBenefits();
+                    triggerAutoSync();
+                }
+            };
+        });
+        container.querySelectorAll('.delete-benefit').forEach((btn, i) => {
+            btn.onclick = () => {
+                confirmAction('Are you sure you want to remove this benefit item?', () => {
+                    state.why_benefits.splice(i, 1);
+                    renderBenefits();
+                    triggerAutoSync();
+                });
+            };
+        });
+    }
+
+    // 3. Core Specializations Renderer
+    function renderSpecs() {
+        const container = document.getElementById('specsList');
+        if (!container) return;
+        let html = '';
+
+        state.specs_cards.forEach((spec, idx) => {
+            const tagsStr = Array.isArray(spec.tags) ? spec.tags.join(', ') : (spec.tags || '');
+
+            let hlRows = '';
+            if (Array.isArray(spec.highlights)) {
+                spec.highlights.forEach((hl, hIdx) => {
+                    hlRows += `
+                    <div class="highlight-row" data-hidx="${hIdx}">
+                        <input type="text" class="form-control spec-hl-label" style="flex: 1;" value="${esc(hl.label)}" placeholder="e.g. Python Programming:">
+                        <input type="text" class="form-control spec-hl-text" style="flex: 2;" value="${esc(hl.text)}" placeholder="Details...">
+                        <button type="button" class="item-btn delete-btn delete-spec-hl" title="Remove Highlight">✕</button>
+                    </div>`;
+                });
+            }
+
+            html += `
+            <div class="item-card" data-idx="${idx}">
+                <div class="item-header">
+                    <strong style="color: var(--gray-800); font-size: 0.95rem;">#${idx + 1} - ${esc(spec.title || 'Course')}</strong>
+                    <div class="item-actions">
+                        <button type="button" class="item-btn move-spec-up" ${idx === 0 ? 'disabled' : ''}>↑</button>
+                        <button type="button" class="item-btn move-spec-down" ${idx === state.specs_cards.length - 1 ? 'disabled' : ''}>↓</button>
+                        <button type="button" class="item-btn delete-btn delete-spec">🗑️</button>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.2rem;">Badge Text</label>
+                        <input type="text" class="form-control spec-badge" value="${esc(spec.badge)}" placeholder="e.g. Accounting & Taxation">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.2rem;">Badge Color</label>
+                        <select class="form-control spec-badge-color">
+                            <option value="" ${!spec.badge_color ? 'selected' : ''}>Default</option>
+                            <option value="orange" ${spec.badge_color === 'orange' ? 'selected' : ''}>Orange</option>
+                            <option value="cyan" ${spec.badge_color === 'cyan' ? 'selected' : ''}>Cyan / Teal</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 0.75rem;">
+                    <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.2rem;">Title *</label>
+                    <input type="text" class="form-control spec-title" value="${esc(spec.title)}">
+                </div>
+
+                <div style="margin-bottom: 0.75rem;">
+                    <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.2rem;">Main Description</label>
+                    <textarea class="form-control spec-desc" rows="2">${esc(spec.desc)}</textarea>
+                </div>
+
+                <div style="margin-bottom: 0.75rem;">
+                    <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.2rem;">Secondary Description (Optional)</label>
+                    <textarea class="form-control spec-desc2" rows="2" placeholder="Optional 2nd paragraph...">${esc(spec.desc2 || '')}</textarea>
+                </div>
+
+                <!-- Highlights Sub-list -->
+                <div style="background: var(--gray-50); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--gray-200); margin-bottom: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <strong style="font-size: 0.82rem; color: var(--gray-700);">Program Highlights / Language Bullets</strong>
+                        <button type="button" class="btn btn-outline btn-sm add-spec-hl" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">+ Add Highlight</button>
+                    </div>
+                    <div class="spec-hl-container">${hlRows}</div>
+                </div>
+
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.2rem;">Footer Tags (comma separated)</label>
+                    <input type="text" class="form-control spec-tags" value="${esc(tagsStr)}" placeholder="e.g. Python, C / C++, Full-Stack Web">
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+        bindSpecEvents();
+        updatePreview();
+    }
+
+    function bindSpecEvents() {
+        const container = document.getElementById('specsList');
+        if (!container) return;
+
+        container.querySelectorAll('.spec-badge').forEach((inp, i) => {
+            inp.oninput = () => { state.specs_cards[i].badge = inp.value; triggerAutoSync(); };
+        });
+        container.querySelectorAll('.spec-badge-color').forEach((sel, i) => {
+            sel.onchange = () => { state.specs_cards[i].badge_color = sel.value; triggerAutoSync(); };
+        });
+        container.querySelectorAll('.spec-title').forEach((inp, i) => {
+            inp.oninput = () => { state.specs_cards[i].title = inp.value; triggerAutoSync(); };
+        });
+        container.querySelectorAll('.spec-desc').forEach((txt, i) => {
+            txt.oninput = () => { state.specs_cards[i].desc = txt.value; triggerAutoSync(); };
+        });
+        container.querySelectorAll('.spec-desc2').forEach((txt, i) => {
+            txt.oninput = () => { state.specs_cards[i].desc2 = txt.value; triggerAutoSync(); };
+        });
+        container.querySelectorAll('.spec-tags').forEach((inp, i) => {
+            inp.oninput = () => {
+                state.specs_cards[i].tags = inp.value.split(',').map(s => s.trim()).filter(s => s);
+                triggerAutoSync();
+            };
+        });
+
+        // Highlights events
+        container.querySelectorAll('.item-card').forEach((cardEl, i) => {
+            const addHlBtn = cardEl.querySelector('.add-spec-hl');
+            if (addHlBtn) {
+                addHlBtn.onclick = () => {
+                    if (!Array.isArray(state.specs_cards[i].highlights)) {
+                        state.specs_cards[i].highlights = [];
+                    }
+                    state.specs_cards[i].highlights.push({ label: 'New Highlight:', text: 'Highlight description' });
+                    renderSpecs();
+                    triggerAutoSync();
+                };
+            }
+
+            cardEl.querySelectorAll('.spec-hl-label').forEach((inp, hIdx) => {
+                inp.oninput = () => { state.specs_cards[i].highlights[hIdx].label = inp.value; triggerAutoSync(); };
+            });
+            cardEl.querySelectorAll('.spec-hl-text').forEach((inp, hIdx) => {
+                inp.oninput = () => { state.specs_cards[i].highlights[hIdx].text = inp.value; triggerAutoSync(); };
+            });
+            cardEl.querySelectorAll('.delete-spec-hl').forEach((btn, hIdx) => {
+                btn.onclick = () => {
+                    state.specs_cards[i].highlights.splice(hIdx, 1);
+                    renderSpecs();
+                    triggerAutoSync();
+                };
+            });
+        });
+
+        container.querySelectorAll('.move-spec-up').forEach((btn, i) => {
+            btn.onclick = () => {
+                if (i > 0) {
+                    const temp = state.specs_cards[i];
+                    state.specs_cards[i] = state.specs_cards[i - 1];
+                    state.specs_cards[i - 1] = temp;
+                    renderSpecs();
+                    triggerAutoSync();
+                }
+            };
+        });
+        container.querySelectorAll('.move-spec-down').forEach((btn, i) => {
+            btn.onclick = () => {
+                if (i < state.specs_cards.length - 1) {
+                    const temp = state.specs_cards[i];
+                    state.specs_cards[i] = state.specs_cards[i + 1];
+                    state.specs_cards[i + 1] = temp;
+                    renderSpecs();
+                    triggerAutoSync();
+                }
+            };
+        });
+        container.querySelectorAll('.delete-spec').forEach((btn, i) => {
+            btn.onclick = () => {
+                confirmAction('Are you sure you want to remove this specialization card?', () => {
+                    state.specs_cards.splice(i, 1);
+                    renderSpecs();
+                    triggerAutoSync();
+                });
+            };
+        });
+    }
+
+    // 4. Testimonials Renderer
+    function renderTestimonials() {
+        const container = document.getElementById('testimonialsList');
+        if (!container) return;
+        let html = '';
+
+        state.testimonials.forEach((item, idx) => {
+            html += `
+            <div class="item-card" data-idx="${idx}">
+                <div class="item-header">
+                    <strong style="color: var(--gray-800); font-size: 0.95rem;">#${idx + 1} - ${esc(item.author || 'Student')}</strong>
+                    <div class="item-actions">
+                        <button type="button" class="item-btn move-test-up" ${idx === 0 ? 'disabled' : ''}>↑</button>
+                        <button type="button" class="item-btn move-test-down" ${idx === state.testimonials.length - 1 ? 'disabled' : ''}>↓</button>
+                        <button type="button" class="item-btn delete-btn delete-test">🗑️</button>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.2rem;">Author Name</label>
+                        <input type="text" class="form-control test-author" value="${esc(item.author)}">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.2rem;">Avatar Initials</label>
+                        <input type="text" class="form-control test-avatar" maxlength="3" value="${esc(item.avatar || 'ST')}">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.2rem;">Author Tag / Subtitle</label>
+                        <input type="text" class="form-control test-tag" value="${esc(item.tag)}" placeholder="e.g. RAS Computer Education Alum">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.2rem;">Rating</label>
+                        <select class="form-control test-stars">
+                            <option value="5" ${item.stars === 5 ? 'selected' : ''}>★★★★★ (5 Stars)</option>
+                            <option value="4" ${item.stars === 4 ? 'selected' : ''}>★★★★☆ (4 Stars)</option>
+                            <option value="3" ${item.stars === 3 ? 'selected' : ''}>★★★☆☆ (3 Stars)</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.2rem;">Quote Text</label>
+                    <textarea class="form-control test-quote" rows="2">${esc(item.quote)}</textarea>
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+        bindTestimonialEvents();
+        updatePreview();
+    }
+
+    function bindTestimonialEvents() {
+        const container = document.getElementById('testimonialsList');
+        if (!container) return;
+
+        container.querySelectorAll('.test-author').forEach((inp, i) => {
+            inp.oninput = () => { state.testimonials[i].author = inp.value; triggerAutoSync(); };
+        });
+        container.querySelectorAll('.test-avatar').forEach((inp, i) => {
+            inp.oninput = () => { state.testimonials[i].avatar = inp.value; triggerAutoSync(); };
+        });
+        container.querySelectorAll('.test-tag').forEach((inp, i) => {
+            inp.oninput = () => { state.testimonials[i].tag = inp.value; triggerAutoSync(); };
+        });
+        container.querySelectorAll('.test-stars').forEach((sel, i) => {
+            sel.onchange = () => { state.testimonials[i].stars = parseInt(sel.value) || 5; triggerAutoSync(); };
+        });
+        container.querySelectorAll('.test-quote').forEach((txt, i) => {
+            txt.oninput = () => { state.testimonials[i].quote = txt.value; triggerAutoSync(); };
+        });
+        container.querySelectorAll('.move-test-up').forEach((btn, i) => {
+            btn.onclick = () => {
+                if (i > 0) {
+                    const temp = state.testimonials[i];
+                    state.testimonials[i] = state.testimonials[i - 1];
+                    state.testimonials[i - 1] = temp;
+                    renderTestimonials();
+                    triggerAutoSync();
+                }
+            };
+        });
+        container.querySelectorAll('.move-test-down').forEach((btn, i) => {
+            btn.onclick = () => {
+                if (i < state.testimonials.length - 1) {
+                    const temp = state.testimonials[i];
+                    state.testimonials[i] = state.testimonials[i + 1];
+                    state.testimonials[i + 1] = temp;
+                    renderTestimonials();
+                    triggerAutoSync();
+                }
+            };
+        });
+        container.querySelectorAll('.delete-test').forEach((btn, i) => {
+            btn.onclick = () => {
+                confirmAction('Are you sure you want to remove this testimonial?', () => {
+                    state.testimonials.splice(i, 1);
+                    renderTestimonials();
+                    triggerAutoSync();
+                });
+            };
+        });
+    }
+
+    // -------------------------------------------------------------------------
+    // Add & Reset Handlers
+    // -------------------------------------------------------------------------
+    document.getElementById('btnAddLegacyCard').onclick = () => {
+        state.legacy_cards.push({
+            id: Date.now(),
+            stat: '100%',
+            title: 'New Achievement Title',
+            desc: 'Description of key milestone or achievement.',
+            color: 'primary',
+            icon: 'award'
+        });
+        renderLegacyCards();
+        triggerAutoSync();
+    };
+
+    document.getElementById('btnResetLegacy').onclick = () => {
+        confirmAction('Reset all Legacy achievement cards to standard defaults?', () => {
+            state.legacy_cards = [
+                { id: 1, stat: "20+", title: "20+ Years of Establishment", desc: "Over two decades of proven excellence, trust, and leadership in computer training.", color: "orange", icon: "clock" },
+                { id: 2, stat: "15,000+", title: "15,000+ Students Trained", desc: "A vast alumni network working successfully in top companies, MNCs, and government sectors across Gujarat and beyond.", color: "blue", icon: "users" },
+                { id: 3, stat: "100%", title: "100% Practical Training", desc: "Hands-on experience with modern software, real-world projects, and dedicated lab sessions.", color: "primary", icon: "desktop" },
+                { id: 4, stat: "Certified", title: "Certified & Experienced Instructors", desc: "Learn directly from industry experts with deep domain knowledge and personalized teaching approaches.", color: "green", icon: "award" }
+            ];
+            renderLegacyCards();
+            triggerAutoSync();
+        });
+    };
+
+    document.getElementById('btnAddBenefit').onclick = () => {
+        state.why_benefits.push({
+            id: Date.now(),
+            title: 'New Institutional Benefit',
+            desc: 'Explain what makes the institute outstanding in this area.',
+            icon: 'briefcase'
+        });
+        renderBenefits();
+        triggerAutoSync();
+    };
+
+    document.getElementById('btnResetBenefits').onclick = () => {
+        confirmAction('Reset all Why Choose Us benefits to standard defaults?', () => {
+            state.why_benefits = [
+                { id: 1, title: "Industry-Aligned Curriculum", desc: "Updated regularly to keep pace with evolving technological standards.", icon: "book" },
+                { id: 2, title: "Small Batch Sizes", desc: "Ensures individual focus and personal attention for every student.", icon: "users" },
+                { id: 3, title: "Flexible Timings", desc: "Morning, evening, and weekend batches tailored for convenience.", icon: "clock" },
+                { id: 4, title: "Affordable Fees Structure", desc: "Quality computer education accessible to everyone.", icon: "dollar" },
+                { id: 5, title: "Career Guidance & Placement Support", desc: "Assistance with resume building, interview preparation, and job placement.", icon: "briefcase" }
+            ];
+            renderBenefits();
+            triggerAutoSync();
+        });
+    };
+
+    document.getElementById('btnAddSpec').onclick = () => {
+        state.specs_cards.push({
+            id: Date.now(),
+            badge: 'Technology Track',
+            badge_color: 'orange',
+            title: 'New Course Specialization',
+            desc: 'Course curriculum and career training overview.',
+            desc2: '',
+            highlights: [],
+            tags: ['Certification', 'Practical Labs']
+        });
+        renderSpecs();
+        triggerAutoSync();
+    };
+
+    document.getElementById('btnResetSpecs').onclick = () => {
+        confirmAction('Reset all Specialization cards to standard defaults?', () => {
+            state.specs_cards = [
+                { id: 1, badge: "Accounting & Taxation", badge_color: "orange", title: "1. Best Tally Training Institute in Gandhinagar", desc: "Master accounting and GST with our specialized Tally Prime & GST Certification Course. Designed for commerce students, job seekers, and business owners, our course covers Tally with real-time financial accounting, inventory management, taxation, and GST compliance. Gain practical bookkeeping skills to pursue roles in accounting and finance.", desc2: "", highlights: [], tags: ["Tally Prime", "GST Compliance", "Inventory", "Bookkeeping"] },
+                { id: 2, badge: "Software Development & IT", badge_color: "", title: "2. Best Coding Languages Institute in Gandhinagar", desc: "Kickstart your career in software development and IT. We offer comprehensive training in core and advanced programming languages:", desc2: "", highlights: [{ label: "Python Programming:", text: "From Python basics to advanced OOPs and data manipulation." }, { label: "C & C++ Fundamentals:", text: "Build strong logic, algorithm, and object-oriented programming concepts." }, { label: "Web Development (HTML, CSS, JavaScript):", text: "Learn full-stack skills to build modern, responsive websites." }, { label: "Java & Data Structures:", text: "Master core logic and enterprise-level development." }], tags: ["Python", "C / C++", "Full-Stack Web", "Java & DSA"] },
+                { id: 3, badge: "Government Certification", badge_color: "cyan", title: "3. Best CCC Training Institute", desc: "Prepare for government job requirements and administrative skill certifications with our CCC (Course on Computer Concepts) training program.", desc2: "We offer expert guidance on fundamental computer skills, MS Office (Word, Excel, PowerPoint), internet basics, email management, and government portal navigation, ensuring a high pass rate for all aspirants.", highlights: [], tags: ["CCC Exam Prep", "MS Office", "Internet & Email", "Govt Portals"] },
+                { id: 4, badge: "Productivity & Analytics", badge_color: "", title: "4. Advanced Office & Data Analysis Skills", desc: "Become an expert in office productivity tools. Master Advanced Excel for Data Analysis, formula creation, data visualization, pivot tables, and database management through hands-on practice.", desc2: "", highlights: [], tags: ["Advanced Excel", "Data Analysis", "Pivot Tables", "Data Visualization"] }
+            ];
+            renderSpecs();
+            triggerAutoSync();
+        });
+    };
+
+    document.getElementById('btnAddTestimonial').onclick = () => {
+        state.testimonials.push({
+            id: Date.now(),
+            stars: 5,
+            quote: 'RAS Computer Education provided excellent practical knowledge for my career.',
+            author: 'Student Name',
+            tag: 'Course Alum',
+            avatar: 'SN'
+        });
+        renderTestimonials();
+        triggerAutoSync();
+    };
+
+    document.getElementById('btnResetTestimonials').onclick = () => {
+        confirmAction('Reset all Testimonials to standard defaults?', () => {
+            state.testimonials = [
+                { id: 1, stars: 5, quote: "Joining RAS Computer Education was the best decision for my career. The practical exposure in Python and Advanced Excel gave me the confidence to clear my interviews easily.", author: "Alumni Student", tag: "RAS Computer Education Alum", avatar: "AS" },
+                { id: 2, stars: 5, quote: "The best Tally training institute in Gandhinagar! The faculty explains complex GST concepts with real-world examples.", author: "Commerce Graduate", tag: "Tally Prime & GST Graduate", avatar: "CG" }
+            ];
+            renderTestimonials();
+            triggerAutoSync();
+        });
+    };
+
+    // -------------------------------------------------------------------------
+    // Real-Time Preview Pane
+    // -------------------------------------------------------------------------
+    function updatePreview() {
+        if (!previewContainer) return;
+        let html = '';
+
+        if (activeTab === 'tab-intro') {
+            const badge = document.getElementById('id_intro_badge')?.value || 'Premier Computer Institute in Gandhinagar';
+            const heading = document.getElementById('id_intro_heading')?.value || 'Welcome to RAS Computer Education';
+            const lead = document.getElementById('id_intro_lead')?.value || '';
+            const text = document.getElementById('id_intro_text')?.value || '';
+
+            html = `
+            <div style="margin-bottom: 0.5rem;"><span class="badge">${esc(badge)}</span></div>
+            <h3 style="color: #fff; font-size: 1.25rem; margin: 0.5rem 0 1rem 0;">${esc(heading)}</h3>
+            <p style="color: #94a3b8; font-size: 0.88rem; line-height: 1.5; margin-bottom: 0.75rem;">${esc(lead)}</p>
+            <p style="color: #cbd5e1; font-size: 0.85rem; line-height: 1.5;">${esc(text)}</p>`;
+        } else if (activeTab === 'tab-legacy') {
+            const title = document.getElementById('id_legacy_title')?.value || 'Our Legacy of Excellence';
+            const desc = document.getElementById('id_legacy_desc')?.value || '';
+            html = `<h4 style="color: #fff; margin: 0 0 0.5rem 0;">${esc(title)}</h4>
+                    <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 1rem;">${esc(desc)}</p>`;
+            state.legacy_cards.forEach(c => {
+                html += `
+                <div class="preview-card-item">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                        <span style="font-weight: 700; color: #fb923c; font-size: 1.1rem;">${esc(c.stat)}</span>
+                        <span style="font-size: 0.75rem; color: #94a3b8;">${esc(c.icon)}</span>
+                    </div>
+                    <strong style="display: block; font-size: 0.9rem; color: #fff;">${esc(c.title)}</strong>
+                    <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 0.25rem;">${esc(c.desc)}</div>
+                </div>`;
+            });
+        } else if (activeTab === 'tab-why') {
+            const title = document.getElementById('id_why_title')?.value || 'Why We Are the Best';
+            const desc = document.getElementById('id_why_desc')?.value || '';
+            const sub = document.getElementById('id_why_subheading')?.value || 'What Sets Us Apart?';
+            html = `<h4 style="color: #fff; margin: 0 0 0.5rem 0;">${esc(title)}</h4>
+                    <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 0.75rem;">${esc(desc)}</p>
+                    <div style="color: #2F9BD4; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.75rem;">${esc(sub)}</div>`;
+            state.why_benefits.forEach(b => {
+                html += `
+                <div class="preview-card-item">
+                    <strong style="color: #fff; font-size: 0.88rem;">${esc(b.title)}</strong>
+                    <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 0.2rem;">${esc(b.desc)}</div>
+                </div>`;
+            });
+        } else if (activeTab === 'tab-specs') {
+            const title = document.getElementById('id_specs_title')?.value || 'Our Core Specializations';
+            const desc = document.getElementById('id_specs_desc')?.value || '';
+            html = `<h4 style="color: #fff; margin: 0 0 0.5rem 0;">${esc(title)}</h4>
+                    <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 1rem;">${esc(desc)}</p>`;
+            state.specs_cards.forEach(s => {
+                const tagsStr = Array.isArray(s.tags) ? s.tags.join(' • ') : '';
+                html += `
+                <div class="preview-card-item">
+                    ${s.badge ? `<span class="badge" style="margin-bottom: 0.4rem; display: inline-block;">${esc(s.badge)}</span>` : ''}
+                    <strong style="display: block; color: #fff; font-size: 0.92rem; margin: 0.25rem 0;">${esc(s.title)}</strong>
+                    <div style="font-size: 0.8rem; color: #94a3b8; line-height: 1.4;">${esc(s.desc)}</div>
+                    ${tagsStr ? `<div style="font-size: 0.75rem; color: #38bdf8; margin-top: 0.5rem;">${esc(tagsStr)}</div>` : ''}
+                </div>`;
+            });
+        } else if (activeTab === 'tab-mv') {
+            const mvTitle = document.getElementById('id_mv_title')?.value || 'Our Mission & Vision';
+            const mTitle = document.getElementById('id_mission_title')?.value || 'Our Mission';
+            const mText = document.getElementById('id_mission_text')?.value || '';
+            const vTitle = document.getElementById('id_vision_title')?.value || 'Our Vision';
+            const vText = document.getElementById('id_vision_text')?.value || '';
+            html = `<h4 style="color: #fff; margin: 0 0 0.75rem 0;">${esc(mvTitle)}</h4>
+                    <div class="preview-card-item">
+                        <strong style="color: #fb923c;">🎯 ${esc(mTitle)}</strong>
+                        <div style="font-size: 0.82rem; color: #94a3b8; margin-top: 0.35rem;">${esc(mText)}</div>
+                    </div>
+                    <div class="preview-card-item">
+                        <strong style="color: #38bdf8;">👁️ ${esc(vTitle)}</strong>
+                        <div style="font-size: 0.82rem; color: #94a3b8; margin-top: 0.35rem;">${esc(vText)}</div>
+                    </div>`;
+        } else if (activeTab === 'tab-testimonials') {
+            const title = document.getElementById('id_testimonials_title')?.value || 'What Our Students Say';
+            const desc = document.getElementById('id_testimonials_desc')?.value || '';
+            html = `<h4 style="color: #fff; margin: 0 0 0.5rem 0;">${esc(title)}</h4>
+                    <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 1rem;">${esc(desc)}</p>`;
+            state.testimonials.forEach(t => {
+                const stars = '★'.repeat(t.stars || 5);
+                html += `
+                <div class="preview-card-item">
+                    <div style="color: #facc15; font-size: 0.85rem; margin-bottom: 0.25rem;">${stars}</div>
+                    <div style="font-size: 0.82rem; color: #e2e8f0; font-style: italic; margin-bottom: 0.4rem;">&ldquo;${esc(t.quote)}&rdquo;</div>
+                    <div style="font-size: 0.78rem; color: #94a3b8;"><strong>${esc(t.author)}</strong> (${esc(t.avatar || 'ST')}) - ${esc(t.tag)}</div>
+                </div>`;
+            });
+        } else if (activeTab === 'tab-cta') {
+            const title = document.getElementById('id_cta_title')?.value || 'Ready to Build Skills?';
+            const desc = document.getElementById('id_cta_desc')?.value || '';
+            const b1 = document.getElementById('id_cta_btn1_text')?.value || 'View Courses';
+            const b2 = document.getElementById('id_cta_btn2_text')?.value || 'Contact Us';
+            html = `
+            <div class="preview-card-item" style="border: 1px solid rgba(234,88,12,0.4); text-align: center;">
+                <h4 style="color: #fff; margin: 0 0 0.4rem 0;">${esc(title)}</h4>
+                <p style="color: #94a3b8; font-size: 0.82rem; margin-bottom: 0.75rem;">${esc(desc)}</p>
+                <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                    <span class="btn btn-primary btn-sm" style="font-size: 0.75rem;">${esc(b1)}</span>
+                    <span class="btn btn-outline btn-sm" style="font-size: 0.75rem;">${esc(b2)}</span>
+                </div>
+            </div>`;
+        }
+
+        previewContainer.innerHTML = html;
+    }
+
+    // Tab Switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+            this.classList.add('active');
+            const targetId = this.getAttribute('data-tab');
+            const targetPane = document.getElementById(targetId);
+            if (targetPane) targetPane.classList.add('active');
+
+            activeTab = targetId;
+            if (previewTabLabel) previewTabLabel.textContent = this.textContent.trim();
+            updatePreview();
+        });
+    });
+
+    // Form inputs change triggers
+    const standardInputs = [
+        'id_intro_badge', 'id_intro_heading', 'id_intro_lead', 'id_intro_text',
+        'id_legacy_title', 'id_legacy_desc',
+        'id_why_title', 'id_why_desc', 'id_why_subheading',
+        'id_specs_title', 'id_specs_desc',
+        'id_mv_title', 'id_mission_title', 'id_mission_text', 'id_vision_title', 'id_vision_text',
+        'id_testimonials_title', 'id_testimonials_desc',
+        'id_cta_title', 'id_cta_desc', 'id_cta_btn1_text', 'id_cta_btn1_url', 'id_cta_btn2_text', 'id_cta_btn2_url'
+    ];
+
+    standardInputs.forEach(id => {
+        const el = document.getElementById(id);
         if (el) {
-            el.addEventListener('input', function() {
-                updatePreview();
-                setSyncState('typing', 'Typing...');
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(performSync, 1200);
-            });
-            el.addEventListener('change', function() {
-                updatePreview();
-                clearTimeout(debounceTimer);
-                performSync();
-            });
+            el.addEventListener('input', triggerAutoSync);
+            el.addEventListener('change', triggerAutoSync);
         }
     });
 
+    // Manual Sync Button
     if (syncBtn) {
-        syncBtn.addEventListener('click', function(e) {
+        syncBtn.addEventListener('click', (e) => {
             e.preventDefault();
             clearTimeout(debounceTimer);
             performSync();
         });
     }
 
+    const manualBtn = document.getElementById('btnManualSync');
+    if (manualBtn) {
+        manualBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            clearTimeout(debounceTimer);
+            performSync();
+        });
+    }
+
+    // Ensure hidden inputs are populated on normal form submit
+    form.addEventListener('submit', function() {
+        syncStateToInputs();
+    });
+
+    // Initial render
+    renderLegacyCards();
+    renderBenefits();
+    renderSpecs();
+    renderTestimonials();
     updatePreview();
     setSyncState('active', 'Live Sync Active');
 });

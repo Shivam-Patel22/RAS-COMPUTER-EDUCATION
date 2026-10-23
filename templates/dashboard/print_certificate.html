@@ -968,6 +968,14 @@
 
             <!-- 8. Verification Line: x 50%, y 78% -->
             <div class="ras-field cert-verify-line ras-verify-line">This Certificate can be verified on {{ certificate_verify_url }}</div>
+
+            <!-- 9. Dynamic Scannable QR Code Overlay (x: 88.5%, y: 64.5%) -->
+            <div class="ras-field ras-qr-box" style="left: 88.5%; top: 64.5%; text-align: center;">
+                {% if qr_data_uri %}
+                <img src="{{ qr_data_uri }}" alt="Scan to Verify" style="width: 4.8cqw; height: 4.8cqw; min-width: 58px; min-height: 58px; max-width: 78px; max-height: 78px; object-fit: contain; background: #ffffff; padding: 2px; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: block; margin: 0 auto;">
+                <span style="font-size: 0.65cqw; font-weight: 700; color: #475569; letter-spacing: 0.4px; text-transform: uppercase; display: block; margin-top: 2px;">Scan to Verify</span>
+                {% endif %}
+            </div>
         </div>
     </div>
     {% elif certificate.prefix == 'CITI' %}
@@ -1021,6 +1029,14 @@
             <!-- Verification Line -->
             <div class="citi-cert-line citi-cert-verify">This Certificate can be verified on {{ certificate_verify_url }}</div>
 
+            <!-- Dynamic Scannable QR Code (Bottom Center, x: 51%, y: 88.5%) -->
+            <div class="citi-cert-line citi-cert-qr" style="top: 88.5%; text-align: center;">
+                {% if qr_data_uri %}
+                <img src="{{ qr_data_uri }}" alt="Scan to Verify" style="width: 4.5cqw; height: 4.5cqw; min-width: 50px; min-height: 50px; max-width: 65px; max-height: 65px; object-fit: contain; background: #ffffff; padding: 2px; border: 1px solid #cbd5e1; border-radius: 3px; display: block; margin: 0 auto;">
+                <span style="font-size: 0.65cqw; font-weight: 700; color: #475569; letter-spacing: 0.4px; text-transform: uppercase; display: block; margin-top: 2px;">Scan to Verify</span>
+                {% endif %}
+            </div>
+
             <!-- Bottom-Left: Date & Place -->
             <div class="citi-cert-date">Date &nbsp;: {% if certificate.issue_date %}{{ certificate.issue_date|date:"d.m.Y" }}{% endif %}</div>
             <div class="citi-cert-place">Place: Gandhinagar</div>
@@ -1035,7 +1051,11 @@
 
             <!-- 1. Top-Left Box: Dynamic QR Code -->
             <div class="ccc-qr-box">
+                {% if qr_data_uri %}
+                <img src="{{ qr_data_uri }}" alt="Scan to Verify" class="ccc-qr-canvas" style="width: 78%; height: 78%; object-fit: contain; background: #ffffff;">
+                {% else %}
                 <canvas id="qrCanvas" class="ccc-qr-canvas"></canvas>
+                {% endif %}
                 <span class="ccc-qr-label">Scan to Verify</span>
             </div>
 
@@ -1114,7 +1134,11 @@
             <div class="cert-footer-grid">
                 <!-- Dynamic QR Code -->
                 <div class="cert-qr-box">
+                    {% if qr_data_uri %}
+                    <img src="{{ qr_data_uri }}" alt="Scan to Verify" class="cert-qr-canvas" style="width: 82px; height: 82px; object-fit: contain; padding: 2px; background: #fff; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    {% else %}
                     <canvas id="qrCanvas" class="cert-qr-canvas"></canvas>
+                    {% endif %}
                     <span class="cert-qr-label">Scan to Verify</span>
                 </div>
 

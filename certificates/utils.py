@@ -467,27 +467,87 @@ def _format_ordinal_date(d):
     return f"{day}{suffix} {d.strftime('%b')}."
 
 
-def get_certificate_verify_url():
+def generate_qr_code_image(data, box_size=4, border=1):
     """
-    Returns the absolute URL for the Certificate Verification page.
-    Configured via settings.SITE_BASE_URL (or os.environ.get('SITE_BASE_URL')).
-    Guarantees no double slashes.
+    Generates a crisp PIL Image of a QR code encoding data.
+    Uses standard QR code generation with medium error correction.
+    """
+    import qrcode
+    qr = qrcode.QRCode(
+        version=None,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=box_size,
+        border=border,
+    )
+    qr.add_data(data)
+    qr.make(fit=True)
+    return qr.make_image(fill_color="black", back_color="white")
+
+
+def generate_qr_data_uri(data, box_size=4, border=1):
+    """
+    Generates a base64 PNG data URI for embedding directly into HTML templates.
+    """
+    import io
+    import base64
+    img = generate_qr_code_image(data, box_size=box_size, border=border)
+    buf = io.BytesIO()
+    img.save(buf, format='PNG')
+    b64 = base64.b64encode(buf.getvalue()).decode('ascii')
+    return f"data:image/png;base64,{b64}"
+
+
+def get_certificate_verify_url(cert=None, request=None):
+    """
+    Returns the absolute URL for the Certificate Verification page or specific certificate.
+    Supports optional cert instance/ID and optional HttpRequest.
+    Guarantees no double slashes and respects deployment environment domain.
     """
     import os
     from django.conf import settings
     from django.urls import reverse
-    base = getattr(settings, 'SITE_BASE_URL', os.environ.get('SITE_BASE_URL', 'http://localhost:8000'))
-    if not base:
-        base = 'http://localhost:8000'
-    base = str(base).strip().rstrip('/')
-    try:
-        path = reverse('certificates:verify')
-    except Exception:
-        path = '/verify-certificate/'
-    return f"{base}/{path.lstrip('/')}"
+
+    cert_id = None
+    if cert:
+        if hasattr(cert, 'certificate_id') and cert.certificate_id:
+            cert_id = str(cert.certificate_id).strip()
+        elif isinstance(cert, str):
+            cert_id = cert.strip()
+
+    if cert_id:
+        try:
+            path = reverse('certificates:verify_direct', kwargs={'certificate_id': cert_id})
+        except Exception:
+            path = f"/verify-certificate/{cert_id}/"
+    else:
+        try:
+            path = reverse('certificates:verify')
+        except Exception:
+            path = '/verify-certificate/'
+
+    # 1. Configured base URL from settings / env
+    base = getattr(settings, 'SITE_BASE_URL', os.environ.get('SITE_BASE_URL', '')).strip().rstrip('/')
+
+    # 2. If request is available and (DEBUG is active or base is default localhost), use request.build_absolute_uri
+    if request:
+        if not base or ('localhost' in base and not getattr(settings, 'DEBUG', False)):
+            return request.build_absolute_uri(path)
+        if getattr(settings, 'DEBUG', False) and 'localhost' in base:
+            return request.build_absolute_uri(path)
+
+    # 3. If base is configured, use it
+    if base:
+        return f"{base}/{path.lstrip('/')}"
+
+    # 4. If request is provided fallback to request absolute uri
+    if request:
+        return request.build_absolute_uri(path)
+
+    # 5. Default fallback
+    return f"http://localhost:8000/{path.lstrip('/')}"
 
 
-def generate_ras_certificate_pdf(cert):
+def generate_ras_certificate_pdf(cert, request=None):
     """
     Generates a high-quality A4 landscape PDF in memory for an RAS institute certificate
     using the official RAS Computer Education template background.
@@ -580,6 +640,32 @@ def generate_ras_certificate_pdf(cert):
     c.setFont('Helvetica', font_size)
     c.drawCentredString(page_w * 0.50, page_h * (1 - 0.782), verify_line)
 
+    # 9. Dynamic Scannable QR Code Overlay (x 88.5%, y 64.5%)
+    qr_verify_url = get_certificate_verify_url(cert, request=request)
+    try:
+        from PIL import Image
+        from reportlab.lib.utils import ImageReader
+        qr_img = generate_qr_code_image(qr_verify_url, box_size=4, border=1)
+        qr_buf = io.BytesIO()
+        qr_img.save(qr_buf, format='PNG')
+        qr_buf.seek(0)
+
+        qr_size = 62
+        qr_x = page_w * 0.885 - (qr_size / 2)
+        qr_y = page_h * (1 - 0.645) - (qr_size / 2)
+
+        c.setFillColor(colors.white)
+        c.setStrokeColor(colors.HexColor('#CBD5E1'))
+        c.setLineWidth(0.8)
+        c.roundRect(qr_x - 3, qr_y - 10, qr_size + 6, qr_size + 13, 3, fill=True, stroke=True)
+        c.drawImage(ImageReader(qr_buf), qr_x, qr_y, width=qr_size, height=qr_size)
+
+        c.setFont('Helvetica-Bold', 5.5)
+        c.setFillColor(colors.HexColor('#475569'))
+        c.drawCentredString(qr_x + (qr_size / 2), qr_y - 7, 'SCAN TO VERIFY')
+    except Exception:
+        pass
+
     # Authority Signatory: left empty per requirements
 
     c.save()
@@ -587,7 +673,7 @@ def generate_ras_certificate_pdf(cert):
     return buf.getvalue()
 
 
-def generate_ccc_certificate_pdf(cert):
+def generate_ccc_certificate_pdf(cert, request=None):
     """
     Generates high-resolution PDF for CCC (Course on Computer Concepts)
     using the official uploaded template image as background.
@@ -621,21 +707,17 @@ def generate_ccc_certificate_pdf(cert):
     if template_path:
         c.drawImage(template_path, 0, 0, width=width, height=height)
 
-    # 1. Top-Left Box QR Code
-    qr_data = cert.certificate_id
-    if hasattr(cert, 'verification_token') and cert.verification_token:
-        qr_data = f"{cert.certificate_id}|{cert.verification_token}"
-
+    # 1. Top-Left Box QR Code (encodes public verification URL)
+    qr_verify_url = get_certificate_verify_url(cert, request=request)
     try:
-        qr_widget = qr.QrCodeWidget(qr_data)
-        qr_bounds = qr_widget.getBounds()
-        qr_w = qr_bounds[2] - qr_bounds[0]
-        qr_h = qr_bounds[3] - qr_bounds[1]
+        from reportlab.lib.utils import ImageReader
+        qr_img = generate_qr_code_image(qr_verify_url, box_size=4, border=1)
+        qr_buf = io.BytesIO()
+        qr_img.save(qr_buf, format='PNG')
+        qr_buf.seek(0)
 
-        box_qr_size = 76
-        d = Drawing(box_qr_size, box_qr_size, transform=[box_qr_size / qr_w, 0, 0, box_qr_size / qr_h, 0, 0])
-        d.add(qr_widget)
-        renderPDF.draw(d, c, 58, 680)
+        box_qr_size = 72
+        c.drawImage(ImageReader(qr_buf), 60, 682, width=box_qr_size, height=box_qr_size)
     except Exception:
         pass
 
@@ -737,7 +819,7 @@ def get_next_citi_serial():
     return str(max_serial + 1)
 
 
-def generate_citi_ccc_certificate_pdf(cert):
+def generate_citi_ccc_certificate_pdf(cert, request=None):
     """
     Generates high-resolution A4 portrait PDF for CITI CCC Certificate
     using the official blank CITI CCC template image as background.
@@ -930,6 +1012,32 @@ def generate_citi_ccc_certificate_pdf(cert):
     if date_str:
         c.drawString(left_dp_x, height * (1 - 0.908) - (14 * 0.35), f"Date  : {date_str}")
     c.drawString(left_dp_x, height * (1 - 0.929) - (14 * 0.35), "Place: Gandhinagar")
+
+    # Dynamic Scannable QR Code centered horizontally at x 51%, y 88.5%
+    qr_verify_url = get_certificate_verify_url(cert, request=request)
+    try:
+        from PIL import Image
+        from reportlab.lib.utils import ImageReader
+        qr_img = generate_qr_code_image(qr_verify_url, box_size=4, border=1)
+        qr_buf = io.BytesIO()
+        qr_img.save(qr_buf, format='PNG')
+        qr_buf.seek(0)
+
+        qr_size = 52
+        qr_x = center_x - (qr_size / 2)
+        qr_y = height * (1 - 0.885) - (qr_size / 2)
+
+        c.setFillColor(colors.white)
+        c.setStrokeColor(colors.HexColor('#CBD5E1'))
+        c.setLineWidth(0.8)
+        c.roundRect(qr_x - 3, qr_y - 9, qr_size + 6, qr_size + 12, 3, fill=True, stroke=True)
+        c.drawImage(ImageReader(qr_buf), qr_x, qr_y, width=qr_size, height=qr_size)
+
+        c.setFont('Helvetica-Bold', 5)
+        c.setFillColor(colors.HexColor('#475569'))
+        c.drawCentredString(center_x, qr_y - 6.5, 'SCAN TO VERIFY')
+    except Exception:
+        pass
 
     c.save()
     buf.seek(0)
@@ -1129,7 +1237,7 @@ def generate_citi_marksheet_pdf(cert):
     return buf.getvalue()
 
 
-def generate_certificate_pdf(cert):
+def generate_certificate_pdf(cert, request=None):
     """
     Generates a high-quality PDF in memory for a given Certificate instance.
     For RAS institute certificates, it uses the official RAS template image.
@@ -1138,13 +1246,13 @@ def generate_certificate_pdf(cert):
     For all other courses, it retains the standard C-DAC certificate layout.
     """
     if is_ras_certificate(cert):
-        return generate_ras_certificate_pdf(cert)
+        return generate_ras_certificate_pdf(cert, request=request)
 
     if getattr(cert, 'prefix', '') == 'CITI':
-        return generate_citi_ccc_certificate_pdf(cert)
+        return generate_citi_ccc_certificate_pdf(cert, request=request)
 
     if is_ccc_certificate(cert):
-        return generate_ccc_certificate_pdf(cert)
+        return generate_ccc_certificate_pdf(cert, request=request)
 
     import io
     from reportlab.lib.pagesizes import A4
@@ -1277,6 +1385,21 @@ def generate_certificate_pdf(cert):
     c.setFillColor(colors.HexColor('#16A34A'))
     c.setFont('Helvetica-Bold', 8.5)
     c.drawString(60, 145, 'Status: Authentic & Valid')
+
+    # Dynamic Scannable QR Code for standard layout
+    qr_verify_url = get_certificate_verify_url(cert, request=request)
+    try:
+        from reportlab.lib.utils import ImageReader
+        qr_img = generate_qr_code_image(qr_verify_url, box_size=4, border=1)
+        qr_buf = io.BytesIO()
+        qr_img.save(qr_buf, format='PNG')
+        qr_buf.seek(0)
+        c.drawImage(ImageReader(qr_buf), 235, 135, width=50, height=50)
+        c.setFont('Helvetica-Bold', 5)
+        c.setFillColor(colors.HexColor('#475569'))
+        c.drawCentredString(260, 127, 'SCAN TO VERIFY')
+    except Exception:
+        pass
 
     # Right Footer: Authorized Signatory
     c.setStrokeColor(colors.HexColor('#0F172A'))

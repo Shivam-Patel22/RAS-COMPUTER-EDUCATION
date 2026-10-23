@@ -32,368 +32,538 @@
 <div class="container about-page-container">
 
     <!-- Section 1: Introduction -->
-    <section class="about-section about-intro-section animate__animated animate__fadeInUp" aria-labelledby="about-intro-title">
+    <section class="about-section about-intro-section animate__animated animate__fadeInUp" id="sec-intro" aria-labelledby="about-intro-title">
         <div class="card about-hero-card">
             <div class="about-header-badge">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
-                <span>Premier Computer Institute in Gandhinagar</span>
+                <span id="about-intro-badge">{{ about_content.intro_badge|default:"Premier Computer Institute in Gandhinagar" }}</span>
             </div>
             <h1 id="about-intro-title" class="page-title about-main-title">
-                Welcome to RAS Computer Education – Empowering Futures Through Technology
+                {{ about_content.intro_heading|default:about_content.heading|default:"Welcome to RAS Computer Education – Empowering Futures Through Technology" }}
             </h1>
             <div class="about-intro-content">
-                <p class="about-lead-text">
-                    Welcome to RAS Computer Education, Gandhinagar’s premier destination for comprehensive computer training, skill development, and professional IT education. For over two decades, we have been dedicated to bridging the gap between traditional learning and modern industry demands.
+                <p id="about-intro-lead" class="about-lead-text">
+                    {{ about_content.intro_lead|linebreaksbr }}
                 </p>
-                <p class="about-text">
-                    Whether you are a student aiming to build a career in technology, a job seeker preparing for government examinations, or a professional looking to upskill, RAS Computer Education is the best students' choice for learning computer skills in Gandhinagar, Gujarat.
+                <p id="about-intro-text" class="about-text">
+                    {{ about_content.intro_text|linebreaksbr }}
                 </p>
             </div>
         </div>
     </section>
 
     <!-- Section 2: Our Legacy of Excellence -->
-    <section class="about-section about-legacy-section animate__animated animate__fadeInUp anim-delay-1" aria-labelledby="about-legacy-title">
+    <section class="about-section about-legacy-section animate__animated animate__fadeInUp anim-delay-1" id="sec-legacy" aria-labelledby="about-legacy-title">
         <div class="about-section-header">
             <h2 id="about-legacy-title" class="about-section-title">
                 <span class="about-accent-line" aria-hidden="true"></span>
-                <span>Our Legacy of Excellence</span>
+                <span id="about-legacy-title-text">{{ about_content.legacy_title|default:"Our Legacy of Excellence" }}</span>
             </h2>
-            <p class="about-section-desc">
-                Since our inception, we have maintained an unwavering commitment to quality education, practical learning, and student success.
+            <p id="about-legacy-desc" class="about-section-desc">
+                {{ about_content.legacy_desc|default:"Since our inception, we have maintained an unwavering commitment to quality education, practical learning, and student success." }}
             </p>
         </div>
 
-        <div class="about-legacy-grid">
-            <!-- Achievement 1 -->
-            <div class="card about-legacy-card card-hover">
+        <div class="about-legacy-grid" id="about-legacy-grid">
+            {% for card in about_content.get_legacy_cards %}
+            <div class="card about-legacy-card card-hover" data-card-id="{{ card.id }}">
                 <div class="about-card-top">
-                    <div class="about-stat-icon orange-icon" aria-hidden="true">
+                    <div class="about-stat-icon {{ card.color|default:'orange' }}-icon" aria-hidden="true">
+                        {% if card.icon == 'clock' %}
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    </div>
-                    <div class="about-stat-number">20+</div>
-                </div>
-                <h3 class="about-stat-title">20+ Years of Establishment</h3>
-                <p class="about-stat-desc">Over two decades of proven excellence, trust, and leadership in computer training.</p>
-            </div>
-
-            <!-- Achievement 2 -->
-            <div class="card about-legacy-card card-hover">
-                <div class="about-card-top">
-                    <div class="about-stat-icon blue-icon" aria-hidden="true">
+                        {% elif card.icon == 'users' %}
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    </div>
-                    <div class="about-stat-number">15,000+</div>
-                </div>
-                <h3 class="about-stat-title">15,000+ Students Trained</h3>
-                <p class="about-stat-desc">A vast alumni network working successfully in top companies, MNCs, and government sectors across Gujarat and beyond.</p>
-            </div>
-
-            <!-- Achievement 3 -->
-            <div class="card about-legacy-card card-hover">
-                <div class="about-card-top">
-                    <div class="about-stat-icon primary-icon" aria-hidden="true">
+                        {% elif card.icon == 'desktop' %}
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-                    </div>
-                    <div class="about-stat-number">100%</div>
-                </div>
-                <h3 class="about-stat-title">100% Practical Training</h3>
-                <p class="about-stat-desc">Hands-on experience with modern software, real-world projects, and dedicated lab sessions.</p>
-            </div>
-
-            <!-- Achievement 4 -->
-            <div class="card about-legacy-card card-hover">
-                <div class="about-card-top">
-                    <div class="about-stat-icon green-icon" aria-hidden="true">
+                        {% else %}
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                        {% endif %}
                     </div>
-                    <div class="about-stat-number stat-badge-text">Certified</div>
+                    <div class="about-stat-number {% if card.stat == 'Certified' %}stat-badge-text{% endif %}">{{ card.stat }}</div>
                 </div>
-                <h3 class="about-stat-title">Certified &amp; Experienced Instructors</h3>
-                <p class="about-stat-desc">Learn directly from industry experts with deep domain knowledge and personalized teaching approaches.</p>
+                <h3 class="about-stat-title">{{ card.title }}</h3>
+                <p class="about-stat-desc">{{ card.desc }}</p>
             </div>
+            {% endfor %}
         </div>
     </section>
 
     <!-- Section 3: Why We Are the Best Computer Class in Gandhinagar, Gujarat -->
-    <section class="about-section about-why-us-section animate__animated animate__fadeInUp anim-delay-2" aria-labelledby="about-why-title">
+    <section class="about-section about-why-us-section animate__animated animate__fadeInUp anim-delay-2" id="sec-why" aria-labelledby="about-why-title">
         <div class="card about-why-card">
             <div class="about-section-header">
                 <h2 id="about-why-title" class="about-section-title">
                     <span class="about-accent-line" aria-hidden="true"></span>
-                    <span>Why We Are the Best Computer Class in Gandhinagar, Gujarat</span>
+                    <span id="about-why-title-text">{{ about_content.why_title|default:"Why We Are the Best Computer Class in Gandhinagar, Gujarat" }}</span>
                 </h2>
-                <p class="about-section-desc">
-                    At RAS Computer Education, we believe that quality education should be practical, affordable, and career-oriented. Located strategically in Gandhinagar, our institute provides a state-of-the-art learning environment equipped with modern infrastructure and flexible batch timings to accommodate students, working professionals, and job seekers.
+                <p id="about-why-desc" class="about-section-desc">
+                    {{ about_content.why_desc|default:"At RAS Computer Education, we believe that quality education should be practical, affordable, and career-oriented. Located strategically in Gandhinagar, our institute provides a state-of-the-art learning environment equipped with modern infrastructure and flexible batch timings to accommodate students, working professionals, and job seekers." }}
                 </p>
             </div>
 
             <h3 class="about-subheading">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-                <span>What Sets Us Apart?</span>
+                <span id="about-why-subheading-text">{{ about_content.why_subheading|default:"What Sets Us Apart?" }}</span>
             </h3>
 
-            <div class="about-benefits-grid">
-                <!-- Benefit 1 -->
-                <div class="about-benefit-card">
+            <div class="about-benefits-grid" id="about-benefits-grid">
+                {% for item in about_content.get_why_benefits %}
+                <div class="about-benefit-card" data-benefit-id="{{ item.id }}">
                     <div class="about-benefit-icon" aria-hidden="true">
+                        {% if item.icon == 'book' %}
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-                    </div>
-                    <div>
-                        <h4 class="about-benefit-title">Industry-Aligned Curriculum</h4>
-                        <p class="about-benefit-desc">Updated regularly to keep pace with evolving technological standards.</p>
-                    </div>
-                </div>
-
-                <!-- Benefit 2 -->
-                <div class="about-benefit-card">
-                    <div class="about-benefit-icon" aria-hidden="true">
+                        {% elif item.icon == 'users' %}
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><circle cx="19" cy="11" r="2"></circle></svg>
-                    </div>
-                    <div>
-                        <h4 class="about-benefit-title">Small Batch Sizes</h4>
-                        <p class="about-benefit-desc">Ensures individual focus and personal attention for every student.</p>
-                    </div>
-                </div>
-
-                <!-- Benefit 3 -->
-                <div class="about-benefit-card">
-                    <div class="about-benefit-icon" aria-hidden="true">
+                        {% elif item.icon == 'clock' %}
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 15 15"></polyline></svg>
-                    </div>
-                    <div>
-                        <h4 class="about-benefit-title">Flexible Timings</h4>
-                        <p class="about-benefit-desc">Morning, evening, and weekend batches tailored for convenience.</p>
-                    </div>
-                </div>
-
-                <!-- Benefit 4 -->
-                <div class="about-benefit-card">
-                    <div class="about-benefit-icon" aria-hidden="true">
+                        {% elif item.icon == 'dollar' %}
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                    </div>
-                    <div>
-                        <h4 class="about-benefit-title">Affordable Fees Structure</h4>
-                        <p class="about-benefit-desc">Quality computer education accessible to everyone.</p>
-                    </div>
-                </div>
-
-                <!-- Benefit 5 -->
-                <div class="about-benefit-card">
-                    <div class="about-benefit-icon" aria-hidden="true">
+                        {% else %}
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                        {% endif %}
                     </div>
                     <div>
-                        <h4 class="about-benefit-title">Career Guidance &amp; Placement Support</h4>
-                        <p class="about-benefit-desc">Assistance with resume building, interview preparation, and job placement.</p>
+                        <h4 class="about-benefit-title">{{ item.title }}</h4>
+                        <p class="about-benefit-desc">{{ item.desc }}</p>
                     </div>
                 </div>
+                {% endfor %}
             </div>
         </div>
     </section>
 
     <!-- Section 4: Our Core Specializations -->
-    <section class="about-section about-specs-section animate__animated animate__fadeInUp anim-delay-3" aria-labelledby="about-specs-title">
+    <section class="about-section about-specs-section animate__animated animate__fadeInUp anim-delay-3" id="sec-specs" aria-labelledby="about-specs-title">
         <div class="about-section-header">
             <h2 id="about-specs-title" class="about-section-title">
                 <span class="about-accent-line" aria-hidden="true"></span>
-                <span>Our Core Specializations</span>
+                <span id="about-specs-title-text">{{ about_content.specs_title|default:"Our Core Specializations" }}</span>
             </h2>
-            <p class="about-section-desc">
-                Comprehensive training programs designed to develop in-demand technical expertise, professional competence, and career readiness.
+            <p id="about-specs-desc" class="about-section-desc">
+                {{ about_content.specs_desc|default:"Comprehensive training programs designed to develop in-demand technical expertise, professional competence, and career readiness." }}
             </p>
         </div>
 
-        <div class="about-specs-grid">
-            <!-- Specialization 1: Tally -->
-            <div class="card about-spec-card card-hover">
+        <div class="about-specs-grid" id="about-specs-grid">
+            {% for spec in about_content.get_specs_cards %}
+            <div class="card about-spec-card card-hover" data-spec-id="{{ spec.id }}">
                 <div>
-                    <div class="about-spec-badge orange">Accounting &amp; Taxation</div>
-                    <h3 class="about-spec-title">1. Best Tally Training Institute in Gandhinagar</h3>
-                    <p class="about-spec-desc">
-                        Master accounting and GST with our specialized Tally Prime &amp; GST Certification Course. Designed for commerce students, job seekers, and business owners, our course covers Tally with real-time financial accounting, inventory management, taxation, and GST compliance. Gain practical bookkeeping skills to pursue roles in accounting and finance.
-                    </p>
-                </div>
-                <div class="about-spec-footer">
-                    <span class="about-tag">Tally Prime</span>
-                    <span class="about-tag">GST Compliance</span>
-                    <span class="about-tag">Inventory</span>
-                    <span class="about-tag">Bookkeeping</span>
-                </div>
-            </div>
-
-            <!-- Specialization 2: Coding Languages -->
-            <div class="card about-spec-card card-hover">
-                <div>
-                    <div class="about-spec-badge">Software Development &amp; IT</div>
-                    <h3 class="about-spec-title">2. Best Coding Languages Institute in Gandhinagar</h3>
-                    <p class="about-spec-desc">
-                        Kickstart your career in software development and IT. We offer comprehensive training in core and advanced programming languages:
-                    </p>
+                    {% if spec.badge %}
+                    <div class="about-spec-badge {% if spec.badge_color %}{{ spec.badge_color }}{% endif %}">{{ spec.badge }}</div>
+                    {% endif %}
+                    <h3 class="about-spec-title">{{ spec.title }}</h3>
+                    <p class="about-spec-desc">{{ spec.desc }}</p>
+                    {% if spec.desc2 %}
+                    <p class="about-spec-desc">{{ spec.desc2 }}</p>
+                    {% endif %}
+                    {% if spec.highlights %}
                     <div class="about-code-highlights">
+                        {% for hl in spec.highlights %}
                         <div class="about-code-item">
-                            <strong>Python Programming:</strong>
-                            From Python basics to advanced OOPs and data manipulation.
+                            <strong>{{ hl.label }}</strong>
+                            {{ hl.text }}
                         </div>
-                        <div class="about-code-item">
-                            <strong>C &amp; C++ Fundamentals:</strong>
-                            Build strong logic, algorithm, and object-oriented programming concepts.
-                        </div>
-                        <div class="about-code-item">
-                            <strong>Web Development (HTML, CSS, JavaScript):</strong>
-                            Learn full-stack skills to build modern, responsive websites.
-                        </div>
-                        <div class="about-code-item">
-                            <strong>Java &amp; Data Structures:</strong>
-                            Master core logic and enterprise-level development.
-                        </div>
+                        {% endfor %}
                     </div>
+                    {% endif %}
                 </div>
+                {% if spec.tags %}
                 <div class="about-spec-footer">
-                    <span class="about-tag">Python</span>
-                    <span class="about-tag">C / C++</span>
-                    <span class="about-tag">Full-Stack Web</span>
-                    <span class="about-tag">Java &amp; DSA</span>
+                    {% for tag in spec.tags %}
+                    <span class="about-tag">{{ tag }}</span>
+                    {% endfor %}
                 </div>
+                {% endif %}
             </div>
-
-            <!-- Specialization 3: CCC -->
-            <div class="card about-spec-card card-hover">
-                <div>
-                    <div class="about-spec-badge cyan">Government Certification</div>
-                    <h3 class="about-spec-title">3. Best CCC Training Institute</h3>
-                    <p class="about-spec-desc">
-                        Prepare for government job requirements and administrative skill certifications with our CCC (Course on Computer Concepts) training program.
-                    </p>
-                    <p class="about-spec-desc">
-                        We offer expert guidance on fundamental computer skills, MS Office (Word, Excel, PowerPoint), internet basics, email management, and government portal navigation, ensuring a high pass rate for all aspirants.
-                    </p>
-                </div>
-                <div class="about-spec-footer">
-                    <span class="about-tag">CCC Exam Prep</span>
-                    <span class="about-tag">MS Office</span>
-                    <span class="about-tag">Internet &amp; Email</span>
-                    <span class="about-tag">Govt Portals</span>
-                </div>
-            </div>
-
-            <!-- Specialization 4: Advanced Office & Data Analysis -->
-            <div class="card about-spec-card card-hover">
-                <div>
-                    <div class="about-spec-badge">Productivity &amp; Analytics</div>
-                    <h3 class="about-spec-title">4. Advanced Office &amp; Data Analysis Skills</h3>
-                    <p class="about-spec-desc">
-                        Become an expert in office productivity tools. Master Advanced Excel for Data Analysis, formula creation, data visualization, pivot tables, and database management through hands-on practice.
-                    </p>
-                </div>
-                <div class="about-spec-footer">
-                    <span class="about-tag">Advanced Excel</span>
-                    <span class="about-tag">Data Analysis</span>
-                    <span class="about-tag">Pivot Tables</span>
-                    <span class="about-tag">Data Visualization</span>
-                </div>
-            </div>
+            {% endfor %}
         </div>
     </section>
 
     <!-- Section 5: Our Mission & Vision -->
-    <section class="about-section about-mv-section animate__animated animate__fadeInUp anim-delay-4" aria-labelledby="about-mv-title">
+    <section class="about-section about-mv-section animate__animated animate__fadeInUp anim-delay-4" id="sec-mv" aria-labelledby="about-mv-title">
         <div class="about-section-header">
             <h2 id="about-mv-title" class="about-section-title">
                 <span class="about-accent-line" aria-hidden="true"></span>
-                <span>Our Mission &amp; Vision</span>
+                <span id="about-mv-title-text">{{ about_content.mv_title|default:"Our Mission & Vision" }}</span>
             </h2>
         </div>
 
         <div class="about-mv-grid">
             <!-- Mission Column -->
-            <div class="card about-mv-card mission card-hover">
+            <div class="card about-mv-card mission card-hover" id="card-mission">
                 <div class="about-mv-icon" aria-hidden="true">
                     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
                 </div>
-                <h3 class="about-mv-title">Our Mission</h3>
-                <p class="about-mv-text">
-                    To empower individuals with cutting-edge computer skills, practical knowledge, and technical confidence required to excel in today’s digital world.
+                <h3 id="about-mission-title" class="about-mv-title">{{ about_content.mission_title|default:"Our Mission" }}</h3>
+                <p id="about-mission-text" class="about-mv-text">
+                    {{ about_content.mission_text|default:about_content.description|default:"To empower individuals with cutting-edge computer skills, practical knowledge, and technical confidence required to excel in today’s digital world." }}
                 </p>
             </div>
 
             <!-- Vision Column -->
-            <div class="card about-mv-card vision card-hover">
+            <div class="card about-mv-card vision card-hover" id="card-vision">
                 <div class="about-mv-icon" aria-hidden="true">
                     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </div>
-                <h3 class="about-mv-title">Our Vision</h3>
-                <p class="about-mv-text">
-                    To remain the most trusted, innovative, and student-centric computer training institute in Gandhinagar, continuously raising the standard of IT education.
+                <h3 id="about-vision-title" class="about-mv-title">{{ about_content.vision_title|default:"Our Vision" }}</h3>
+                <p id="about-vision-text" class="about-mv-text">
+                    {{ about_content.vision_text|default:"To remain the most trusted, innovative, and student-centric computer training institute in Gandhinagar, continuously raising the standard of IT education." }}
                 </p>
             </div>
         </div>
     </section>
 
     <!-- Section 6: What Our Students Say -->
-    <section class="about-section about-testimonials-section animate__animated animate__fadeInUp anim-delay-5" aria-labelledby="about-testimonials-title">
+    <section class="about-section about-testimonials-section animate__animated animate__fadeInUp anim-delay-5" id="sec-testimonials" aria-labelledby="about-testimonials-title">
         <div class="about-section-header">
             <h2 id="about-testimonials-title" class="about-section-title">
                 <span class="about-accent-line" aria-hidden="true"></span>
-                <span>What Our Students Say</span>
+                <span id="about-testimonials-title-text">{{ about_content.testimonials_title|default:"What Our Students Say" }}</span>
             </h2>
-            <p class="about-section-desc">
-                Genuine feedback from our students on their learning journeys and career milestones.
+            <p id="about-testimonials-desc" class="about-section-desc">
+                {{ about_content.testimonials_desc|default:"Genuine feedback from our students on their learning journeys and career milestones." }}
             </p>
         </div>
 
-        <div class="about-testimonials-grid">
-            <!-- Testimonial 1 -->
-            <div class="card about-testimonial-card card-hover">
+        <div class="about-testimonials-grid" id="about-testimonials-grid">
+            {% for item in about_content.get_testimonials %}
+            <div class="card about-testimonial-card card-hover" data-testimonial-id="{{ item.id }}">
                 <div class="about-testimonial-content">
-                    <div class="about-stars" aria-label="5 out of 5 stars">
-                        ★★★★★
+                    <div class="about-stars" aria-label="{{ item.stars|default:5 }} out of 5 stars">
+                        {% if item.stars == 1 %}★☆☆☆☆{% elif item.stars == 2 %}★★☆☆☆{% elif item.stars == 3 %}★★★☆☆{% elif item.stars == 4 %}★★★★☆{% else %}★★★★★{% endif %}
                     </div>
                     <blockquote class="about-quote-text">
-                        &ldquo;Joining RAS Computer Education was the best decision for my career. The practical exposure in Python and Advanced Excel gave me the confidence to clear my interviews easily.&rdquo;
+                        &ldquo;{{ item.quote }}&rdquo;
                     </blockquote>
                 </div>
                 <div class="about-quote-author">
-                    <div class="about-author-avatar" aria-hidden="true">AS</div>
+                    <div class="about-author-avatar" aria-hidden="true">{{ item.avatar|default:"ST" }}</div>
                     <div class="about-author-info">
-                        <cite class="about-author-name">Alumni Student</cite>
-                        <span class="about-author-tag">RAS Computer Education Alum</span>
+                        <cite class="about-author-name">{{ item.author }}</cite>
+                        <span class="about-author-tag">{{ item.tag }}</span>
                     </div>
                 </div>
             </div>
-
-            <!-- Testimonial 2 -->
-            <div class="card about-testimonial-card card-hover">
-                <div class="about-testimonial-content">
-                    <div class="about-stars" aria-label="5 out of 5 stars">
-                        ★★★★★
-                    </div>
-                    <blockquote class="about-quote-text">
-                        &ldquo;The best Tally training institute in Gandhinagar! The faculty explains complex GST concepts with real-world examples.&rdquo;
-                    </blockquote>
-                </div>
-                <div class="about-quote-author">
-                    <div class="about-author-avatar" aria-hidden="true">CG</div>
-                    <div class="about-author-info">
-                        <cite class="about-author-name">Commerce Graduate</cite>
-                        <span class="about-author-tag">Tally Prime &amp; GST Graduate</span>
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
         </div>
     </section>
 
     <!-- Bottom Navigation / Action Banner -->
-    <div class="card about-cta-bar animate__animated animate__fadeInUp anim-delay-6">
+    <div class="card about-cta-bar animate__animated animate__fadeInUp anim-delay-6" id="sec-cta">
         <div>
-            <h3 class="about-cta-title">Ready to Build In-Demand Computer Skills?</h3>
-            <p class="about-cta-desc">Join thousands of successful students and professionals in Gandhinagar.</p>
+            <h3 id="about-cta-title" class="about-cta-title">{{ about_content.cta_title|default:"Ready to Build In-Demand Computer Skills?" }}</h3>
+            <p id="about-cta-desc" class="about-cta-desc">{{ about_content.cta_desc|default:"Join thousands of successful students and professionals in Gandhinagar." }}</p>
         </div>
         <div class="about-cta-buttons">
-            <a href="{% url 'courses:course_list' %}" class="btn btn-primary">View All Courses &rarr;</a>
-            <a href="{% url 'core:contact' %}" class="btn btn-outline-dark">Contact Us</a>
+            <a id="about-cta-btn1" href="{{ about_content.cta_btn1_url|default:'/courses/' }}" class="btn btn-primary">{{ about_content.cta_btn1_text|default:"View All Courses →" }}</a>
+            <a id="about-cta-btn2" href="{{ about_content.cta_btn2_url|default:'/contact/' }}" class="btn btn-outline-dark">{{ about_content.cta_btn2_text|default:"Contact Us" }}</a>
         </div>
     </div>
 
 </div>
+
+<!-- Staff Live Sync Float Pill -->
+{% if request.user.is_authenticated and request.user.is_staff %}
+<div id="staffLiveSyncPill" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); border: 1px solid rgba(16, 185, 129, 0.4); color: white; padding: 0.5rem 0.9rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.4); transition: all 0.3s ease;">
+    <span style="display: inline-block; width: 8px; height: 8px; background: #10B981; border-radius: 50%; box-shadow: 0 0 6px #10B981;" id="staffPillDot"></span>
+    <span id="staffPillText">Live Sync Active (v{{ sync_version|default:1 }})</span>
+    <a href="{% url 'dashboard:edit_about' %}" style="color: var(--secondary); text-decoration: underline; margin-left: 0.35rem; font-size: 0.75rem;">Edit</a>
+</div>
+{% endif %}
+
+<style>
+@keyframes liveSyncPulse {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+    50% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.2); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+.live-sync-pulse {
+    animation: liveSyncPulse 1.2s ease;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    let currentVersion = {{ sync_version|default:1 }};
+    const liveSyncEndpoint = "{% url 'core:about_live_sync' %}";
+    let pollInterval = 2500;
+    let pollTimer = null;
+    let isFetching = false;
+
+    // SVG icon generators
+    const legacyIcons = {
+        'clock': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>',
+        'users': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>',
+        'desktop': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>',
+        'award': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>'
+    };
+
+    const benefitIcons = {
+        'book': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>',
+        'users': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><circle cx="19" cy="11" r="2"></circle></svg>',
+        'clock': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 15 15"></polyline></svg>',
+        'dollar': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>',
+        'briefcase': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>'
+    };
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function renderStars(rating) {
+        const count = parseInt(rating) || 5;
+        let s = '';
+        for (let i = 1; i <= 5; i++) {
+            s += (i <= count) ? '★' : '☆';
+        }
+        return s;
+    }
+
+    function applyLiveSyncData(d) {
+        // Section 1: Intro
+        const badge = document.getElementById('about-intro-badge');
+        if (badge && d.intro_badge) badge.textContent = d.intro_badge;
+
+        const heading = document.getElementById('about-intro-title');
+        if (heading && d.intro_heading) heading.textContent = d.intro_heading;
+
+        const lead = document.getElementById('about-intro-lead');
+        if (lead && d.intro_lead) lead.innerHTML = escapeHtml(d.intro_lead).replace(/\n/g, '<br>');
+
+        const text = document.getElementById('about-intro-text');
+        if (text && d.intro_text) text.innerHTML = escapeHtml(d.intro_text).replace(/\n/g, '<br>');
+
+        // Section 2: Legacy
+        const legacyTitle = document.getElementById('about-legacy-title-text');
+        if (legacyTitle && d.legacy_title) legacyTitle.textContent = d.legacy_title;
+
+        const legacyDesc = document.getElementById('about-legacy-desc');
+        if (legacyDesc && d.legacy_desc) legacyDesc.textContent = d.legacy_desc;
+
+        const legacyGrid = document.getElementById('about-legacy-grid');
+        if (legacyGrid && Array.isArray(d.legacy_cards)) {
+            let cardsHtml = '';
+            d.legacy_cards.forEach(card => {
+                const iconSvg = legacyIcons[card.icon] || legacyIcons['award'];
+                const badgeCls = (card.stat === 'Certified') ? 'stat-badge-text' : '';
+                cardsHtml += `
+                <div class="card about-legacy-card card-hover" data-card-id="${card.id || ''}">
+                    <div class="about-card-top">
+                        <div class="about-stat-icon ${escapeHtml(card.color || 'orange')}-icon" aria-hidden="true">
+                            ${iconSvg}
+                        </div>
+                        <div class="about-stat-number ${badgeCls}">${escapeHtml(card.stat || '')}</div>
+                    </div>
+                    <h3 class="about-stat-title">${escapeHtml(card.title || '')}</h3>
+                    <p class="about-stat-desc">${escapeHtml(card.desc || '')}</p>
+                </div>`;
+            });
+            legacyGrid.innerHTML = cardsHtml;
+        }
+
+        // Section 3: Why Choose Us
+        const whyTitle = document.getElementById('about-why-title-text');
+        if (whyTitle && d.why_title) whyTitle.textContent = d.why_title;
+
+        const whyDesc = document.getElementById('about-why-desc');
+        if (whyDesc && d.why_desc) whyDesc.textContent = d.why_desc;
+
+        const whySub = document.getElementById('about-why-subheading-text');
+        if (whySub && d.why_subheading) whySub.textContent = d.why_subheading;
+
+        const benefitsGrid = document.getElementById('about-benefits-grid');
+        if (benefitsGrid && Array.isArray(d.why_benefits)) {
+            let benHtml = '';
+            d.why_benefits.forEach(item => {
+                const iconSvg = benefitIcons[item.icon] || benefitIcons['briefcase'];
+                benHtml += `
+                <div class="about-benefit-card" data-benefit-id="${item.id || ''}">
+                    <div class="about-benefit-icon" aria-hidden="true">
+                        ${iconSvg}
+                    </div>
+                    <div>
+                        <h4 class="about-benefit-title">${escapeHtml(item.title || '')}</h4>
+                        <p class="about-benefit-desc">${escapeHtml(item.desc || '')}</p>
+                    </div>
+                </div>`;
+            });
+            benefitsGrid.innerHTML = benHtml;
+        }
+
+        // Section 4: Specializations
+        const specsTitle = document.getElementById('about-specs-title-text');
+        if (specsTitle && d.specs_title) specsTitle.textContent = d.specs_title;
+
+        const specsDesc = document.getElementById('about-specs-desc');
+        if (specsDesc && d.specs_desc) specsDesc.textContent = d.specs_desc;
+
+        const specsGrid = document.getElementById('about-specs-grid');
+        if (specsGrid && Array.isArray(d.specs_cards)) {
+            let specHtml = '';
+            d.specs_cards.forEach(spec => {
+                const badgeColor = spec.badge_color ? escapeHtml(spec.badge_color) : '';
+                const badgeMarkup = spec.badge ? `<div class="about-spec-badge ${badgeColor}">${escapeHtml(spec.badge)}</div>` : '';
+                const desc2Markup = spec.desc2 ? `<p class="about-spec-desc">${escapeHtml(spec.desc2)}</p>` : '';
+                
+                let highlightsMarkup = '';
+                if (Array.isArray(spec.highlights) && spec.highlights.length > 0) {
+                    highlightsMarkup += '<div class="about-code-highlights">';
+                    spec.highlights.forEach(hl => {
+                        highlightsMarkup += `<div class="about-code-item"><strong>${escapeHtml(hl.label || '')}</strong> ${escapeHtml(hl.text || '')}</div>`;
+                    });
+                    highlightsMarkup += '</div>';
+                }
+
+                let tagsMarkup = '';
+                if (Array.isArray(spec.tags) && spec.tags.length > 0) {
+                    tagsMarkup += '<div class="about-spec-footer">';
+                    spec.tags.forEach(tag => {
+                        tagsMarkup += `<span class="about-tag">${escapeHtml(tag)}</span>`;
+                    });
+                    tagsMarkup += '</div>';
+                }
+
+                specHtml += `
+                <div class="card about-spec-card card-hover" data-spec-id="${spec.id || ''}">
+                    <div>
+                        ${badgeMarkup}
+                        <h3 class="about-spec-title">${escapeHtml(spec.title || '')}</h3>
+                        <p class="about-spec-desc">${escapeHtml(spec.desc || '')}</p>
+                        ${desc2Markup}
+                        ${highlightsMarkup}
+                    </div>
+                    ${tagsMarkup}
+                </div>`;
+            });
+            specsGrid.innerHTML = specHtml;
+        }
+
+        // Section 5: Mission & Vision
+        const mvTitle = document.getElementById('about-mv-title-text');
+        if (mvTitle && d.mv_title) mvTitle.textContent = d.mv_title;
+
+        const missionTitle = document.getElementById('about-mission-title');
+        if (missionTitle && d.mission_title) missionTitle.textContent = d.mission_title;
+
+        const missionText = document.getElementById('about-mission-text');
+        if (missionText && (d.mission_text || d.description)) missionText.textContent = d.mission_text || d.description;
+
+        const visionTitle = document.getElementById('about-vision-title');
+        if (visionTitle && d.vision_title) visionTitle.textContent = d.vision_title;
+
+        const visionText = document.getElementById('about-vision-text');
+        if (visionText && d.vision_text) visionText.textContent = d.vision_text;
+
+        // Section 6: Testimonials
+        const testTitle = document.getElementById('about-testimonials-title-text');
+        if (testTitle && d.testimonials_title) testTitle.textContent = d.testimonials_title;
+
+        const testDesc = document.getElementById('about-testimonials-desc');
+        if (testDesc && d.testimonials_desc) testDesc.textContent = d.testimonials_desc;
+
+        const testGrid = document.getElementById('about-testimonials-grid');
+        if (testGrid && Array.isArray(d.testimonials)) {
+            let testHtml = '';
+            d.testimonials.forEach(item => {
+                const starsStr = renderStars(item.stars);
+                testHtml += `
+                <div class="card about-testimonial-card card-hover" data-testimonial-id="${item.id || ''}">
+                    <div class="about-testimonial-content">
+                        <div class="about-stars" aria-label="${item.stars || 5} out of 5 stars">
+                            ${starsStr}
+                        </div>
+                        <blockquote class="about-quote-text">
+                            &ldquo;${escapeHtml(item.quote || '')}&rdquo;
+                        </blockquote>
+                    </div>
+                    <div class="about-quote-author">
+                        <div class="about-author-avatar" aria-hidden="true">${escapeHtml(item.avatar || 'ST')}</div>
+                        <div class="about-author-info">
+                            <cite class="about-author-name">${escapeHtml(item.author || '')}</cite>
+                            <span class="about-author-tag">${escapeHtml(item.tag || '')}</span>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            testGrid.innerHTML = testHtml;
+        }
+
+        // Bottom CTA
+        const ctaTitle = document.getElementById('about-cta-title');
+        if (ctaTitle && d.cta_title) ctaTitle.textContent = d.cta_title;
+
+        const ctaDesc = document.getElementById('about-cta-desc');
+        if (ctaDesc && d.cta_desc) ctaDesc.textContent = d.cta_desc;
+
+        const btn1 = document.getElementById('about-cta-btn1');
+        if (btn1) {
+            if (d.cta_btn1_text) btn1.textContent = d.cta_btn1_text;
+            if (d.cta_btn1_url) btn1.href = d.cta_btn1_url;
+        }
+
+        const btn2 = document.getElementById('about-cta-btn2');
+        if (btn2) {
+            if (d.cta_btn2_text) btn2.textContent = d.cta_btn2_text;
+            if (d.cta_btn2_url) btn2.href = d.cta_btn2_url;
+        }
+
+        // Visual flash feedback on container
+        const container = document.querySelector('.about-page-container');
+        if (container) {
+            container.classList.remove('live-sync-pulse');
+            void container.offsetWidth; // trigger reflow
+            container.classList.add('live-sync-pulse');
+        }
+
+        // Staff pill feedback
+        const staffPill = document.getElementById('staffLiveSyncPill');
+        const staffText = document.getElementById('staffPillText');
+        const staffDot = document.getElementById('staffPillDot');
+        if (staffPill && staffText) {
+            staffText.textContent = '✨ Synced v' + d.sync_version;
+            if (staffDot) staffDot.style.background = '#3B82F6';
+            setTimeout(() => {
+                staffText.textContent = 'Live Sync Active (v' + d.sync_version + ')';
+                if (staffDot) staffDot.style.background = '#10B981';
+            }, 3000);
+        }
+    }
+
+    async function checkLiveSync() {
+        if (isFetching) return;
+        isFetching = true;
+
+        try {
+            const url = `${liveSyncEndpoint}?v=${currentVersion}&t=${Date.now()}`;
+            const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            if (res.ok) {
+                const json = await res.json();
+                if (json.status === 'ok') {
+                    if (json.updated && json.data) {
+                        currentVersion = json.version;
+                        applyLiveSyncData(json.data);
+                    }
+                    pollInterval = 2500;
+                }
+            } else {
+                pollInterval = Math.min(pollInterval * 1.5, 10000);
+            }
+        } catch (err) {
+            pollInterval = Math.min(pollInterval * 1.5, 10000);
+        } finally {
+            isFetching = false;
+            pollTimer = setTimeout(checkLiveSync, pollInterval);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        pollTimer = setTimeout(checkLiveSync, pollInterval);
+    });
+})();
+</script>
 {% endblock %}

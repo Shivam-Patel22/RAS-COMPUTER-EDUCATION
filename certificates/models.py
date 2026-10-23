@@ -23,6 +23,9 @@ class Certificate(models.Model):
     verification_hash = models.CharField(max_length=64, blank=True, null=True)
     printed_at = models.DateTimeField(blank=True, null=True)
     last_verified_at = models.DateTimeField(blank=True, null=True)
+    is_revoked = models.BooleanField(default=False, db_index=True)
+    revoked_at = models.DateTimeField(blank=True, null=True)
+    revocation_reason = models.CharField(max_length=255, blank=True, default='')
 
     # CITI CCC Specific Fields (Optional & Nullable for non-CITI certificates)
     student_photo = models.ImageField(upload_to='student_photos/', null=True, blank=True)

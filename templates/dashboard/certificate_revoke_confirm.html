@@ -8,11 +8,15 @@
         <h1 style="font-size: 1.5rem; color: var(--error); margin-bottom: 1rem;">Confirm Certificate Revocation</h1>
         <p style="color: var(--gray-700); margin-bottom: 1.5rem; line-height: 1.6;">
             Are you sure you want to revoke certificate <strong>"{{ cert.certificate_id }}"</strong> issued to <strong>"{{ cert.student_name }}"</strong> for course <em>{{ cert.course.name }}</em>?
-            Once revoked, verification lookups for this ID will return not found.
+            Once revoked, public verification scans and lookups for this ID will explicitly report that the certificate has been <strong>REVOKED</strong>. PDF downloads will be disabled.
         </p>
 
         <form method="post">
             {% csrf_token %}
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label for="revocation_reason" style="display: block; margin-bottom: 0.35rem; font-weight: 600; font-size: 0.9rem; color: var(--gray-700);">Revocation Reason (Optional):</label>
+                <input type="text" name="revocation_reason" id="revocation_reason" class="form-control" placeholder="e.g. Administrative error, course cancellation, duplicate issuance" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--gray-300, #cbd5e1); border-radius: 6px;">
+            </div>
             <div style="display: flex; gap: 1rem;">
                 <button type="submit" class="btn btn-danger" style="flex: 1;">Yes, Revoke Certificate</button>
                 <a href="{% url 'dashboard:manage_certificates' %}" class="btn btn-outline-dark">Cancel</a>

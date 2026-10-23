@@ -5,6 +5,26 @@
 {% block meta_robots %}noindex, nofollow{% endblock %}
 
 {% block extra_head %}
+<style>
+    .revoked-overlay-watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-30deg);
+        font-size: 4rem;
+        font-size: 6cqw;
+        font-weight: 900;
+        color: rgba(239, 68, 68, 0.4);
+        border: 5px solid rgba(239, 68, 68, 0.4);
+        padding: 0.5rem 2.5rem;
+        border-radius: 8px;
+        pointer-events: none;
+        z-index: 15;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+</style>
 {% if certificate.prefix == 'RAS' %}
 <style>
     /* RAS Landscape Certificate in Public Verification Result */
@@ -473,10 +493,20 @@
 {% block content %}
 <div class="container">
     <div class="no-print animate__animated animate__fadeInDown" style="text-align: center; margin-bottom: 2rem;">
+        {% if certificate.is_revoked %}
+        <span class="badge" style="font-size: 1rem; padding: 0.5rem 1.25rem; margin-bottom: 1rem; background-color: #ef4444; color: #ffffff; display: inline-flex; align-items: center; gap: 0.4rem;">
+            ✕ CERTIFICATE REVOKED
+        </span>
+        <h1 style="font-size: 2rem; color: var(--gray-900);">Certificate Revocation Notice</h1>
+        <div class="alert alert-error" style="max-width: 800px; margin: 1rem auto 0; text-align: left; background-color: #fef2f2; border: 1px solid #f87171; border-radius: 8px; padding: 1rem 1.25rem; color: #991b1b;">
+            <strong>Notice:</strong> This certificate (ID: <code>{{ certificate.certificate_id }}</code>) was issued to <strong>{{ certificate.student_name }}</strong> for <strong>{{ certificate.course.name }}</strong> on {{ certificate.issue_date|date:"F j, Y" }}, but has been <strong>REVOKED</strong> by the issuing authority{% if certificate.revoked_at %} on {{ certificate.revoked_at|date:"F j, Y" }}{% endif %}. It is no longer recognized as valid.
+        </div>
+        {% else %}
         <span class="badge badge-success" style="font-size: 1rem; padding: 0.5rem 1.25rem; margin-bottom: 1rem;">
             ✓ VERIFIED AUTHENTIC CERTIFICATE
         </span>
         <h1 style="font-size: 2rem; color: var(--gray-900);">Official Certificate Record</h1>
+        {% endif %}
     </div>
 
     {% if certificate.prefix == 'RAS' %}
@@ -510,6 +540,18 @@
 
             <!-- 8. Verification Line: x 50%, y 78% -->
             <div class="ras-field cert-verify-line ras-verify-line">This Certificate can be verified on {{ certificate_verify_url }}</div>
+
+            <!-- 9. Dynamic Scannable QR Code Overlay (x: 88.5%, y: 64.5%) -->
+            <div class="ras-field ras-qr-box" style="left: 88.5%; top: 64.5%; text-align: center;">
+                {% if qr_data_uri %}
+                <img src="{{ qr_data_uri }}" alt="Scan to Verify" style="width: 4.8cqw; height: 4.8cqw; min-width: 58px; min-height: 58px; max-width: 78px; max-height: 78px; object-fit: contain; background: #ffffff; padding: 2px; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: block; margin: 0 auto;">
+                <span style="font-size: 0.65cqw; font-weight: 700; color: #475569; letter-spacing: 0.4px; text-transform: uppercase; display: block; margin-top: 2px;">Scan to Verify</span>
+                {% endif %}
+            </div>
+
+            {% if certificate.is_revoked %}
+            <div class="revoked-overlay-watermark">REVOKED</div>
+            {% endif %}
         </div>
     </div>
     {% elif certificate.prefix == 'CITI' %}
@@ -563,6 +605,18 @@
             <!-- Verification Line -->
             <div class="citi-cert-line citi-cert-verify">This Certificate can be verified on {{ certificate_verify_url }}</div>
 
+            <!-- Dynamic Scannable QR Code (Bottom Center, x: 51%, y: 88.5%) -->
+            <div class="citi-cert-line citi-cert-qr" style="top: 88.5%; text-align: center;">
+                {% if qr_data_uri %}
+                <img src="{{ qr_data_uri }}" alt="Scan to Verify" style="width: 4.5cqw; height: 4.5cqw; min-width: 50px; min-height: 50px; max-width: 65px; max-height: 65px; object-fit: contain; background: #ffffff; padding: 2px; border: 1px solid #cbd5e1; border-radius: 3px; display: block; margin: 0 auto;">
+                <span style="font-size: 0.65cqw; font-weight: 700; color: #475569; letter-spacing: 0.4px; text-transform: uppercase; display: block; margin-top: 2px;">Scan to Verify</span>
+                {% endif %}
+            </div>
+
+            {% if certificate.is_revoked %}
+            <div class="revoked-overlay-watermark">REVOKED</div>
+            {% endif %}
+
             <!-- Bottom-Left: Date & Place -->
             <div class="citi-cert-date">Date &nbsp;: {% if certificate.issue_date %}{{ certificate.issue_date|date:"d.m.Y" }}{% endif %}</div>
             <div class="citi-cert-place">Place: Gandhinagar</div>
@@ -612,7 +666,11 @@
             {% endif %}
             <div>
                 <span style="font-size: 0.8rem; color: var(--gray-500); display: block; text-transform: uppercase;">Status</span>
+                {% if certificate.is_revoked %}
+                <strong style="font-size: 1.05rem; color: #ef4444;">Revoked</strong>
+                {% else %}
                 <strong style="font-size: 1.05rem; color: var(--success);">Valid & Active</strong>
+                {% endif %}
             </div>
         </div>
 
@@ -662,7 +720,11 @@
             {% endif %}
             <div>
                 <span style="font-size: 0.8rem; color: var(--gray-500); display: block; text-transform: uppercase;">Status</span>
+                {% if certificate.is_revoked %}
+                <strong style="font-size: 1.05rem; color: #ef4444;">Revoked</strong>
+                {% else %}
                 <strong style="font-size: 1.05rem; color: var(--success);">Valid & Active</strong>
+                {% endif %}
             </div>
         </div>
 
@@ -672,10 +734,70 @@
     </div>
     {% endif %}
 
+    <!-- Official Verification Summary Card (Section 5) -->
+    <div class="no-print" style="max-width: 950px; margin: 2rem auto 0; background: var(--card-bg, #ffffff); border-radius: 12px; border: 1px solid var(--gray-200, #e2e8f0); box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 1.5rem 1.75rem;">
+        <h3 style="margin-top: 0; margin-bottom: 1.25rem; font-size: 1.15rem; color: var(--gray-900); display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--gray-200, #e2e8f0); padding-bottom: 0.75rem;">
+            <span>📋</span> Official Verification Details
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem;">
+            <div>
+                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Verification Status</span>
+                {% if certificate.is_revoked %}
+                <span class="badge" style="background-color: #ef4444; color: #ffffff; font-size: 0.85rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 4px;">✕ Revoked</span>
+                {% else %}
+                <span class="badge badge-success" style="font-size: 0.85rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 4px;">✓ Valid & Active</span>
+                {% endif %}
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Certificate Holder</span>
+                <strong style="font-size: 0.95rem; color: var(--gray-900);">{{ certificate.student_name }}</strong>
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Certificate ID</span>
+                <code style="font-family: monospace; font-size: 0.92rem; font-weight: 700; color: var(--primary, #2563eb);">{{ certificate.certificate_id }}</code>
+                {% if certificate.registration_number %}
+                <div style="font-size: 0.75rem; color: var(--gray-500); font-family: monospace;">{{ certificate.registration_number }}</div>
+                {% endif %}
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Course / Program</span>
+                <strong style="font-size: 0.95rem; color: var(--gray-900);">{{ certificate.course.name }}</strong>
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Issuing Institute</span>
+                <strong style="font-size: 0.95rem; color: var(--gray-900);">{% if certificate.prefix == 'CITI' %}CITI Computer Education{% else %}RAS Computer Education & Spoken English{% endif %}</strong>
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Issue Date</span>
+                <strong style="font-size: 0.95rem; color: var(--gray-900);">{{ certificate.issue_date|date:"F j, Y" }}</strong>
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Expiry Date</span>
+                <span style="font-size: 0.92rem; color: var(--gray-700);">Lifetime Validity (No Expiry)</span>
+            </div>
+            {% if certificate.grade %}
+            <div>
+                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Grade Awarded</span>
+                <strong style="font-size: 0.95rem; color: var(--success, #16a34a);">{{ certificate.grade }}</strong>
+            </div>
+            {% endif %}
+            {% if certificate.verification_token %}
+            <div>
+                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Security Token</span>
+                <code style="font-size: 0.8rem; color: var(--gray-600); font-family: monospace;">{{ certificate.verification_token }}</code>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
     <div class="no-print animate__animated animate__fadeInUp anim-delay-1" style="text-align: center; margin-top: 2.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
         <a href="{% url 'certificates:verify' %}" class="btn btn-outline-dark">&larr; Verify Another Certificate</a>
+        {% if certificate.is_revoked %}
+        <span class="btn btn-outline-danger" style="opacity: 0.6; cursor: not-allowed; display: inline-flex; align-items: center; gap: 0.4rem;" title="Revoked certificates cannot be downloaded">🚫 Download PDF Disabled (Revoked)</span>
+        {% else %}
         <a href="{% url 'certificates:download_certificate_pdf' certificate.certificate_id %}" class="btn btn-success" style="display: inline-flex; align-items: center; gap: 0.4rem;">📥 Download PDF</a>
         <button onclick="window.print();" class="btn btn-primary">🖨️ Print / Save Certificate</button>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

@@ -847,7 +847,12 @@ def revoke_certificate(request, pk):
     cert = get_object_or_404(Certificate, pk=pk)
     if request.method == 'POST':
         cert_id = cert.certificate_id
-        cert.delete()
+        reason = request.POST.get('revocation_reason', '').strip()
+        cert.is_revoked = True
+        cert.revoked_at = timezone.now()
+        if reason:
+            cert.revocation_reason = reason
+        cert.save(update_fields=['is_revoked', 'revoked_at', 'revocation_reason'])
         messages.success(request, f"Certificate '{cert_id}' has been revoked.")
         return redirect('dashboard:manage_certificates')
 
@@ -890,7 +895,7 @@ def verify_certificate(request, pk):
         'grade_valid': True,
         'linked_account_valid': True if not cert.student else bool(cert.student.email),
         'hash_valid': hash_valid,
-        'not_revoked': True
+        'not_revoked': not cert.is_revoked
     }
 
     is_verified = all(checks.values())
@@ -935,20 +940,21 @@ def print_certificate(request, pk):
 
     if request.GET.get('format') == 'pdf':
         from django.utils.text import slugify
-        pdf_bytes = generate_certificate_pdf(cert)
+        pdf_bytes = generate_certificate_pdf(cert, request=request)
         filename = f"{cert.certificate_id}_{slugify(cert.student_name or 'student')}.pdf"
         response = HttpResponse(pdf_bytes, content_type='application/pdf')
         response['Content-Disposition'] = f'inline; filename="{filename}"'
         return response
 
-    verification_url = request.build_absolute_uri(
-        reverse('certificates:verify') + f"?certificate_id={cert.certificate_id}"
-    )
+    verification_url = get_certificate_verify_url(cert, request=request)
+    from certificates.utils import generate_qr_data_uri
+    qr_data_uri = generate_qr_data_uri(verification_url)
 
     context = {
         'certificate': cert,
         'verification_url': verification_url,
         'certificate_verify_url': get_certificate_verify_url(),
+        'qr_data_uri': qr_data_uri,
     }
     return render(request, 'dashboard/print_certificate.html', context)
 
@@ -1451,10 +1457,15 @@ def edit_about(request):
     else:
         form = AdminAboutForm(instance=about_obj)
 
+    import json
     context = {
         'form': form,
         'about_obj': about_obj,
-        'title': 'Edit About Section Content'
+        'title': 'About Section Management',
+        'legacy_cards_json': json.dumps(about_obj.get_legacy_cards()),
+        'why_benefits_json': json.dumps(about_obj.get_why_benefits()),
+        'specs_cards_json': json.dumps(about_obj.get_specs_cards()),
+        'testimonials_json': json.dumps(about_obj.get_testimonials()),
     }
     return render(request, 'dashboard/edit_about.html', context)
 
@@ -1465,26 +1476,28 @@ def sync_about_api(request):
     Live Sync API: Real-time asynchronous synchronization for About section content.
     Validates and persists content directly to the database.
     """
+    import json
     about_obj = AboutContent.get_solo()
-    form = AdminAboutForm(request.POST, instance=about_obj)
+    
+    post_data = request.POST.copy()
+    if not post_data and request.body:
+        try:
+            body_json = json.loads(request.body)
+            if isinstance(body_json, dict):
+                post_data.update(body_json)
+        except Exception:
+            pass
+
+    form = AdminAboutForm(post_data, instance=about_obj)
     if form.is_valid():
         instance = form.save()
         return JsonResponse({
             'status': 'success',
             'message': 'Changes synchronized and saved to database.',
+            'version': instance.sync_version,
             'updated_at': instance.updated_at.strftime('%I:%M:%S %p'),
-            'data': {
-                'heading': instance.heading,
-                'subtitle': instance.subtitle,
-                'mission_title': instance.mission_title,
-                'description': instance.description,
-                'feature_1_title': instance.feature_1_title,
-                'feature_1_desc': instance.feature_1_desc,
-                'feature_2_title': instance.feature_2_title,
-                'feature_2_desc': instance.feature_2_desc,
-                'feature_3_title': instance.feature_3_title,
-                'feature_3_desc': instance.feature_3_desc,
-            }
+            'updated_at_iso': instance.updated_at.isoformat(),
+            'data': instance.to_dict()
         })
     else:
         errors = {field: [str(e) for e in err_list] for field, err_list in form.errors.items()}
@@ -1499,9 +1512,12 @@ def about_content_status_api(request):
     """Returns the latest update timestamp and snapshot for Live Sync listeners."""
     about_obj = AboutContent.get_solo()
     return JsonResponse({
+        'version': about_obj.sync_version,
         'updated_at': about_obj.updated_at.isoformat(),
+        'updated_at_formatted': about_obj.updated_at.strftime('%I:%M:%S %p'),
         'heading': about_obj.heading,
         'subtitle': about_obj.subtitle,
+        'data': about_obj.to_dict()
     })
 
 @staff_required

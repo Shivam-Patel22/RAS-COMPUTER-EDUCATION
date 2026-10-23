@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.conf import settings
@@ -36,7 +37,33 @@ def about(request):
         about_form = AdminAboutForm(instance=about_content)
     return render(request, 'core/about.html', {
         'about_content': about_content,
-        'about_form': about_form
+        'about_form': about_form,
+        'sync_version': about_content.sync_version,
+    })
+
+def about_live_sync(request):
+    """
+    Public Live Sync endpoint for the About page.
+    Allows clients to check if content changed and retrieve updated payload.
+    """
+    about_content = AboutContent.get_solo()
+    client_version = request.GET.get('v')
+    
+    if client_version and str(client_version) == str(about_content.sync_version):
+        return JsonResponse({
+            'status': 'ok',
+            'updated': False,
+            'version': about_content.sync_version,
+            'updated_at': about_content.updated_at.isoformat()
+        })
+
+    return JsonResponse({
+        'status': 'ok',
+        'updated': True,
+        'version': about_content.sync_version,
+        'updated_at': about_content.updated_at.isoformat(),
+        'updated_at_formatted': about_content.updated_at.strftime('%I:%M:%S %p'),
+        'data': about_content.to_dict()
     })
 
 def contact(request):

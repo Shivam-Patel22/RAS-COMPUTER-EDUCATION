@@ -107,7 +107,11 @@
                             {% endif %}
                             <a href="{% url 'dashboard:print_certificate' cert.id %}" target="_blank" class="btn btn-outline-dark btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.78rem;" title="Print Certificate">🖨️ Print</a>
                             <a href="{% url 'dashboard:edit_certificate' cert.id %}" class="btn btn-outline-dark btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.78rem;">Edit</a>
+                            {% if cert.is_revoked %}
+                            <span class="badge" style="background-color: #ef4444; color: #ffffff; font-size: 0.75rem; padding: 0.25rem 0.55rem; border-radius: 4px;" title="Revoked on {{ cert.revoked_at|date:'Y-m-d' }}">Revoked</span>
+                            {% else %}
                             <a href="{% url 'dashboard:revoke_certificate' cert.id %}" class="btn btn-danger btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.78rem;">Revoke</a>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>

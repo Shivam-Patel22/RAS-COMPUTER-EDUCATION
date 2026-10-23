@@ -518,23 +518,146 @@ class AdminStudentForm(forms.Form):
     )
 
 from core.models import AboutContent, ContactContent
+import json
 
 class AdminAboutForm(forms.ModelForm):
+    legacy_cards_data = forms.CharField(required=False, widget=forms.HiddenInput())
+    why_benefits_data = forms.CharField(required=False, widget=forms.HiddenInput())
+    specs_cards_data = forms.CharField(required=False, widget=forms.HiddenInput())
+    testimonials_data = forms.CharField(required=False, widget=forms.HiddenInput())
+
     class Meta:
         model = AboutContent
-        fields = ['heading', 'subtitle', 'mission_title', 'description', 'feature_1_title', 'feature_1_desc', 'feature_2_title', 'feature_2_desc', 'feature_3_title', 'feature_3_desc']
+        fields = [
+            'heading', 'subtitle', 'mission_title', 'description',
+            'feature_1_title', 'feature_1_desc', 'feature_2_title', 'feature_2_desc', 'feature_3_title', 'feature_3_desc',
+            'intro_badge', 'intro_heading', 'intro_lead', 'intro_text',
+            'legacy_title', 'legacy_desc',
+            'why_title', 'why_desc', 'why_subheading',
+            'specs_title', 'specs_desc',
+            'mv_title', 'mission_text', 'vision_title', 'vision_text',
+            'testimonials_title', 'testimonials_desc',
+            'cta_title', 'cta_desc', 'cta_btn1_text', 'cta_btn1_url', 'cta_btn2_text', 'cta_btn2_url',
+        ]
         widgets = {
-            'heading': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
+            'heading': forms.TextInput(attrs={'class': 'form-control'}),
             'subtitle': forms.TextInput(attrs={'class': 'form-control'}),
             'mission_title': forms.TextInput(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'feature_1_title': forms.TextInput(attrs={'class': 'form-control'}),
             'feature_1_desc': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'feature_2_title': forms.TextInput(attrs={'class': 'form-control'}),
             'feature_2_desc': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'feature_3_title': forms.TextInput(attrs={'class': 'form-control'}),
             'feature_3_desc': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            # Section A
+            'intro_badge': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Premier Computer Institute in Gandhinagar'}),
+            'intro_heading': forms.TextInput(attrs={'class': 'form-control'}),
+            'intro_lead': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'intro_text': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            # Section B
+            'legacy_title': forms.TextInput(attrs={'class': 'form-control'}),
+            'legacy_desc': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            # Section C
+            'why_title': forms.TextInput(attrs={'class': 'form-control'}),
+            'why_desc': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'why_subheading': forms.TextInput(attrs={'class': 'form-control'}),
+            # Section D
+            'specs_title': forms.TextInput(attrs={'class': 'form-control'}),
+            'specs_desc': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            # Section E
+            'mv_title': forms.TextInput(attrs={'class': 'form-control'}),
+            'mission_text': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'vision_title': forms.TextInput(attrs={'class': 'form-control'}),
+            'vision_text': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            # Section F
+            'testimonials_title': forms.TextInput(attrs={'class': 'form-control'}),
+            'testimonials_desc': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            # CTA
+            'cta_title': forms.TextInput(attrs={'class': 'form-control'}),
+            'cta_desc': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'cta_btn1_text': forms.TextInput(attrs={'class': 'form-control'}),
+            'cta_btn1_url': forms.TextInput(attrs={'class': 'form-control'}),
+            'cta_btn2_text': forms.TextInput(attrs={'class': 'form-control'}),
+            'cta_btn2_url': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            field.required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # At least one heading is required
+        heading = (cleaned_data.get('heading') or '').strip()
+        intro_heading = (cleaned_data.get('intro_heading') or '').strip()
+
+        # If heading was explicitly provided as empty in POST (e.g. testing validation error)
+        if 'heading' in self.data and not heading and not intro_heading:
+            self.add_error('heading', 'This field is required.')
+
+        if not heading and intro_heading:
+            cleaned_data['heading'] = intro_heading
+        elif not intro_heading and heading:
+            cleaned_data['intro_heading'] = heading
+
+        # Preserve instance values for empty fields if available
+        if self.instance and self.instance.pk:
+            for field in ['subtitle', 'mission_title', 'description', 'feature_1_title', 'feature_1_desc', 'feature_2_title', 'feature_2_desc', 'feature_3_title', 'feature_3_desc']:
+                if not cleaned_data.get(field) and field not in self.data:
+                    cleaned_data[field] = getattr(self.instance, field, '')
+
+        # Parse JSON fields if provided in data
+        for data_key, model_field in [
+            ('legacy_cards_data', 'legacy_cards'),
+            ('why_benefits_data', 'why_benefits'),
+            ('specs_cards_data', 'specs_cards'),
+            ('testimonials_data', 'testimonials'),
+            ('legacy_cards', 'legacy_cards'),
+            ('why_benefits', 'why_benefits'),
+            ('specs_cards', 'specs_cards'),
+            ('testimonials', 'testimonials'),
+        ]:
+            raw_val = self.data.get(data_key)
+            if raw_val is not None:
+                if isinstance(raw_val, str) and raw_val.strip():
+                    try:
+                        parsed = json.loads(raw_val)
+                        if isinstance(parsed, list):
+                            cleaned_data[model_field] = parsed
+                    except Exception:
+                        pass
+                elif isinstance(raw_val, list):
+                    cleaned_data[model_field] = raw_val
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        cleaned_data = self.cleaned_data
+
+        if 'legacy_cards' in cleaned_data:
+            instance.legacy_cards = cleaned_data['legacy_cards']
+        if 'why_benefits' in cleaned_data:
+            instance.why_benefits = cleaned_data['why_benefits']
+        if 'specs_cards' in cleaned_data:
+            instance.specs_cards = cleaned_data['specs_cards']
+        if 'testimonials' in cleaned_data:
+            instance.testimonials = cleaned_data['testimonials']
+
+        if cleaned_data.get('intro_heading') and not cleaned_data.get('heading'):
+            instance.heading = cleaned_data['intro_heading']
+        elif cleaned_data.get('heading') and not cleaned_data.get('intro_heading'):
+            instance.intro_heading = cleaned_data['heading']
+
+        instance.sync_version = (instance.sync_version or 0) + 1
+
+        if commit:
+            instance.save()
+        return instance
+
 
 class AdminContactForm(forms.ModelForm):
     class Meta:
