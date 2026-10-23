@@ -1,13 +1,4 @@
-# cPanel Git deployment configuration for RAS Computer.
-#
-# SAFETY: This starter configuration intentionally performs no file copies.
-# Confirm the live application's exact template paths and deployment target
-# before adding deployment tasks. Do not deploy until those paths are verified.
-#
-# cPanel requires a deployment task list for an active deployment. Add only
-# verified, necessary tasks here; avoid overwriting production settings,
-# environment files, databases, or unrelated application files.
-
 ---
 deployment:
-  tasks: []
+  tasks:
+    - /bin/bash -c 'set -eu; SRC=/home/faesgvfk/RAS-COMPUTER-EDUCATION/templates; DEST=/home/faesgvfk/cdac-class-website/templates; BACKUP=/home/faesgvfk/rascomputer-template-backups/$(/bin/date +%Y%m%d-%H%M%S); test -f $SRC/home.html; test -f $SRC/contact.html; test -d $DEST; /bin/mkdir -p $BACKUP; if [ -f $DEST/home.html ]; then /bin/cp -p $DEST/home.html $BACKUP/home.html; fi; if [ -f $DEST/contact.html ]; then /bin/cp -p $DEST/contact.html $BACKUP/contact.html; fi; /bin/cp $SRC/home.html $DEST/home.html; /bin/cp $SRC/contact.html $DEST/contact.html'
