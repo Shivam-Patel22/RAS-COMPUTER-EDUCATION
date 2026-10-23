@@ -1,0 +1,13 @@
+# cPanel Git deployment configuration for RAS Computer.
+#
+# SAFETY: This starter configuration intentionally performs no file copies.
+# Confirm the live application's exact template paths and deployment target
+# before adding deployment tasks. Do not deploy until those paths are verified.
+#
+# cPanel requires a deployment task list for an active deployment. Add only
+# verified, necessary tasks here; avoid overwriting production settings,
+# environment files, databases, or unrelated application files.
+
+---
+deployment:
+  tasks: []
