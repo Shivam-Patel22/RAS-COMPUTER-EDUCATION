@@ -6,8 +6,7 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'computer_class_site.settings')
-
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'computer_class_site.settings_mailwala')
     # Automatically run migrations when starting the server
     if len(sys.argv) > 1 and sys.argv[1] == 'runserver':
         import subprocess
