@@ -1,0 +1,80 @@
+[
+{
+  "model": "core.justdialreview",
+  "pk": 9,
+  "fields": {
+    "reviewer_name": "Pransav",
+    "rating": 5,
+    "review_text": "Ras Computer Education is an outstanding coaching center that truly stands out for its expert faculty. The instructors are knowledgeable and always ready to help students understand complex concepts.",
+    "review_date": "2024-03-10",
+    "is_active": true,
+    "display_order": 1,
+    "created_at": "2026-10-23T18:32:19.286Z"
+  }
+},
+{
+  "model": "core.justdialreview",
+  "pk": 10,
+  "fields": {
+    "reviewer_name": "Yash Prajapati",
+    "rating": 5,
+    "review_text": "I had a great experience with Ras Computer Education, a coaching center with many facilities. The staff was friendly and helpful, and the practical computer training helped me a lot.",
+    "review_date": "2024-04-18",
+    "is_active": true,
+    "display_order": 2,
+    "created_at": "2026-10-23T18:32:19.328Z"
+  }
+},
+{
+  "model": "core.justdialreview",
+  "pk": 11,
+  "fields": {
+    "reviewer_name": "SHAIKH AYAN A.",
+    "rating": 5,
+    "review_text": "I had a great experience with Ras Computer Education, a coaching center. The classrooms are highly specialized and air-conditioned, making learning comfortable and effective.",
+    "review_date": "2024-05-22",
+    "is_active": true,
+    "display_order": 3,
+    "created_at": "2026-10-23T18:32:19.335Z"
+  }
+},
+{
+  "model": "core.justdialreview",
+  "pk": 12,
+  "fields": {
+    "reviewer_name": "Bhavik Prajapati",
+    "rating": 5,
+    "review_text": "One of the best computer coaching institutes in Gandhinagar Sector 22. Highly recommended for CCC and Tally courses with dedicated practical labs.",
+    "review_date": "2024-06-15",
+    "is_active": true,
+    "display_order": 4,
+    "created_at": "2026-10-23T18:32:19.342Z"
+  }
+},
+{
+  "model": "core.justdialreview",
+  "pk": 13,
+  "fields": {
+    "reviewer_name": "Hetal Solanki",
+    "rating": 5,
+    "review_text": "Excellent institute for computer learning. I completed the CCC course here, and the faculty explained everything clearly with great practical support and individual guidance.",
+    "review_date": "2024-07-20",
+    "is_active": true,
+    "display_order": 5,
+    "created_at": "2026-10-23T18:41:19.237Z"
+  }
+},
+{
+  "model": "core.justdialreview",
+  "pk": 14,
+  "fields": {
+    "reviewer_name": "Rajesh Kumar",
+    "rating": 5,
+    "review_text": "Best training institute for accounting and GST in Gandhinagar. The practical training on Tally and helpful faculty made learning very smooth.",
+    "review_date": "2024-08-14",
+    "is_active": true,
+    "display_order": 6,
+    "created_at": "2026-10-23T18:41:19.278Z"
+  }
+}
+]
