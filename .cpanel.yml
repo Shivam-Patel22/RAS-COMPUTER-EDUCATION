@@ -6,7 +6,7 @@ deployment:
     - export DEST=/home/faesgvfk/cdac-class-website
     - export BACKUP=/home/faesgvfk/rascomputer-deploy-backups/$(/bin/date +%Y%m%d-%H%M%S)
 
-    # Validate the source and destination
+    # Validate required directories
     - /bin/test -d "$SRC/templates"
     - /bin/test -d "$DEST/templates"
     - /bin/test -d "$SRC/accounts"
@@ -17,12 +17,12 @@ deployment:
     - /bin/test -d "$SRC/static"
     - /bin/test -f "$SRC/computer_class_site/urls.py"
 
-    # Back up the existing live files
+    # Back up current live files
     - /bin/mkdir -p "$BACKUP/computer_class_site"
     - /bin/cp -Rp "$DEST/templates" "$DEST/accounts" "$DEST/certificates" "$DEST/core" "$DEST/courses" "$DEST/dashboard" "$DEST/static" "$BACKUP/"
     - /bin/cp -p "$DEST/computer_class_site/urls.py" "$BACKUP/computer_class_site/urls.py"
 
-    # Deploy Django templates and application code
+    # Deploy templates and application modules
     - /bin/cp -Rp "$SRC/templates/." "$DEST/templates/"
     - /bin/cp -Rp "$SRC/accounts/." "$DEST/accounts/"
     - /bin/cp -Rp "$SRC/certificates/." "$DEST/certificates/"
@@ -31,7 +31,8 @@ deployment:
     - /bin/cp -Rp "$SRC/dashboard/." "$DEST/dashboard/"
     - /bin/cp -p "$SRC/computer_class_site/urls.py" "$DEST/computer_class_site/urls.py"
 
-    # Deploy static assets and rebuild collected static files
+    # Deploy static assets
     - /bin/cp -Rp "$SRC/static/." "$DEST/static/"
-    - /home/faesgvfk/virtualenv/cdac-class-website/3.12/bin/python "$DEST/manage.py" collectstatic --noinput
 
+    # Collect static files
+    - /home/faesgvfk/virtualenv/cdac-class-website/3.12/bin/python "$DEST/manage.py" collectstatic --noinput
