@@ -58,6 +58,211 @@
     [data-theme="dark"] .revoked-modal-card p {
         color: #cbd5e1 !important;
     }
+
+    /* Scoped Styles for Certificate Revocation Notice Container */
+    .revocation-notice-box {
+        max-width: 950px;
+        margin: 1.5rem auto 0;
+        text-align: left;
+        background-color: #fef2f2;
+        border: 1px solid #f87171;
+        border-radius: 10px;
+        padding: 1.5rem 1.75rem;
+        color: #991b1b;
+        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.08);
+        box-sizing: border-box;
+    }
+
+    [data-theme="dark"] .revocation-notice-box {
+        background-color: rgba(153, 27, 27, 0.18) !important;
+        border-color: #ef4444 !important;
+        color: #fecaca !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    }
+
+    .revocation-notice-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        padding-bottom: 0.85rem;
+        border-bottom: 1px solid rgba(248, 113, 113, 0.35);
+        margin-bottom: 1.15rem;
+    }
+
+    .revocation-notice-label-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .revocation-notice-icon {
+        font-size: 1.25rem;
+        line-height: 1;
+    }
+
+    .revocation-notice-label {
+        font-size: 1.05rem;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+        color: #991b1b;
+        text-transform: uppercase;
+    }
+
+    [data-theme="dark"] .revocation-notice-label {
+        color: #fca5a5 !important;
+    }
+
+    .revocation-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background-color: #ef4444;
+        color: #ffffff;
+        font-size: 0.82rem;
+        font-weight: 700;
+        padding: 0.28rem 0.75rem;
+        border-radius: 9999px;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+        box-shadow: 0 2px 4px rgba(239, 68, 68, 0.25);
+        white-space: nowrap;
+    }
+
+    /* Structured Details Grid */
+    .revocation-details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.15rem 1.25rem;
+        align-items: start;
+        margin-bottom: 1.25rem;
+    }
+
+    .revocation-grid-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .revocation-item-label {
+        font-size: 0.76rem;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        font-weight: 700;
+        color: #b91c1c;
+        opacity: 0.9;
+    }
+
+    [data-theme="dark"] .revocation-item-label {
+        color: #fca5a5 !important;
+        opacity: 0.95;
+    }
+
+    .revocation-item-value {
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: #7f1d1d;
+        line-height: 1.45;
+        overflow-wrap: break-word;
+        word-break: normal;
+    }
+
+    [data-theme="dark"] .revocation-item-value {
+        color: #fef2f2 !important;
+    }
+
+    .revocation-item-code {
+        font-family: var(--font-mono, monospace);
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: #991b1b;
+        background-color: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        border-radius: 4px;
+        padding: 0.2rem 0.5rem;
+        display: inline-block;
+        width: fit-content;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    [data-theme="dark"] .revocation-item-code {
+        color: #fecaca !important;
+        background-color: rgba(239, 68, 68, 0.25) !important;
+        border-color: rgba(239, 68, 68, 0.4) !important;
+    }
+
+    .revocation-item-nowrap {
+        white-space: nowrap;
+    }
+
+    /* Explanatory Message Box */
+    .revocation-explanatory-msg {
+        margin: 0;
+        padding-top: 1rem;
+        border-top: 1px dashed rgba(248, 113, 113, 0.4);
+        font-size: 0.95rem;
+        line-height: 1.65;
+        color: #991b1b;
+        overflow-wrap: break-word;
+        word-break: normal;
+    }
+
+    [data-theme="dark"] .revocation-explanatory-msg {
+        border-top-color: rgba(239, 68, 68, 0.4) !important;
+        color: #fecaca !important;
+    }
+
+    .revocation-explanatory-msg code {
+        font-family: var(--font-mono, monospace);
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: inherit;
+        background: rgba(239, 68, 68, 0.1);
+        padding: 0.15rem 0.35rem;
+        border-radius: 4px;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    [data-theme="dark"] .revocation-explanatory-msg code {
+        background: rgba(239, 68, 68, 0.3) !important;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .revocation-notice-box {
+            padding: 1.15rem 1rem;
+            margin: 1.25rem 0 0;
+            border-radius: 8px;
+        }
+        .revocation-details-grid {
+            grid-template-columns: 1fr;
+            gap: 0.9rem;
+        }
+        .revocation-notice-header {
+            gap: 0.65rem;
+            padding-bottom: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .revocation-notice-label {
+            font-size: 1rem;
+        }
+        .revocation-explanatory-msg {
+            font-size: 0.9rem;
+            line-height: 1.55;
+            padding-top: 0.85rem;
+        }
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .revocation-details-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
 </style>
 {% if certificate.prefix == 'RAS' %}
 <style>
@@ -584,8 +789,51 @@
             ✕ CERTIFICATE REVOKED
         </span>
         <h1 style="font-size: 2rem; color: var(--gray-900);">Certificate Revocation Notice</h1>
-        <div class="alert alert-error" style="max-width: 800px; margin: 1rem auto 0; text-align: left; background-color: #fef2f2; border: 1px solid #f87171; border-radius: 8px; padding: 1rem 1.25rem; color: #991b1b;">
-            <strong>Notice:</strong> This certificate (ID: <code>{{ certificate.certificate_id }}</code>) was issued to <strong>{{ certificate.student_name }}</strong> for <strong>{{ certificate.course.name }}</strong> on {{ certificate.issue_date|date:"F j, Y" }}, but has been <strong>REVOKED</strong> by the issuing authority{% if certificate.revoked_at %} on {{ certificate.revoked_at|date:"F j, Y" }}{% endif %}. It is no longer recognized as valid.
+        <div class="alert alert-error revocation-notice-box" role="alert">
+            <div class="revocation-notice-header">
+                <div class="revocation-notice-label-group">
+                    <span class="revocation-notice-icon" aria-hidden="true">⚠️</span>
+                    <span class="revocation-notice-label">Notice</span>
+                </div>
+                <span class="revocation-status-pill">✕ Revoked</span>
+            </div>
+
+            <div class="revocation-details-grid">
+                <div class="revocation-grid-item">
+                    <span class="revocation-item-label">Certificate ID</span>
+                    <div>
+                        <code class="revocation-item-code">{{ certificate.certificate_id }}</code>
+                    </div>
+                </div>
+                <div class="revocation-grid-item">
+                    <span class="revocation-item-label">Recipient Name</span>
+                    <strong class="revocation-item-value">{{ certificate.student_name }}</strong>
+                </div>
+                <div class="revocation-grid-item">
+                    <span class="revocation-item-label">Course Name</span>
+                    <strong class="revocation-item-value">{{ certificate.course.name }}</strong>
+                </div>
+                <div class="revocation-grid-item">
+                    <span class="revocation-item-label">Issue Date</span>
+                    <span class="revocation-item-value revocation-item-nowrap">{{ certificate.issue_date|date:"F j, Y" }}</span>
+                </div>
+                <div class="revocation-grid-item">
+                    <span class="revocation-item-label">Revocation Status</span>
+                    <div>
+                        <span class="revocation-status-pill" style="font-size: 0.78rem; padding: 0.2rem 0.6rem;">✕ Revoked</span>
+                    </div>
+                </div>
+                {% if certificate.revoked_at %}
+                <div class="revocation-grid-item">
+                    <span class="revocation-item-label">Revocation Date</span>
+                    <span class="revocation-item-value revocation-item-nowrap">{{ certificate.revoked_at|date:"F j, Y" }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <p class="revocation-explanatory-msg">
+                <strong>Notice:</strong> This certificate (ID: <code>{{ certificate.certificate_id }}</code>) was issued to <strong>{{ certificate.student_name }}</strong> for <strong>{{ certificate.course.name }}</strong> on {{ certificate.issue_date|date:"F j, Y" }}, but has been <strong>REVOKED</strong> by the issuing authority{% if certificate.revoked_at %} on {{ certificate.revoked_at|date:"F j, Y" }}{% endif %}. It is no longer recognized as valid.
+            </p>
         </div>
         {% else %}
         <span class="badge badge-success" style="font-size: 1rem; padding: 0.5rem 1.25rem; margin-bottom: 1rem;">
