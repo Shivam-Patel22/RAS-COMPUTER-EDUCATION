@@ -232,66 +232,33 @@
     {% if request.user.is_authenticated and request.user.is_staff and request.resolver_match.url_name != 'login' %}
     <script>
         (function() {
-            // 1. bfcache handler: Force a reload if page is restored from Back/Forward cache
+            // 1. bfcache handler: Force a reload to re-validate session if page is restored from Back/Forward cache
             window.addEventListener('pageshow', function(event) {
                 if (event.persisted) {
                     window.location.reload();
                 }
             });
 
-            // 2. Track internal navigation to avoid sending beacon when navigating between admin pages
-            let isInternalNavigation = false;
+            // 2. Client-side 1-hour inactivity timeout (3600s)
+            // Automatically redirects to login if idle for 1 hour without user interaction
+            var INACTIVITY_TIMEOUT_MS = 3600000;
+            var inactivityTimer = null;
 
-            document.addEventListener('click', function(e) {
-                const link = e.target.closest('a');
-                if (link && link.href) {
-                    const href = link.getAttribute('href');
-                    // Only treat valid page transitions (not hash anchors or JS links) as internal navigation
-                    if (href && !href.startsWith('#') && !href.startsWith('javascript:') && link.target !== '_blank') {
-                        isInternalNavigation = true;
-                    }
+            function resetInactivityTimer() {
+                if (inactivityTimer) {
+                    clearTimeout(inactivityTimer);
                 }
-            }, true);
+                inactivityTimer = setTimeout(function() {
+                    window.location.href = "{% url 'dashboard:login' %}";
+                }, INACTIVITY_TIMEOUT_MS);
+            }
 
-            document.addEventListener('submit', function() {
-                isInternalNavigation = true;
-            }, true);
-
-            // 3. Tab/window close handler via pagehide & sendBeacon
-            window.addEventListener('pagehide', function() {
-                if (!isInternalNavigation) {
-                    const beaconUrl = "{% url 'dashboard:beacon_logout' %}";
-                    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
-                    const csrfToken = csrfInput ? csrfInput.value : "{{ csrf_token }}";
-                    if (navigator.sendBeacon && beaconUrl) {
-                        const formData = new FormData();
-                        formData.append('csrfmiddlewaretoken', csrfToken);
-                        navigator.sendBeacon(beaconUrl, formData);
-                    }
-                }
+            // User interactions (clicks, keystrokes, scrolling) reset the inactivity timer
+            ['mousedown', 'keydown', 'scroll', 'touchstart'].forEach(function(evt) {
+                document.addEventListener(evt, resetInactivityTimer, { passive: true });
             });
 
-            // 4. Absolute 1-hour auto-logout timer
-            const ONE_HOUR_MS = 3600000; // 1 hour (3600 seconds)
-            if (!sessionStorage.getItem('admin_login_timestamp')) {
-                sessionStorage.setItem('admin_login_timestamp', Date.now().toString());
-            }
-
-            const loginTimestamp = parseInt(sessionStorage.getItem('admin_login_timestamp') || Date.now().toString(), 10);
-            const elapsed = Date.now() - loginTimestamp;
-            const remaining = Math.max(0, ONE_HOUR_MS - elapsed);
-
-            function triggerTimeoutLogout() {
-                sessionStorage.removeItem('admin_login_timestamp');
-                isInternalNavigation = true;
-                submitPostAction("{% url 'dashboard:logout' %}");
-            }
-
-            if (elapsed >= ONE_HOUR_MS) {
-                triggerTimeoutLogout();
-            } else {
-                setTimeout(triggerTimeoutLogout, remaining);
-            }
+            resetInactivityTimer();
         })();
     </script>
     {% endif %}

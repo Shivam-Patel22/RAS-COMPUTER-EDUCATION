@@ -7,7 +7,7 @@ from django.urls import reverse
 class AdminSessionSecurityMiddleware:
     """
     Middleware providing strict session security exclusively for the Admin Panel:
-    1. Enforces an absolute 1-hour (3600s) timeout limit from initial login.
+    1. Enforces a 1-hour (3600s) rolling inactivity timeout.
     2. Attaches strict no-cache headers to prevent bfcache / history reloads.
     3. Leaves public website and student authentication completely unaffected.
     """
@@ -25,7 +25,7 @@ class AdminSessionSecurityMiddleware:
         )
 
         if is_admin_path:
-            # Check 1-hour absolute session timeout for authenticated staff users
+            # Check 1-hour inactivity timeout for authenticated staff users
             user = getattr(request, 'user', None)
             if user and user.is_authenticated and user.is_staff:
                 try:
@@ -37,17 +37,17 @@ class AdminSessionSecurityMiddleware:
                     excluded_paths = {'/cdac-admin/', '/cdac-admin/logout/', '/cdac-admin/beacon-logout/'}
 
                 if path not in excluded_paths:
-                    login_time = request.session.get('admin_login_time')
+                    last_activity = request.session.get('admin_last_activity') or request.session.get('admin_login_time')
                     now = time.time()
-                    if login_time:
-                        if now - login_time > 3600:
+                    if last_activity:
+                        if now - last_activity > 3600:
                             request.session.flush()
                             auth_logout(request)
-                            messages.warning(request, "Your admin session has expired after 1 hour. Please log in again.", fail_silently=True)
+                            messages.warning(request, "Your admin session has expired due to 1 hour of inactivity. Please log in again.", fail_silently=True)
                             return redirect('dashboard:login')
-                    else:
-                        # Initialize login_time if missing (e.g. established sessions or automated tests)
-                        request.session['admin_login_time'] = now
+                    # Update activity timestamp on valid request (rolling 1-hour inactivity timeout)
+                    request.session['admin_last_activity'] = now
+                    request.session['admin_login_time'] = now
 
         response = self.get_response(request)
 
