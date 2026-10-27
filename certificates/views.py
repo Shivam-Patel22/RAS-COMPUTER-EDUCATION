@@ -99,6 +99,7 @@ def verify(request, certificate_id=None):
                 'grade': certificate.grade or 'N/A',
                 'verification_url': qr_verify_url,
                 'revoked_at': certificate.revoked_at.strftime('%Y-%m-%d %H:%M:%S') if certificate.revoked_at else None,
+                'revocation_message': "This certificate has been revoked by the administrator and is no longer valid." if certificate.is_revoked else None,
             })
 
         return render(request, 'certificates/result.html', {

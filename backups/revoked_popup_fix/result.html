@@ -1,0 +1,828 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Certificate Verification Result | {% if certificate.prefix == 'RAS' %}RAS Computer Education{% elif certificate.prefix == 'CITI' %}CITI Computer Education{% elif certificate.is_ccc %}CCC Certificate{% else %}Centre for Development of Advanced Computing (C-DAC){% endif %}{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block extra_head %}
+<style>
+    .revoked-overlay-watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-30deg);
+        font-size: 4rem;
+        font-size: 6cqw;
+        font-weight: 900;
+        color: rgba(239, 68, 68, 0.4);
+        border: 5px solid rgba(239, 68, 68, 0.4);
+        padding: 0.5rem 2.5rem;
+        border-radius: 8px;
+        pointer-events: none;
+        z-index: 15;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+</style>
+{% if certificate.prefix == 'RAS' %}
+<style>
+    /* RAS Landscape Certificate in Public Verification Result */
+    .ras-result-wrapper {
+        max-width: 950px;
+        margin: 1.5rem auto 2.5rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .ras-certificate-card {
+        position: relative;
+        width: 100%;
+        max-width: 950px;
+        aspect-ratio: 3508 / 2480;
+        background: #ffffff;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0, 0, 0, 0.08);
+        border-radius: 6px;
+        overflow: hidden;
+        container-type: inline-size;
+        box-sizing: border-box;
+        user-select: none;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .ras-bg-template {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: fill;
+        z-index: 1;
+        pointer-events: none;
+        display: block;
+    }
+
+    .ras-field {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        white-space: nowrap;
+        line-height: 1;
+        color: #000000;
+        z-index: 2;
+        font-family: Arial, Helvetica, 'Segoe UI', sans-serif;
+    }
+
+    .ras-student-name {
+        left: 62%;
+        top: 39%;
+        font-weight: 800;
+        font-size: 20px;
+        font-size: 2.2cqw;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    .ras-course-name {
+        left: 64%;
+        top: 44%;
+        font-weight: 800;
+        font-size: 16px;
+        font-size: 1.8cqw;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+    }
+
+    .ras-period-from {
+        left: 34%;
+        top: 50%;
+        font-weight: 600;
+        font-size: 13px;
+        font-size: 1.4cqw;
+    }
+
+    .ras-period-to {
+        left: 44.5%;
+        top: 50%;
+        font-weight: 600;
+        font-size: 13px;
+        font-size: 1.4cqw;
+    }
+
+    .ras-year {
+        left: 58.5%;
+        top: 50%;
+        font-weight: 600;
+        font-size: 13px;
+        font-size: 1.4cqw;
+    }
+
+    .ras-grade {
+        left: 35%;
+        top: 59.5%;
+        font-weight: 700;
+        font-size: 15px;
+        font-size: 1.6cqw;
+    }
+
+    .ras-issue-date {
+        left: 23.5%;
+        top: 70.5%;
+        font-weight: 600;
+        font-size: 13px;
+        font-size: 1.4cqw;
+    }
+
+    .ras-verify-line {
+        left: 50%;
+        top: 78%;
+        font-weight: 500;
+        font-size: 11px;
+        font-size: 1.15cqw;
+        color: #1e293b;
+        letter-spacing: 0.2px;
+        max-width: 90%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    @page {
+        size: A4 landscape;
+        margin: 0mm;
+    }
+
+    @media print {
+        @page {
+            size: A4 landscape;
+            margin: 0mm;
+        }
+        @page :left { margin: 0mm; }
+        @page :right { margin: 0mm; }
+        @page :first { margin: 0mm; }
+
+        html, body {
+            background: #ffffff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .container {
+            max-width: 100% !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .ras-result-wrapper {
+            max-width: 100% !important;
+            width: 100% !important;
+            height: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        .ras-certificate-card {
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            width: 100vw !important;
+            max-width: 100% !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            margin: 0 !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .ras-student-name { font-size: 18pt !important; }
+        .ras-course-name { font-size: 15pt !important; }
+        .ras-period-from, .ras-period-to, .ras-year { font-size: 12pt !important; }
+        .ras-grade { font-size: 14pt !important; }
+        .ras-issue-date { font-size: 12pt !important; }
+        .ras-verify-line { font-size: 9.5pt !important; }
+    }
+</style>
+<script>
+    let originalDocTitle = document.title;
+    window.addEventListener('beforeprint', () => {
+        originalDocTitle = document.title;
+        document.title = "";
+    });
+    window.addEventListener('afterprint', () => {
+        document.title = originalDocTitle;
+    });
+</script>
+{% elif certificate.prefix == 'CITI' %}
+<style>
+    /* CITI Portrait Certificate in Public Verification Result */
+    .citi-result-wrapper {
+        max-width: 750px;
+        margin: 1.5rem auto 2.5rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .citi-certificate-card {
+        position: relative;
+        width: 100%;
+        max-width: 750px;
+        aspect-ratio: 2469 / 3520;
+        background: #ffffff;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0, 0, 0, 0.08);
+        border-radius: 6px;
+        overflow: hidden;
+        container-type: inline-size;
+        box-sizing: border-box;
+        user-select: none;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .citi-bg-template {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: fill;
+        z-index: 1;
+        pointer-events: none;
+        display: block;
+    }
+
+    .citi-cert-photo {
+        position: absolute;
+        top: 8.3%;
+        left: 10.5%;
+        width: 12.7%;
+        height: 11.8%;
+        z-index: 2;
+        overflow: hidden;
+        border: 1px solid #000000;
+        background: #ffffff;
+    }
+
+    .citi-cert-photo-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .citi-cert-qr {
+        position: absolute;
+        top: 8.3%;
+        right: 10.5%;
+        z-index: 3;
+        text-align: center;
+    }
+
+    .citi-cert-serial {
+        position: absolute;
+        right: 10.5%;
+        top: 18.8%;
+        transform: translateY(-50%);
+        font-weight: bold;
+        font-size: 2.02cqw;
+        color: #000000;
+        z-index: 2;
+        white-space: nowrap;
+        text-align: center;
+        line-height: 1;
+    }
+
+    /* Common centered text line on axis x: 51% */
+    .citi-cert-line {
+        position: absolute;
+        left: 51%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        white-space: nowrap;
+        line-height: 1;
+        z-index: 2;
+        color: #000000;
+    }
+
+    .citi-cert-certify {
+        top: 49.1%;
+        font-weight: normal;
+        font-size: 2.27cqw;
+    }
+
+    .citi-cert-name {
+        top: 51.8%;
+        font-weight: bold;
+        font-size: 3.19cqw;
+        text-transform: uppercase;
+        text-decoration: underline;
+        letter-spacing: normal;
+        max-width: 70%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .citi-cert-completed {
+        top: 54.9%;
+        font-weight: normal;
+        font-size: 2.27cqw;
+    }
+
+    .citi-cert-course {
+        top: 57.6%;
+        font-weight: bold;
+        font-size: 2.27cqw;
+    }
+
+    .citi-cert-gr {
+        top: 60.6%;
+        font-weight: normal;
+        font-size: 2.27cqw;
+    }
+
+    .citi-cert-exploring {
+        top: 63.7%;
+        font-weight: normal;
+        font-size: 2.27cqw;
+    }
+
+    .citi-cert-grade-line {
+        top: 66.6%;
+        font-weight: normal;
+        font-size: 2.27cqw;
+    }
+
+    .citi-cert-grade-val {
+        font-weight: bold;
+        text-decoration: underline;
+    }
+
+    .citi-cert-reg {
+        top: 71.4%;
+        font-weight: bold;
+        font-size: 2.27cqw;
+    }
+
+    .citi-cert-exam {
+        top: 74.5%;
+        font-weight: bold;
+        font-size: 2.27cqw;
+    }
+
+    .citi-cert-addr {
+        top: 77.4%;
+        font-weight: normal;
+        font-size: 2.27cqw;
+    }
+
+    .citi-cert-verify {
+        top: 81.5%;
+        font-size: 1.45cqw;
+        color: #334155;
+        max-width: 85%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .citi-cert-date {
+        position: absolute;
+        left: 27.4%;
+        top: 90.8%;
+        transform: translateY(-50%);
+        font-weight: bold;
+        font-size: 2.35cqw;
+        color: #000000;
+        z-index: 2;
+        white-space: nowrap;
+        line-height: 1;
+    }
+
+    .citi-cert-place {
+        position: absolute;
+        left: 27.4%;
+        top: 92.9%;
+        transform: translateY(-50%);
+        font-weight: bold;
+        font-size: 2.35cqw;
+        color: #000000;
+        z-index: 2;
+        white-space: nowrap;
+        line-height: 1;
+    }
+
+    @page {
+        size: A4 portrait;
+        margin: 0mm;
+    }
+
+    @media print {
+        @page { size: A4 portrait; margin: 0mm; }
+        @page :left { margin: 0mm; }
+        @page :right { margin: 0mm; }
+        @page :first { margin: 0mm; }
+
+        html, body {
+            background: #ffffff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .container {
+            max-width: 100% !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .citi-result-wrapper {
+            max-width: 100% !important;
+            width: 100% !important;
+            height: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        .citi-certificate-card {
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            width: 100vw !important;
+            max-width: 100% !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            margin: 0 !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .citi-cert-qr {
+            position: absolute !important;
+            top: 8.3% !important;
+            right: 10.5% !important;
+            z-index: 3 !important;
+        }
+        .citi-cert-serial {
+            position: absolute !important;
+            top: 18.8% !important;
+            right: 10.5% !important;
+            font-size: 12pt !important;
+            text-align: center !important;
+        }
+        .citi-cert-certify { font-size: 13.5pt !important; }
+        .citi-cert-name { font-size: 19pt !important; }
+        .citi-cert-completed { font-size: 13.5pt !important; }
+        .citi-cert-course { font-size: 13.5pt !important; }
+        .citi-cert-gr { font-size: 13.5pt !important; }
+        .citi-cert-exploring { font-size: 13.5pt !important; }
+        .citi-cert-grade-line { font-size: 13.5pt !important; }
+        .citi-cert-reg { font-size: 13.5pt !important; }
+        .citi-cert-exam { font-size: 13.5pt !important; }
+        .citi-cert-addr { font-size: 13.5pt !important; }
+        .citi-cert-verify { font-size: 8.5pt !important; }
+        .citi-cert-date { font-size: 14pt !important; }
+        .citi-cert-place { font-size: 14pt !important; }
+    }
+</style>
+<script>
+    let originalDocTitle = document.title;
+    window.addEventListener('beforeprint', () => {
+        originalDocTitle = document.title;
+        document.title = "";
+    });
+    window.addEventListener('afterprint', () => {
+        document.title = originalDocTitle;
+    });
+</script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="no-print animate__animated animate__fadeInDown" style="text-align: center; margin-bottom: 2rem;">
+        {% if certificate.is_revoked %}
+        <span class="badge" style="font-size: 1rem; padding: 0.5rem 1.25rem; margin-bottom: 1rem; background-color: #ef4444; color: #ffffff; display: inline-flex; align-items: center; gap: 0.4rem;">
+            ✕ CERTIFICATE REVOKED
+        </span>
+        <h1 style="font-size: 2rem; color: var(--gray-900);">Certificate Revocation Notice</h1>
+        <div class="alert alert-error" style="max-width: 800px; margin: 1rem auto 0; text-align: left; background-color: #fef2f2; border: 1px solid #f87171; border-radius: 8px; padding: 1rem 1.25rem; color: #991b1b;">
+            <strong>Notice:</strong> This certificate (ID: <code>{{ certificate.certificate_id }}</code>) was issued to <strong>{{ certificate.student_name }}</strong> for <strong>{{ certificate.course.name }}</strong> on {{ certificate.issue_date|date:"F j, Y" }}, but has been <strong>REVOKED</strong> by the issuing authority{% if certificate.revoked_at %} on {{ certificate.revoked_at|date:"F j, Y" }}{% endif %}. It is no longer recognized as valid.
+        </div>
+        {% else %}
+        <span class="badge badge-success" style="font-size: 1rem; padding: 0.5rem 1.25rem; margin-bottom: 1rem;">
+            ✓ VERIFIED AUTHENTIC CERTIFICATE
+        </span>
+        <h1 style="font-size: 2rem; color: var(--gray-900);">Official Certificate Record</h1>
+        {% endif %}
+    </div>
+
+    {% if certificate.prefix == 'RAS' %}
+    <!-- Official RAS Computer Education Certificate Render Box (A4 Landscape) -->
+    <div class="ras-result-wrapper">
+        <div class="ras-certificate-card">
+            <!-- Background Template -->
+            <img src="{% static 'certificates/ras_template.jpg' %}" alt="RAS Certificate Background Template" class="ras-bg-template">
+
+            <!-- Dynamic Field Overlays -->
+            <!-- 1. Student Name: x 62%, y 39% -->
+            <div class="ras-field ras-student-name">{{ certificate.student_name|upper }}</div>
+
+            <!-- 2. Course Name: x 64%, y 44% -->
+            <div class="ras-field ras-course-name">“{{ certificate.course.name|upper }}”</div>
+
+            <!-- 3. Period From: x 34%, y 50% -->
+            <div class="ras-field ras-period-from">{% if certificate.course_start_date %}{{ certificate.course_start_date|date:"jS M." }}{% endif %}</div>
+
+            <!-- 4. Period To: x 44.5%, y 50% -->
+            <div class="ras-field ras-period-to">{% if certificate.course_end_date %}{{ certificate.course_end_date|date:"jS M." }}{% endif %}</div>
+
+            <!-- 5. Year: x 58.5%, y 50% -->
+            <div class="ras-field ras-year">{{ certificate.course_end_date.year|default:certificate.issue_date.year }}</div>
+
+            <!-- 6. Grade: x 35%, y 59.5% -->
+            <div class="ras-field ras-grade">{% if certificate.grade %}“{{ certificate.grade }}”{% endif %}</div>
+
+            <!-- 7. Issue Date: x 23.5%, y 70.5% -->
+            <div class="ras-field ras-issue-date">{{ certificate.issue_date|date:"d.m.Y" }}</div>
+
+            <!-- 8. Verification Line: x 50%, y 78% -->
+            <div class="ras-field cert-verify-line ras-verify-line">This Certificate can be verified on {{ certificate_verify_url }}</div>
+
+            <!-- 9. Dynamic Scannable QR Code Overlay in Top-Right Corner (x: 88.5%, y: 12%) -->
+            <div class="ras-field ras-qr-box" style="left: 88.5%; top: 12%; text-align: center;">
+                {% if qr_data_uri %}
+                <div style="background: #ffffff; padding: 3px 3px 2px 3px; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: inline-block;">
+                    <img src="{{ qr_data_uri }}" alt="Scan to Verify" style="width: 4.8cqw; height: 4.8cqw; min-width: 58px; min-height: 58px; max-width: 78px; max-height: 78px; object-fit: contain; display: block; margin: 0 auto;">
+                    <span style="font-size: 0.62cqw; font-weight: 700; color: #334155; letter-spacing: 0.4px; text-transform: uppercase; display: block; margin-top: 2px;">Scan to Verify</span>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if certificate.is_revoked %}
+            <div class="revoked-overlay-watermark">REVOKED</div>
+            {% endif %}
+        </div>
+    </div>
+    {% elif certificate.prefix == 'CITI' %}
+    <!-- Official CITI Computer Education Certificate Render Box (A4 Portrait) -->
+    <div class="citi-result-wrapper">
+        <div class="citi-certificate-card">
+            <!-- Background Template -->
+            <img src="{% static 'certificates/citi_ccc_template.jpg' %}" alt="CITI CCC Certificate Background Template" class="citi-bg-template">
+
+            <!-- 1. Top-Left Box: Student Photo -->
+            <div class="citi-cert-photo">
+                {% if certificate.student_photo %}
+                    <img src="{{ certificate.student_photo.url }}" alt="Student Photo" class="citi-cert-photo-img">
+                {% endif %}
+            </div>
+
+            <!-- Dynamic Scannable QR Code (Top-Right Corner, x: 89.5%, y: 8.3%) -->
+            <div class="citi-cert-qr">
+                {% if qr_data_uri %}
+                <div style="background: #ffffff; padding: 3px; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: inline-block;">
+                    <img src="{{ qr_data_uri }}" alt="Scan to Verify" style="width: 4.5cqw; height: 4.5cqw; min-width: 48px; min-height: 48px; max-width: 62px; max-height: 62px; object-fit: contain; display: block; margin: 0 auto;">
+                    <span style="font-size: 0.62cqw; font-weight: 700; color: #475569; letter-spacing: 0.4px; text-transform: uppercase; display: block; margin-top: 2px;">Scan to Verify</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 2. Serial Number (top right under QR code, right: 10.5%, y: 18.8%) -->
+            <div class="citi-cert-serial">{{ certificate.serial_number|default:"" }}</div>
+
+            <!-- 3. Centered Content Lines on Axis x: 51% -->
+            <!-- a. Certify lead-in -->
+            <div class="citi-cert-line citi-cert-certify">This is to certify that Mr./ Ms./ Mrs.</div>
+
+            <!-- b. Student Name (bold, uppercase, underlined) -->
+            <div class="citi-cert-line citi-cert-name">{{ certificate.student_name }}</div>
+
+            <!-- c. Completed lead-in -->
+            <div class="citi-cert-line citi-cert-completed">has successfully completed</div>
+
+            <!-- d. Course Title -->
+            <div class="citi-cert-line citi-cert-course">CERTIFICATE COURSE ON COMPUTER CONCEPTS (CCC)</div>
+
+            <!-- e. Govt. GR reference -->
+            <div class="citi-cert-line citi-cert-gr">as per govt. GR. No. CRR-10-2007-120320-G5, Dated:13/08/08</div>
+
+            <!-- f. Exploring subtitle -->
+            <div class="citi-cert-line citi-cert-exploring">(Exploring in MS Office Indic 2003 - Gujarati)</div>
+
+            <!-- g. Grade line with embedded underlined grade -->
+            <div class="citi-cert-line citi-cert-grade-line">He / She has obtained &nbsp;<span class="citi-cert-grade-val">{{ certificate.grade|default:"A"|upper }}</span>&nbsp; Grade.</div>
+
+            <!-- h. Student Registration No. -->
+            <div class="citi-cert-line citi-cert-reg">Student registration No.: {{ certificate.certificate_id|default:certificate.registration_number }}</div>
+
+            <!-- i. Exam was conducted at -->
+            <div class="citi-cert-line citi-cert-exam">Exam was conducted at</div>
+
+            <!-- j. Examination Center Address -->
+            <div class="citi-cert-line citi-cert-addr">F-5, 2nd Floor, Surbhi Complex, Sector - 22, Gandhinagar - 382022.</div>
+
+            <!-- Verification Line -->
+            <div class="citi-cert-line citi-cert-verify">This Certificate can be verified on {{ certificate_verify_url }}</div>
+
+            {% if certificate.is_revoked %}
+            <div class="revoked-overlay-watermark">REVOKED</div>
+            {% endif %}
+
+            <!-- Bottom-Left: Date & Place -->
+            <div class="citi-cert-date">Date &nbsp;: {% if certificate.issue_date %}{{ certificate.issue_date|date:"d.m.Y" }}{% endif %}</div>
+            <div class="citi-cert-place">Place: Gandhinagar</div>
+        </div>
+    </div>
+    {% elif certificate.is_ccc %}
+    <!-- Official CCC Certificate Render Box -->
+    <div class="certificate-card" style="border: 2px solid #2563eb; background: linear-gradient(to bottom, #ffffff, #f8fafc);">
+        <div class="certificate-header" style="border-bottom: 2px solid #2563eb; padding-bottom: 1.25rem;">
+            <div style="display: inline-block; padding: 0.25rem 1rem; background: #eff6ff; border-radius: 9999px; color: #1e40af; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.75rem; letter-spacing: 1px;">
+                COMPUTER &amp; INDUSTRIAL TRAINING INSTITUTION
+            </div>
+            <h2 class="certificate-title" style="color: #0f172a; font-size: 1.8rem;">Certificate Course on Computer Concepts</h2>
+            <p class="certificate-subtitle" style="color: #2563eb; font-weight: 600;">OFFICIAL GOVERNMENT RECOGNIZED PROGRAM (CCC)</p>
+        </div>
+
+        <div class="certificate-body">
+            <p style="color: var(--gray-600); font-size: 1.05rem;">This certifies that</p>
+            <h3 class="certificate-student" style="color: #1e3a8a;">{{ certificate.student_name }}</h3>
+            <p style="color: var(--gray-600); font-size: 1.05rem; max-width: 520px; margin: 0 auto 1.5rem;">
+                has successfully completed the comprehensive curriculum and practical examination for
+            </p>
+
+            <h4 style="font-size: 1.6rem; color: var(--gray-900); font-family: var(--font-heading); margin-bottom: 0.5rem;">
+                Course on Computer Concepts (CCC)
+            </h4>
+            <p style="color: var(--primary); font-weight: 600;">Duration: {{ certificate.course.duration|default:"3 Months (80 Hours)" }}</p>
+            {% if certificate.course_start_date and certificate.course_end_date %}
+            <p style="color: var(--gray-600); font-size: 0.95rem; margin-top: 0.25rem;">Period: {{ certificate.course_start_date|date:"F j, Y" }} – {{ certificate.course_end_date|date:"F j, Y" }}</p>
+            {% endif %}
+        </div>
+
+        <div class="certificate-meta-grid">
+            <div>
+                <span style="font-size: 0.8rem; color: var(--gray-500); display: block; text-transform: uppercase;">Certificate ID</span>
+                <strong style="font-family: monospace; font-size: 1.1rem; color: var(--gray-900);">{{ certificate.certificate_id }}</strong>
+            </div>
+            <div>
+                <span style="font-size: 0.8rem; color: var(--gray-500); display: block; text-transform: uppercase;">Issue Date</span>
+                <strong style="font-size: 1.05rem; color: var(--gray-900);">{{ certificate.issue_date|date:"F j, Y" }}</strong>
+            </div>
+            {% if certificate.grade %}
+            <div>
+                <span style="font-size: 0.8rem; color: var(--gray-500); display: block; text-transform: uppercase;">Grade Awarded</span>
+                <strong style="font-size: 1.05rem; color: var(--success);">{{ certificate.grade }}</strong>
+            </div>
+            {% endif %}
+            <div>
+                <span style="font-size: 0.8rem; color: var(--gray-500); display: block; text-transform: uppercase;">Status</span>
+                {% if certificate.is_revoked %}
+                <strong style="font-size: 1.05rem; color: #ef4444;">Revoked</strong>
+                {% else %}
+                <strong style="font-size: 1.05rem; color: var(--success);">Valid & Active</strong>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="cert-verify-line" style="text-align: center; font-size: 0.85rem; color: #475569; margin-top: 1.25rem; font-family: var(--font-main, sans-serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            This Certificate can be verified on {{ certificate_verify_url }}
+        </div>
+    </div>
+    {% else %}
+    <!-- Official Certificate Render Box (Standard C-DAC layout for other courses) -->
+    <div class="certificate-card">
+        <div class="certificate-header">
+            <img src="{% static 'images/ras.png' %}" alt="RAS Computer Education Logo" style="height: 58px; max-width: 100%; margin: 0 auto 1rem; display: block; border-radius: 4px;">
+            <h2 class="certificate-title">Certificate of Completion</h2>
+            <p class="certificate-subtitle">CENTRE FOR DEVELOPMENT OF ADVANCED COMPUTING (C-DAC)</p>
+        </div>
+
+        <div class="certificate-body">
+            <p style="color: var(--gray-600); font-size: 1.05rem;">This certifies that</p>
+            <h3 class="certificate-student">{{ certificate.student_name }}</h3>
+            <p style="color: var(--gray-600); font-size: 1.05rem; max-width: 500px; margin: 0 auto 1.5rem;">
+                has successfully completed the comprehensive training program and fulfilled all curriculum requirements for
+            </p>
+
+            <h4 style="font-size: 1.6rem; color: var(--gray-900); font-family: var(--font-heading); margin-bottom: 0.5rem;">
+                {{ certificate.course.name }}
+            </h4>
+            <p style="color: var(--primary); font-weight: 600;">Duration: {{ certificate.course.duration }}</p>
+            {% if certificate.course_start_date and certificate.course_end_date %}
+            <p style="color: var(--gray-600); font-size: 0.95rem; margin-top: 0.25rem;">Period: {{ certificate.course_start_date|date:"F j, Y" }} – {{ certificate.course_end_date|date:"F j, Y" }}</p>
+            {% endif %}
+        </div>
+
+        <div class="certificate-meta-grid">
+            <div>
+                <span style="font-size: 0.8rem; color: var(--gray-500); display: block; text-transform: uppercase;">Certificate ID</span>
+                <strong style="font-family: monospace; font-size: 1.1rem; color: var(--gray-900);">{{ certificate.certificate_id }}</strong>
+            </div>
+            <div>
+                <span style="font-size: 0.8rem; color: var(--gray-500); display: block; text-transform: uppercase;">Issue Date</span>
+                <strong style="font-size: 1.05rem; color: var(--gray-900);">{{ certificate.issue_date|date:"F j, Y" }}</strong>
+            </div>
+            {% if certificate.grade %}
+            <div>
+                <span style="font-size: 0.8rem; color: var(--gray-500); display: block; text-transform: uppercase;">Grade Awarded</span>
+                <strong style="font-size: 1.05rem; color: var(--success);">{{ certificate.grade }}</strong>
+            </div>
+            {% endif %}
+            <div>
+                <span style="font-size: 0.8rem; color: var(--gray-500); display: block; text-transform: uppercase;">Status</span>
+                {% if certificate.is_revoked %}
+                <strong style="font-size: 1.05rem; color: #ef4444;">Revoked</strong>
+                {% else %}
+                <strong style="font-size: 1.05rem; color: var(--success);">Valid & Active</strong>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="cert-verify-line" style="text-align: center; font-size: 0.85rem; color: #475569; margin-top: 1.25rem; font-family: var(--font-main, sans-serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            This Certificate can be verified on {{ certificate_verify_url }}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Official Verification Summary Card (Section 5) -->
+    <div class="no-print" style="max-width: 950px; margin: 2rem auto 0; background: var(--card-bg, #ffffff); border-radius: 12px; border: 1px solid var(--gray-200, #e2e8f0); box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 1.5rem 1.75rem;">
+        <h3 style="margin-top: 0; margin-bottom: 1.25rem; font-size: 1.15rem; color: var(--gray-900); display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--gray-200, #e2e8f0); padding-bottom: 0.75rem;">
+            <span>📋</span> Official Verification Details
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem;">
+            <div>
+                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Verification Status</span>
+                {% if certificate.is_revoked %}
+                <span class="badge" style="background-color: #ef4444; color: #ffffff; font-size: 0.85rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 4px;">✕ Revoked</span>
+                {% else %}
+                <span class="badge badge-success" style="font-size: 0.85rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 4px;">✓ Valid & Active</span>
+                {% endif %}
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Certificate Holder</span>
+                <strong style="font-size: 0.95rem; color: var(--gray-900);">{{ certificate.student_name }}</strong>
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Certificate ID</span>
+                <code style="font-family: monospace; font-size: 0.92rem; font-weight: 700; color: var(--primary, #2563eb);">{{ certificate.certificate_id }}</code>
+                {% if certificate.registration_number %}
+                <div style="font-size: 0.75rem; color: var(--gray-500); font-family: monospace;">{{ certificate.registration_number }}</div>
+                {% endif %}
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Course / Program</span>
+                <strong style="font-size: 0.95rem; color: var(--gray-900);">{{ certificate.course.name }}</strong>
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Issuing Institute</span>
+                <strong style="font-size: 0.95rem; color: var(--gray-900);">{% if certificate.prefix == 'CITI' %}CITI Computer Education{% else %}RAS Computer Education & Spoken English{% endif %}</strong>
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Issue Date</span>
+                <strong style="font-size: 0.95rem; color: var(--gray-900);">{{ certificate.issue_date|date:"F j, Y" }}</strong>
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Expiry Date</span>
+                <span style="font-size: 0.92rem; color: var(--gray-700);">Lifetime Validity (No Expiry)</span>
+            </div>
+            {% if certificate.grade %}
+            <div>
+                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Grade Awarded</span>
+                <strong style="font-size: 0.95rem; color: var(--success, #16a34a);">{{ certificate.grade }}</strong>
+            </div>
+            {% endif %}
+            {% if certificate.verification_token %}
+            <div>
+                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Security Token</span>
+                <code style="font-size: 0.8rem; color: var(--gray-600); font-family: monospace;">{{ certificate.verification_token }}</code>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="no-print animate__animated animate__fadeInUp anim-delay-1" style="text-align: center; margin-top: 2.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <a href="{% url 'certificates:verify' %}" class="btn btn-outline-dark">&larr; Verify Another Certificate</a>
+        {% if certificate.is_revoked %}
+        <span class="btn btn-outline-danger" style="opacity: 0.6; cursor: not-allowed; display: inline-flex; align-items: center; gap: 0.4rem;" title="Revoked certificates cannot be downloaded">🚫 Download PDF Disabled (Revoked)</span>
+        {% else %}
+        <a href="{% url 'certificates:download_certificate_pdf' certificate.certificate_id %}" class="btn btn-success" style="display: inline-flex; align-items: center; gap: 0.4rem;">📥 Download PDF</a>
+        <button onclick="window.print();" class="btn btn-primary">🖨️ Print / Save Certificate</button>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
