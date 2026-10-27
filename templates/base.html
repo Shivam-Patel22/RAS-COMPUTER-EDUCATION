@@ -133,7 +133,7 @@
             <nav class="nav-menu" id="nav-menu">
                 <ul class="nav-links" style="align-items: center;">
                     <li class="header-verify-item">
-                        <form action="{% if request.user.is_authenticated and request.user.is_staff %}{% url 'dashboard:admin_verify_search' %}{% else %}{% url 'certificates:verify' %}{% endif %}" method="get" class="header-verify-form">
+                        <form action="{% url 'certificates:verify' %}" method="get" class="header-verify-form">
                             <input type="text" name="certificate_id" placeholder="Enter Certificate ID" class="header-verify-input" required autocomplete="off">
                             <button type="submit" class="btn btn-primary header-verify-btn" style="background: var(--primary); color: white; border: none; border-radius: var(--radius-sm);">Verify</button>
                         </form>
@@ -252,7 +252,7 @@
                     <li><a href="{% url 'dashboard:index' %}">Admin Dashboard</a></li>
                     <li><a href="{% url 'dashboard:edit_about' %}">About Us (Edit)</a></li>
                     <li><a href="{% url 'dashboard:manage_courses' %}">Manage Courses</a></li>
-                    <li><a href="{% url 'dashboard:admin_verify_search' %}">Certificate Verification</a></li>
+                    <li><a href="{% url 'certificates:verify' %}">Certificate Verification</a></li>
                     <li><a href="{% url 'dashboard:edit_contact' %}">Contact Details (Edit)</a></li>
                     {% else %}
                     <li><a href="{% url 'core:home' %}">Home</a></li>
