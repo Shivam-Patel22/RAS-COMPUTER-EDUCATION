@@ -51,7 +51,7 @@
       "alternateName": ["CITI Computer Education"],
       "url": "{{ request.scheme }}://{{ request.get_host }}/",
       "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'images/ras.png' %}",
-      "image": "{{ request.scheme }}://{{ request.get_host }}{% static 'images/New Hero Banner.png' %}",
+      "image": "{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero_banner.png' %}",
       "description": "Authorized computer education institute offering CCC, Tally Prime, Programming, Web Development, and Diploma certifications.",
       "telephone": "{% if site_contact and site_contact.phone %}{{ site_contact.phone }}{% else %}+91 98765 43210{% endif %}",
       "email": "{% if site_contact and site_contact.email %}{{ site_contact.email }}{% else %}info@cdac-class.in{% endif %}",
@@ -157,7 +157,7 @@
                     <span class="theme-toggle-icon">🌙</span>
                 </button>
                 <div class="header-right-logo">
-                    <img src="{% static 'images/CCC-logo copy.png' %}" alt="CITI" class="citi-header-logo-img">
+                    <img src="{% static 'images/CCC-logo.png' %}" alt="CITI" class="citi-header-logo-img">
                 </div>
                 {% if request.user.is_authenticated and request.user.is_staff %}
                     <a href="{% url 'dashboard:index' %}" class="btn btn-outline btn-sm" style="font-weight: 600; white-space: nowrap; border-color: var(--primary); color: var(--primary);" title="Staff Admin Dashboard">Admin Panel</a>
