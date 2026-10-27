@@ -1,0 +1,630 @@
+{% extends 'dashboard/admin_base.html' %}
+
+{% block title %}{{ title }} | Admin Panel{% endblock %}
+
+{% block extra_head %}
+<style>
+[data-theme="dark"] #citi-fields-container {
+    background: #2a2b2e !important;
+    border-color: #4a4b4e !important;
+}
+[data-theme="dark"] #citi-fields-container h4 {
+    color: #ffffff !important;
+}
+[data-theme="dark"] #citi-fields-container label {
+    color: #f1f5f9 !important;
+}
+[data-theme="dark"] #citi-fields-container small {
+    color: #cbd5e1 !important;
+}
+[data-theme="dark"] #citi-marks-summary {
+    background: #211F1C !important;
+    border-color: #5a5b5e !important;
+    color: #e2e8f0 !important;
+}
+</style>
+{% endblock %}
+
+{% block secondary_back_btn %}
+<a href="{% url 'dashboard:manage_certificates' %}" class="admin-back-btn">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Back to Certificate Management
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <div class="form-card" style="max-width: 650px;">
+        <h1 style="font-size: 1.75rem; margin-bottom: 1.5rem; color: var(--gray-900);">{{ title }}</h1>
+
+        <form method="post" enctype="multipart/form-data" data-validate="true">
+            {% csrf_token %}
+
+            <div class="form-group" style="background: var(--gray-50); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--gray-200); margin-bottom: 1.25rem;">
+                <label style="font-weight: 600; margin-bottom: 0.5rem; display: block; color: var(--gray-800);">Certificate ID Generation Mode</label>
+                <div style="display: flex; gap: 1.5rem;">
+                    <label style="display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; font-weight: 500; color: var(--gray-800);">
+                        <input type="radio" name="id_gen_mode" value="auto" {% if request.POST.id_gen_mode != 'manual' %}checked{% endif %} onchange="toggleIdMode(this.value)"> ⚡ Auto Generate
+                    </label>
+                    <label style="display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; font-weight: 500; color: var(--gray-800);">
+                        <input type="radio" name="id_gen_mode" value="manual" {% if request.POST.id_gen_mode == 'manual' %}checked{% endif %} onchange="toggleIdMode(this.value)"> ✏️ Manual Entry (Custom ID)
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label for="{{ form.prefix.id_for_label }}" style="font-weight: 600; margin-bottom: 0.5rem; display: block; color: var(--gray-800);">Certificate Prefix *</label>
+                {{ form.prefix }}
+                {% if form.prefix.errors %}<div class="form-error">{{ form.prefix.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.certificate_id.id_for_label }}">Certificate ID *</label>
+                {{ form.certificate_id }}
+                <small id="id-mode-hint" style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.3rem;">⚡ Auto mode active: Format PREFIX-YYYY-MM-FL-XXXXXX-SERIAL (Server auto-generated)</small>
+                <div id="cert-id-duplicate-warning" class="form-error" style="display: none; margin-top: 0.35rem; font-size: 0.82rem; color: #dc2626; font-weight: 600;">
+                    ⚠ Certificate ID already exists. Please enter a unique ID.
+                </div>
+                {% if form.certificate_id.errors %}<div class="form-error" id="cert-id-server-error">{{ form.certificate_id.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="{{ form.first_name.id_for_label }}">First Name *</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}<div class="form-error">{{ form.first_name.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="{{ form.middle_name.id_for_label }}">Middle Name *</label>
+                    {{ form.middle_name }}
+                    {% if form.middle_name.errors %}<div class="form-error">{{ form.middle_name.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="{{ form.last_name.id_for_label }}">Last Name</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}<div class="form-error">{{ form.last_name.errors.0 }}</div>{% endif %}
+                </div>
+            </div>
+
+            <!-- CITI CCC Dedicated Fields (Visible only when CITI prefix is chosen) -->
+            <div id="citi-fields-container" style="display: none; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.25rem;">
+                <h4 style="font-size: 1rem; color: var(--gray-900); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 700;">
+                    <span>🎓</span> CITI CCC Details & Marks
+                </h4>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label for="{{ form.student_photo.id_for_label }}" style="font-weight: 600;">Student Photo (Passport / Formal) *</label>
+                    {{ form.student_photo }}
+                    <small style="color: var(--gray-500); display: block; margin-top: 0.25rem; font-size: 0.8rem;">Max 2 MB (JPG/PNG). Image will be auto-fitted to certificate top-left.</small>
+                    {% if form.instance.student_photo %}
+                        <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                            <img src="{{ form.instance.student_photo.url }}" alt="Student Photo" style="width: 50px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid var(--gray-300);">
+                            <span style="font-size: 0.85rem; color: var(--gray-500);">Current photo</span>
+                        </div>
+                    {% endif %}
+                    {% if form.student_photo.errors %}<div class="form-error">{{ form.student_photo.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="{{ form.theory_marks.id_for_label }}" style="font-weight: 600;">Theory Marks (0–50) *</label>
+                        {{ form.theory_marks }}
+                        {% if form.theory_marks.errors %}<div class="form-error">{{ form.theory_marks.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="{{ form.practical_marks.id_for_label }}" style="font-weight: 600;">Practical Marks (0–50) *</label>
+                        {{ form.practical_marks }}
+                        {% if form.practical_marks.errors %}<div class="form-error">{{ form.practical_marks.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <!-- Marks / Grade Preview Helper -->
+                <div id="citi-marks-summary" style="background: var(--card-bg, #ffffff); border: 1px dashed var(--gray-300, #94a3b8); border-radius: 6px; padding: 0.6rem 0.85rem; margin-bottom: 1rem; font-size: 0.88rem; color: var(--gray-800, #334155);">
+                    <strong>Marks Summary:</strong> Total: <span id="citi-total-display">—</span>/100 | Percentage: <span id="citi-pct-display">—</span> | Grade: <span id="citi-grade-display">—</span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="{{ form.course_duration.id_for_label }}" style="font-weight: 600;">Course Duration</label>
+                        {{ form.course_duration }}
+                        {% if form.course_duration.errors %}<div class="form-error">{{ form.course_duration.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="{{ form.serial_number.id_for_label }}" style="font-weight: 600;">Serial Number</label>
+                        {{ form.serial_number }}
+                        <small style="color: var(--gray-500); display: block; font-size: 0.75rem; margin-top: 0.2rem;">Leave blank to auto-generate (e.g. 4327)</small>
+                        {% if form.serial_number.errors %}<div class="form-error">{{ form.serial_number.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.course.id_for_label }}">Completed Course *</label>
+                {{ form.course }}
+                {% if form.course.errors %}<div class="form-error">{{ form.course.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.course_start_date.id_for_label }}">Course Start Date *</label>
+                {{ form.course_start_date }}
+                {% if form.course_start_date.errors %}<div class="form-error">{{ form.course_start_date.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.course_end_date.id_for_label }}">Course End Date *</label>
+                {{ form.course_end_date }}
+                {% if form.course_end_date.errors %}<div class="form-error">{{ form.course_end_date.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.issue_date.id_for_label }}">Issue Date *</label>
+                {{ form.issue_date }}
+                {% if form.issue_date.errors %}<div class="form-error">{{ form.issue_date.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="form-group" id="grade-form-group">
+                <label for="{{ form.grade.id_for_label }}">Grade / Distinction (Optional)</label>
+                {{ form.grade }}
+                {% if form.grade.errors %}<div class="form-error">{{ form.grade.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Save & Issue Certificate</button>
+                <a href="{% url 'dashboard:manage_certificates' %}" class="btn btn-outline-dark">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+var nextSeqs = {
+    'RAS': {{ next_ras_seq|default:1001 }},
+    'CITI': {{ next_citi_seq|default:5001 }}
+};
+var currentYear = {{ current_year|default:2026 }};
+var nextIdApiUrl = '{% url "dashboard:get_next_certificate_id" %}';
+var checkIdApiUrl = '{% url "dashboard:check_certificate_id" %}';
+var excludePk = '{% if cert %}{{ cert.pk }}{% elif form.instance.pk %}{{ form.instance.pk }}{% endif %}';
+var isEdit = Boolean(excludePk);
+var isDuplicateId = false;
+var checkTimeout = null;
+
+function checkDuplicateCertId(value) {
+    var warningEl = document.getElementById('cert-id-duplicate-warning');
+    var serverErrorEl = document.getElementById('cert-id-server-error');
+    var submitBtn = document.querySelector('form button[type="submit"]');
+    var certInput = document.getElementById('id_certificate_id');
+    var cleanVal = (value || '').trim();
+
+    if (!cleanVal) {
+        if (warningEl) warningEl.style.display = 'none';
+        isDuplicateId = false;
+        if (certInput) {
+            certInput.style.borderColor = '';
+            certInput.removeAttribute('aria-invalid');
+        }
+        if (submitBtn) submitBtn.removeAttribute('disabled');
+        return;
+    }
+
+    var url = checkIdApiUrl + '?certificate_id=' + encodeURIComponent(cleanVal) + (excludePk ? '&exclude_pk=' + encodeURIComponent(excludePk) : '');
+    fetch(url)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            var currentVal = (certInput ? certInput.value : '').trim().toUpperCase();
+            if (currentVal !== (data.certificate_id || '').toUpperCase()) {
+                return;
+            }
+            if (data.exists) {
+                isDuplicateId = true;
+                if (warningEl) {
+                    warningEl.textContent = '⚠ Certificate ID already exists. Please enter a unique ID.';
+                    warningEl.style.display = 'block';
+                }
+                if (serverErrorEl) serverErrorEl.style.display = 'none';
+                if (certInput) {
+                    certInput.style.borderColor = '#dc2626';
+                    certInput.setAttribute('aria-invalid', 'true');
+                }
+                if (submitBtn) submitBtn.setAttribute('disabled', 'disabled');
+            } else {
+                isDuplicateId = false;
+                if (warningEl) warningEl.style.display = 'none';
+                if (serverErrorEl) serverErrorEl.style.display = 'none';
+                if (certInput) {
+                    certInput.style.borderColor = '';
+                    certInput.removeAttribute('aria-invalid');
+                }
+                if (submitBtn) submitBtn.removeAttribute('disabled');
+            }
+        })
+        .catch(function() {});
+}
+
+function getSelectedPrefix() {
+    var prefixSelect = document.getElementById('id_prefix');
+    return (prefixSelect && prefixSelect.value) ? prefixSelect.value.trim().toUpperCase() : 'RAS';
+}
+
+function getStudentInitials() {
+    var fnInput = document.getElementById('id_first_name');
+    var lnInput = document.getElementById('id_last_name');
+    var fn = (fnInput && fnInput.value) ? fnInput.value.trim() : '';
+    var ln = (lnInput && lnInput.value) ? lnInput.value.trim() : '';
+
+    if (fn && ln) {
+        return (fn.charAt(0) + ln.charAt(0)).toUpperCase();
+    } else if (fn) {
+        var words = fn.split(/\s+/).filter(Boolean);
+        if (words.length >= 2) {
+            return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
+        }
+        return fn.charAt(0).toUpperCase();
+    } else if (ln) {
+        var words = ln.split(/\s+/).filter(Boolean);
+        if (words.length >= 2) {
+            return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
+        }
+        return ln.charAt(0).toUpperCase();
+    }
+    return 'FL';
+}
+
+var currentRandomCode = null;
+
+function getOrGenerateRandomCode() {
+    var certInput = document.getElementById('id_certificate_id');
+    if (certInput && certInput.value) {
+        var parts = certInput.value.trim().split('-');
+        if (parts.length >= 6 && /^\d{6}$/.test(parts[4])) {
+            currentRandomCode = parts[4];
+            return currentRandomCode;
+        }
+    }
+    if (!currentRandomCode) {
+        currentRandomCode = String(Math.floor(100000 + Math.random() * 900000));
+    }
+    return currentRandomCode;
+}
+
+function computeCertId(prefix, initials, seq, code) {
+    var now = new Date();
+    var month = String(now.getMonth() + 1).padStart(2, '0');
+    var cleanInit = initials && initials.length === 2 ? initials : 'FL';
+    var rCode = code || getOrGenerateRandomCode();
+    return prefix + '-' + currentYear + '-' + month + '-' + cleanInit + '-' + rCode + '-' + seq;
+}
+
+function updateCertId() {
+    var certInput = document.getElementById('id_certificate_id');
+    if (!certInput) return;
+    var manualRadio = document.querySelector('input[name="id_gen_mode"][value="manual"]');
+    var isManual = manualRadio && manualRadio.checked;
+
+    var prefix = getSelectedPrefix();
+    var initials = getStudentInitials();
+    var seq = nextSeqs[prefix] || (prefix === 'RAS' ? 1001 : 5001);
+
+    if (!isManual) {
+        var randomCode = getOrGenerateRandomCode();
+        certInput.value = computeCertId(prefix, initials, seq, randomCode);
+
+        var fnInput = document.getElementById('id_first_name');
+        var lnInput = document.getElementById('id_last_name');
+        var fn = (fnInput && fnInput.value) ? fnInput.value.trim() : '';
+        var ln = (lnInput && lnInput.value) ? lnInput.value.trim() : '';
+
+        var apiUrl = nextIdApiUrl + '?prefix=' + encodeURIComponent(prefix) +
+                     '&first_name=' + encodeURIComponent(fn) +
+                     '&last_name=' + encodeURIComponent(ln) +
+                     '&random_code=' + encodeURIComponent(randomCode);
+
+        fetch(apiUrl)
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data && data.sequence) {
+                    nextSeqs[prefix] = data.sequence;
+                    var currentPrefix = getSelectedPrefix();
+                    var currentManualRadio = document.querySelector('input[name="id_gen_mode"][value="manual"]');
+                    if (currentPrefix === prefix && (!currentManualRadio || !currentManualRadio.checked)) {
+                        certInput.value = data.certificate_id;
+                        if (data.random_code) {
+                            currentRandomCode = data.random_code;
+                        }
+                    }
+                }
+            })
+            .catch(function() {});
+    }
+}
+
+function toggleIdMode(mode) {
+    var certInput = document.getElementById('id_certificate_id');
+    var hint = document.getElementById('id-mode-hint');
+    var warningEl = document.getElementById('cert-id-duplicate-warning');
+    var serverErrorEl = document.getElementById('cert-id-server-error');
+    var submitBtn = document.querySelector('form button[type="submit"]');
+    var prefix = getSelectedPrefix();
+    var initials = getStudentInitials();
+    var seq = nextSeqs[prefix] || (prefix === 'RAS' ? 1001 : 5001);
+    if (!certInput) return;
+
+    if (mode === 'manual') {
+        var randomCode = getOrGenerateRandomCode();
+        certInput.removeAttribute('readonly');
+        certInput.placeholder = 'e.g. ' + computeCertId(prefix, initials, seq, randomCode);
+        if (hint) {
+            hint.textContent = '✏️ Manual mode active: Format ' + prefix + '-YYYY-MM-FL-XXXXXX-SERIAL (e.g. ' + computeCertId(prefix, initials, seq, randomCode) + ').';
+        }
+        certInput.focus();
+        if (certInput.value.trim()) {
+            checkDuplicateCertId(certInput.value);
+        }
+    } else {
+        certInput.setAttribute('readonly', 'readonly');
+        if (hint) {
+            hint.textContent = '⚡ Auto mode active: Format ' + prefix + '-YYYY-MM-FL-XXXXXX-SERIAL (Server auto-generated)';
+        }
+        if (warningEl) warningEl.style.display = 'none';
+        if (serverErrorEl) serverErrorEl.style.display = 'none';
+        certInput.style.borderColor = '';
+        certInput.removeAttribute('aria-invalid');
+        isDuplicateId = false;
+        if (submitBtn) submitBtn.removeAttribute('disabled');
+        updateCertId();
+    }
+}
+
+function calculateCitiMarks() {
+    var tmInput = document.getElementById('id_theory_marks');
+    var pmInput = document.getElementById('id_practical_marks');
+    var totalSpan = document.getElementById('citi-total-display');
+    var pctSpan = document.getElementById('citi-pct-display');
+    var gradeSpan = document.getElementById('citi-grade-display');
+
+    if (!tmInput || !pmInput || !totalSpan) return;
+
+    var tm = parseFloat(tmInput.value);
+    var pm = parseFloat(pmInput.value);
+
+    if (!isNaN(tm) && !isNaN(pm)) {
+        var total = tm + pm;
+        totalSpan.textContent = total;
+        pctSpan.textContent = total + '%';
+
+        var grade = '';
+        var color = '#1e293b';
+        if (total >= 85) { grade = 'S (>=85%)'; color = '#15803d'; }
+        else if (total >= 75) { grade = 'A (75-84%)'; color = '#15803d'; }
+        else if (total >= 65) { grade = 'B (65-74%)'; color = '#2563eb'; }
+        else if (total >= 55) { grade = 'C (55-64%)'; color = '#d97706'; }
+        else if (total >= 50) { grade = 'D (50-54%)'; color = '#d97706'; }
+        else { grade = 'Not Eligible (<50%)'; color = '#dc2626'; }
+
+        gradeSpan.textContent = grade;
+        gradeSpan.style.color = color;
+    } else {
+        totalSpan.textContent = '—';
+        pctSpan.textContent = '—';
+        gradeSpan.textContent = '—';
+        gradeSpan.style.color = '#334155';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var prefixSelect = document.getElementById('id_prefix');
+    var manualRadio = document.querySelector('input[name="id_gen_mode"][value="manual"]');
+    var fnInput = document.getElementById('id_first_name');
+    var lnInput = document.getElementById('id_last_name');
+    var courseSelect = document.getElementById('id_course');
+    var citiContainer = document.getElementById('citi-fields-container');
+    var gradeGroup = document.getElementById('grade-form-group');
+    var tmInput = document.getElementById('id_theory_marks');
+    var pmInput = document.getElementById('id_practical_marks');
+
+    // Store original course options to restore when switching back from CITI
+    var originalCourseOptions = [];
+    if (courseSelect) {
+        for (var i = 0; i < courseSelect.options.length; i++) {
+            originalCourseOptions.push({
+                value: courseSelect.options[i].value,
+                text: courseSelect.options[i].text,
+                selected: courseSelect.options[i].selected
+            });
+        }
+    }
+
+    function syncPrefixUI() {
+        var prefix = getSelectedPrefix();
+        if (prefix === 'CITI') {
+            if (citiContainer) citiContainer.style.display = 'block';
+            if (gradeGroup) gradeGroup.style.display = 'none';
+
+            if (courseSelect) {
+                var currentVal = courseSelect.value;
+                courseSelect.innerHTML = '';
+                var matched = false;
+                originalCourseOptions.forEach(function(opt) {
+                    var lower = opt.text.toLowerCase();
+                    if (lower.includes('ccc') || lower.includes('computer concepts')) {
+                        var o = document.createElement('option');
+                        o.value = opt.value;
+                        o.text = opt.text;
+                        if (opt.value === currentVal || !matched) {
+                            o.selected = true;
+                            matched = true;
+                        }
+                        courseSelect.appendChild(o);
+                    }
+                });
+            }
+            calculateCitiMarks();
+        } else {
+            if (citiContainer) citiContainer.style.display = 'none';
+            if (gradeGroup) gradeGroup.style.display = 'block';
+
+            if (courseSelect) {
+                var currentVal = courseSelect.value;
+                courseSelect.innerHTML = '';
+                originalCourseOptions.forEach(function(opt) {
+                    var o = document.createElement('option');
+                    o.value = opt.value;
+                    o.text = opt.text;
+                    if (opt.value === currentVal) {
+                        o.selected = true;
+                    }
+                    courseSelect.appendChild(o);
+                });
+                if (!courseSelect.value && originalCourseOptions.length > 0) {
+                    courseSelect.value = originalCourseOptions[0].value;
+                }
+            }
+        }
+    }
+
+    if (prefixSelect) {
+        prefixSelect.addEventListener('change', function() {
+            var isManual = manualRadio && manualRadio.checked;
+            toggleIdMode(isManual ? 'manual' : 'auto');
+            if (!isManual) {
+                updateCertId();
+            }
+            syncPrefixUI();
+        });
+    }
+
+    if (tmInput) tmInput.addEventListener('input', calculateCitiMarks);
+    if (pmInput) pmInput.addEventListener('input', calculateCitiMarks);
+
+    function onNameChange() {
+        var isManual = manualRadio && manualRadio.checked;
+        if (!isManual) {
+            updateCertId();
+        } else {
+            var prefix = getSelectedPrefix();
+            var initials = getStudentInitials();
+            var seq = nextSeqs[prefix] || (prefix === 'RAS' ? 1001 : 5001);
+            var certInput = document.getElementById('id_certificate_id');
+            var hint = document.getElementById('id-mode-hint');
+            var randomCode = getOrGenerateRandomCode();
+            if (certInput) {
+                certInput.placeholder = 'e.g. ' + computeCertId(prefix, initials, seq, randomCode);
+            }
+            if (hint) {
+                hint.textContent = '✏️ Manual mode active: Format ' + prefix + '-YYYY-MM-FL-XXXXXX-SERIAL (e.g. ' + computeCertId(prefix, initials, seq, randomCode) + ').';
+            }
+        }
+    }
+
+    if (fnInput) fnInput.addEventListener('input', onNameChange);
+    if (lnInput) lnInput.addEventListener('input', onNameChange);
+
+    var certInput = document.getElementById('id_certificate_id');
+    var formEl = document.querySelector('form[data-validate="true"]') || document.querySelector('form');
+    var submitBtn = document.querySelector('form button[type="submit"]');
+
+    if (certInput) {
+        certInput.addEventListener('input', function() {
+            var isManual = manualRadio && manualRadio.checked;
+            if (!isManual && !isEdit) return;
+            if (submitBtn) submitBtn.removeAttribute('disabled');
+            clearTimeout(checkTimeout);
+            checkTimeout = setTimeout(function() {
+                checkDuplicateCertId(certInput.value);
+            }, 300);
+        });
+
+        certInput.addEventListener('blur', function() {
+            var isManual = manualRadio && manualRadio.checked;
+            if (!isManual && !isEdit) return;
+            clearTimeout(checkTimeout);
+            checkDuplicateCertId(certInput.value);
+        });
+    }
+
+    var formSubmitting = false;
+    if (formEl) {
+        formEl.addEventListener('submit', function(e) {
+            var isManual = manualRadio && manualRadio.checked;
+            if (!isManual && !isEdit) {
+                return;
+            }
+            if (formSubmitting) {
+                return;
+            }
+            if (isDuplicateId) {
+                e.preventDefault();
+                var warningEl = document.getElementById('cert-id-duplicate-warning');
+                if (warningEl) {
+                    warningEl.textContent = '⚠ Certificate ID already exists. Please enter a unique ID.';
+                    warningEl.style.display = 'block';
+                }
+                if (certInput) {
+                    certInput.style.borderColor = '#dc2626';
+                    certInput.setAttribute('aria-invalid', 'true');
+                    certInput.focus();
+                }
+                return false;
+            }
+
+            var cleanVal = (certInput ? certInput.value : '').trim();
+            if (!cleanVal) return;
+
+            e.preventDefault();
+            clearTimeout(checkTimeout);
+            var url = checkIdApiUrl + '?certificate_id=' + encodeURIComponent(cleanVal) + (excludePk ? '&exclude_pk=' + encodeURIComponent(excludePk) : '');
+            fetch(url)
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data.exists) {
+                        isDuplicateId = true;
+                        var warningEl = document.getElementById('cert-id-duplicate-warning');
+                        if (warningEl) {
+                            warningEl.textContent = '⚠ Certificate ID already exists. Please enter a unique ID.';
+                            warningEl.style.display = 'block';
+                        }
+                        if (certInput) {
+                            certInput.style.borderColor = '#dc2626';
+                            certInput.setAttribute('aria-invalid', 'true');
+                            certInput.focus();
+                        }
+                    } else {
+                        isDuplicateId = false;
+                        formSubmitting = true;
+                        formEl.submit();
+                    }
+                })
+                .catch(function() {
+                    formSubmitting = true;
+                    formEl.submit();
+                });
+        });
+    }
+
+    // Initial sync
+    syncPrefixUI();
+
+    if (manualRadio && manualRadio.checked) {
+        toggleIdMode('manual');
+    } else {
+        if (!isEdit) {
+            toggleIdMode('auto');
+        } else {
+            var certInput = document.getElementById('id_certificate_id');
+            if (certInput) certInput.setAttribute('readonly', 'readonly');
+            var hint = document.getElementById('id-mode-hint');
+            if (hint) {
+                hint.textContent = '⚡ Auto mode active: Format PREFIX-YYYY-MM-FL-XXXXXX-SERIAL (Server auto-generated)';
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

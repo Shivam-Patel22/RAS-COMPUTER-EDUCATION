@@ -451,9 +451,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 var currentVal = courseSelect.value;
                 courseSelect.innerHTML = '';
                 var matched = false;
+                var addedTexts = {};
                 originalCourseOptions.forEach(function(opt) {
-                    var lower = opt.text.toLowerCase();
-                    if (lower.includes('ccc') || lower.includes('computer concepts')) {
+                    var text = (opt.text || '').trim();
+                    var lower = text.toLowerCase();
+                    // Display only 'CCC (Basic)' for CITI certificates; remove full-form / duplicate CCC option
+                    var isCccBasic = text === 'CCC (Basic)' || (lower.startsWith('ccc') && !lower.includes('certificate course') && !lower.includes('computer concepts'));
+                    if (isCccBasic && !addedTexts[text]) {
+                        addedTexts[text] = true;
                         var o = document.createElement('option');
                         o.value = opt.value;
                         o.text = opt.text;
