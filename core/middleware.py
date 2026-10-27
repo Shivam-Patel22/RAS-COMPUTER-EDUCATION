@@ -51,8 +51,12 @@ class AdminSessionSecurityMiddleware:
 
         response = self.get_response(request)
 
-        # Invalidate browser cache on all admin pages to prevent back/forward cache (bfcache) leakage
-        if is_admin_path:
+        # Invalidate browser cache on protected and authenticated pages to prevent back/forward cache (bfcache) leakage
+        is_protected_path = is_admin_path or path.startswith('/accounts/dashboard')
+        user = getattr(request, 'user', None)
+        is_auth = bool(user and user.is_authenticated)
+
+        if is_protected_path or (is_auth and not path.startswith('/static/') and not path.startswith('/media/')):
             response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
             response['Pragma'] = 'no-cache'
             response['Expires'] = '0'

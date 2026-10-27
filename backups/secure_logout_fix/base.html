@@ -1,0 +1,312 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- Primary SEO Metadata -->
+    <title>{% block title %}RAS Computer Education | Leading Computer Training Institute in Gandhinagar{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}RAS Computer Education offers government-recognized computer courses, CCC, Tally Prime, Python, Web Development, and IT Diplomas in Gandhinagar, Gujarat. Practical labs with verified certification.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}computer classes Gandhinagar, computer courses, CCC certificate, Tally Prime training, Python course, web development classes, computer diploma Gandhinagar, RAS Computer Education{% endblock %}">
+    <meta name="robots" content="{% block meta_robots %}index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1{% endblock %}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}">
+    
+    <!-- Favicon & Touch Icons -->
+    <link rel="icon" type="image/png" href="{% static 'images/ras.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'images/ras.png' %}">
+
+    <!-- Open Graph / Social Sharing Metadata -->
+    <meta property="og:site_name" content="RAS Computer Education">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}RAS Computer Education | Computer Courses & IT Training in Gandhinagar{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Certified computer courses, CCC, Tally Prime, Python, Web Development, and Diploma tracks with practical lab training at RAS Computer Education Gandhinagar.{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/ras.png' %}{% endblock %}">
+    <meta property="og:locale" content="en_IN">
+
+    <!-- Twitter Card Metadata -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}RAS Computer Education | Computer Courses Gandhinagar{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Certified computer training institute in Gandhinagar offering CCC, Tally Prime, Python, and Full Stack Development with hands-on practice.{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/ras.png' %}{% endblock %}">
+
+    <!-- CSS & Typography Stylesheets -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/animate.min.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Gujarati:wght@400;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Schema.org EducationalOrganization JSON-LD -->
+    {% block structured_data %}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "EducationalOrganization",
+      "name": "RAS Computer Education",
+      "alternateName": ["CITI Computer Education"],
+      "url": "{{ request.scheme }}://{{ request.get_host }}/",
+      "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'images/ras.png' %}",
+      "image": "{{ request.scheme }}://{{ request.get_host }}{% static 'images/New Hero Banner.png' %}",
+      "description": "Authorized computer education institute offering CCC, Tally Prime, Programming, Web Development, and Diploma certifications.",
+      "telephone": "{% if site_contact and site_contact.phone %}{{ site_contact.phone }}{% else %}+91 98765 43210{% endif %}",
+      "email": "{% if site_contact and site_contact.email %}{{ site_contact.email }}{% else %}info@cdac-class.in{% endif %}",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Near Gh-5, Sector 22 / Sector 11",
+        "addressLocality": "Gandhinagar",
+        "addressRegion": "Gujarat",
+        "postalCode": "382022",
+        "addressCountry": "IN"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 23.2384,
+        "longitude": 72.6517
+      },
+      "sameAs": [
+        "https://www.instagram.com/ras_computer_education/",
+        "https://www.facebook.com/RASeducationgnr/",
+        "https://www.justdial.com/Gandhinagar-Gujarat/Ras-Computer-Education-Near-Gh-5-Gandhinagar-Sector-22/9999PXX79-XX79-121008204400-M3T4_BZDET"
+      ],
+      "priceRange": "₹₹",
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Computer Training Courses",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Course",
+              "name": "Course on Computer Concepts (CCC)",
+              "description": "Government-recognized CCC course for computer literacy and government job qualifications."
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Course",
+              "name": "Tally Prime Financial Accounting",
+              "description": "Professional computerized accounting, GST compliance, and taxation."
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Course",
+              "name": "Python & Web Development",
+              "description": "Comprehensive practical programming in Python, Django, React, and Full Stack Web Development."
+            }
+          }
+        ]
+      }
+    }
+    </script>
+    {% endblock %}
+
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar Header -->
+    <header class="navbar-header">
+        <div class="nav-container">
+            <a href="{% if request.user.is_authenticated and request.user.is_staff %}{% url 'dashboard:index' %}{% else %}{% url 'core:home' %}{% endif %}" class="nav-logo" title="RAS Computer Education">
+                <img src="{% static 'images/ras.png' %}" alt="RAS Computer Education" class="cdac-nav-logo-img">
+            </a>
+
+            <button class="mobile-toggle" id="mobile-toggle" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <nav class="nav-menu" id="nav-menu">
+                <ul class="nav-links" style="align-items: center;">
+                    <li class="header-verify-item">
+                        <form action="{% if request.user.is_authenticated and request.user.is_staff %}{% url 'dashboard:admin_verify_search' %}{% else %}{% url 'certificates:verify' %}{% endif %}" method="get" class="header-verify-form">
+                            <input type="text" name="certificate_id" placeholder="Enter Certificate ID" class="header-verify-input" required autocomplete="off">
+                            <button type="submit" class="btn btn-primary header-verify-btn" style="background: var(--primary); color: white; border: none; border-radius: var(--radius-sm);">Verify</button>
+                        </form>
+                    </li>
+                    {% if request.user.is_authenticated and request.user.is_staff %}
+                    <li><a href="{% url 'dashboard:index' %}" class="nav-link {% if request.resolver_match.app_name == 'dashboard' and request.resolver_match.url_name == 'index' %}active{% endif %}">Dashboard</a></li>
+                    <li><a href="{% url 'dashboard:edit_about' %}" class="nav-link {% if request.resolver_match.url_name == 'edit_about' %}active{% endif %}">About</a></li>
+                    <li><a href="{% url 'dashboard:manage_courses' %}" class="nav-link {% if 'course' in request.resolver_match.url_name %}active{% endif %}">Courses</a></li>
+                    <li><a href="{% url 'dashboard:edit_contact' %}" class="nav-link {% if request.resolver_match.url_name == 'edit_contact' %}active{% endif %}">Contact</a></li>
+                    {% else %}
+                    <li><a href="{% url 'core:home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a></li>
+                    <li><a href="{% url 'core:about' %}" class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}">About</a></li>
+                    <li><a href="{% url 'courses:course_list' %}" class="nav-link {% if request.resolver_match.url_name == 'course_list' or request.resolver_match.url_name == 'course_detail' %}active{% endif %}">Courses</a></li>
+                    <li><a href="{% url 'core:contact' %}" class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">Contact</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle dark/light theme" title="Switch Theme">
+                    <span class="theme-toggle-icon">🌙</span>
+                </button>
+                <div class="header-right-logo">
+                    <img src="{% static 'images/CCC-logo copy.png' %}" alt="CITI" class="citi-header-logo-img">
+                </div>
+                {% if request.user.is_authenticated and request.user.is_staff %}
+                    <a href="{% url 'dashboard:index' %}" class="btn btn-outline btn-sm" style="font-weight: 600; white-space: nowrap; border-color: var(--primary); color: var(--primary);" title="Staff Admin Dashboard">Admin Panel</a>
+                {% elif request.user.is_authenticated %}
+                    <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline btn-sm" style="font-weight: 600; white-space: nowrap;" title="Student Dashboard">My Portal</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Running Latest Course Offers Ticker Panel -->
+    {% if latest_offers %}
+    <div class="offers-ticker-container">
+        <div class="offers-ticker-wrapper">
+            <div class="offers-ticker-badge">
+                <span>LATEST OFFERS</span> 🎉
+            </div>
+            <div class="offers-ticker-content">
+                <div class="offers-ticker-track">
+                    {% for offer in latest_offers %}
+                        <span class="ticker-item">
+                            {% if offer.badge %}<strong class="ticker-item-badge">{{ offer.badge }}</strong>{% endif %}
+                            <span class="ticker-item-title">{{ offer.title }}</span>
+                            {% if offer.discount %}<span class="ticker-item-discount">{{ offer.discount }}</span>{% endif %}
+                            {% if offer.course %}<a href="{% url 'courses:course_detail' offer.course.id %}" class="ticker-item-link">View Course &rarr;</a>{% endif %}
+                        </span>
+                    {% endfor %}
+                    {% for offer in latest_offers %}
+                        <span class="ticker-item" aria-hidden="true">
+                            {% if offer.badge %}<strong class="ticker-item-badge">{{ offer.badge }}</strong>{% endif %}
+                            <span class="ticker-item-title">{{ offer.title }}</span>
+                            {% if offer.discount %}<span class="ticker-item-discount">{{ offer.discount }}</span>{% endif %}
+                            {% if offer.course %}<a href="{% url 'courses:course_detail' offer.course.id %}" class="ticker-item-link">View Course &rarr;</a>{% endif %}
+                        </span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <script>
+        (function() {
+            var nb = document.querySelector('.navbar-header');
+            var tk = document.querySelector('.offers-ticker-container');
+            var h = (nb ? nb.getBoundingClientRect().height : 0) + (tk && tk.offsetParent !== null ? tk.getBoundingClientRect().height : 0);
+            if (h > 0) document.documentElement.style.setProperty('--header-height', Math.round(h) + 'px');
+        })();
+    </script>
+
+    <!-- Flash Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            <span class="alert-icon">
+                {% if message.tags == 'success' %}✓{% elif message.tags == 'error' or message.tags == 'danger' %}✕{% else %}ℹ{% endif %}
+            </span>
+            <span class="alert-text">{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    <script>
+        setTimeout(function() {
+            var successAlerts = document.querySelectorAll('.messages-container .alert-success');
+            successAlerts.forEach(function(alert) {
+                alert.style.transition = "opacity 0.5s ease-out";
+                alert.style.opacity = "0";
+                setTimeout(function() { alert.style.display = 'none'; }, 500);
+            });
+        }, 5000);
+    </script>
+    {% endif %}
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-col brand-col">
+                <a href="{% url 'core:home' %}" class="footer-logo" title="RAS Computer Education">
+                    <img src="{% static 'images/ras.png' %}" alt="RAS Computer Education Logo" class="cdac-footer-logo-img">
+                </a>
+                <p>RAS Computer Education — Empowering students with practical computer education, software engineering skills, and verified professional certifications.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <ul>
+                    {% if request.user.is_authenticated and request.user.is_staff %}
+                    <li><a href="{% url 'dashboard:index' %}">Admin Dashboard</a></li>
+                    <li><a href="{% url 'dashboard:edit_about' %}">About Us (Edit)</a></li>
+                    <li><a href="{% url 'dashboard:manage_courses' %}">Manage Courses</a></li>
+                    <li><a href="{% url 'dashboard:admin_verify_search' %}">Certificate Verification</a></li>
+                    <li><a href="{% url 'dashboard:edit_contact' %}">Contact Details (Edit)</a></li>
+                    {% else %}
+                    <li><a href="{% url 'core:home' %}">Home</a></li>
+                    <li><a href="{% url 'core:about' %}">About Us</a></li>
+                    <li><a href="{% url 'courses:course_list' %}">All Courses</a></li>
+                    <li><a href="{% url 'core:home' %}#reviews">Student Reviews</a></li>
+                    <li><a href="{% url 'certificates:verify' %}">Certificate Verification</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Contact Us</h4>
+                <p>📍 {% if site_contact and site_contact.address %}{{ site_contact.address }}{% else %}Surbhi complex, F-5, 2nd Floor, Above Bharat Library. Gh-5, Circle, GH Rd, Sector 22, Gandhinagar, Gujarat 382021{% endif %}</p>
+                <p style="display: inline-flex; align-items: center; gap: 8px; width: 100%;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span>{% if site_contact and site_contact.email %}{{ site_contact.email }}{% else %}contact@cdac.in{% endif %}</span></p>
+                <p>📞 {% if site_contact and site_contact.phone %}{{ site_contact.phone }}{% else %}+91 (020) 2570-4100{% endif %}</p>
+                {% if site_contact and site_contact.has_instagram %}
+                <p style="margin-bottom: 0.4rem;">
+                    <a id="footer-instagram-link" href="{{ site_contact.clean_instagram_url }}" target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Follow us on Instagram" class="footer-social-link" style="display: inline-flex; align-items: center; gap: 8px; color: rgba(255, 255, 255, 0.7); text-decoration: none; transition: color 0.15s ease;" onmouseover="this.style.color='#ffffff';" onmouseout="this.style.color='rgba(255, 255, 255, 0.7)';">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink: 0; vertical-align: middle;" aria-hidden="true">
+                            <defs>
+                                <radialGradient id="footer_insta_grad" cx="30%" cy="107%" r="150%">
+                                    <stop offset="0%" stop-color="#fdf497"/>
+                                    <stop offset="5%" stop-color="#fdf497"/>
+                                    <stop offset="45%" stop-color="#fd5949"/>
+                                    <stop offset="60%" stop-color="#d6249f"/>
+                                    <stop offset="90%" stop-color="#285AEB"/>
+                                </radialGradient>
+                            </defs>
+                            <rect width="20" height="20" x="2" y="2" rx="5" ry="5" fill="url(#footer_insta_grad)"/>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>{{ site_contact.display_instagram }}</span>
+                    </a>
+                </p>
+                {% endif %}
+                {% if site_contact and site_contact.has_facebook %}
+                <p style="margin-bottom: 0.4rem;">
+                    <a id="footer-facebook-link" href="{{ site_contact.clean_facebook_url }}" target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Follow us on Facebook" class="footer-social-link" style="display: inline-flex; align-items: center; gap: 8px; color: rgba(255, 255, 255, 0.7); text-decoration: none; transition: color 0.15s ease;" onmouseover="this.style.color='#ffffff';" onmouseout="this.style.color='rgba(255, 255, 255, 0.7)';">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2" style="flex-shrink: 0; vertical-align: middle;" aria-hidden="true">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                        <span>{{ site_contact.display_facebook }}</span>
+                    </a>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>RAS Computer Education &amp; Spoken English. Since 2006. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

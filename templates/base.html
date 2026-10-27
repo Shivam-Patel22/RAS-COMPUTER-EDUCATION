@@ -307,6 +307,26 @@
     </footer>
 
     <script src="{% static 'js/main.js' %}"></script>
+    {% if request.user.is_authenticated %}
+    <script>
+        window.addEventListener('pageshow', function(event) {
+            var isBf = event.persisted;
+            if (!isBf && window.performance) {
+                if (window.performance.getEntriesByType) {
+                    var nav = window.performance.getEntriesByType('navigation');
+                    if (nav && nav.length > 0 && nav[0].type === 'back_forward') {
+                        isBf = true;
+                    }
+                } else if (window.performance.navigation && window.performance.navigation.type === 2) {
+                    isBf = true;
+                }
+            }
+            if (isBf) {
+                window.location.reload();
+            }
+        });
+    </script>
+    {% endif %}
     {% block extra_js %}{% endblock %}
 </body>
 </html>

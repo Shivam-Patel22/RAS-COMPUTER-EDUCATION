@@ -234,7 +234,18 @@
         (function() {
             // 1. bfcache handler: Force a reload to re-validate session if page is restored from Back/Forward cache
             window.addEventListener('pageshow', function(event) {
-                if (event.persisted) {
+                var isBf = event.persisted;
+                if (!isBf && window.performance) {
+                    if (window.performance.getEntriesByType) {
+                        var nav = window.performance.getEntriesByType('navigation');
+                        if (nav && nav.length > 0 && nav[0].type === 'back_forward') {
+                            isBf = true;
+                        }
+                    } else if (window.performance.navigation && window.performance.navigation.type === 2) {
+                        isBf = true;
+                    }
+                }
+                if (isBf) {
                     window.location.reload();
                 }
             });

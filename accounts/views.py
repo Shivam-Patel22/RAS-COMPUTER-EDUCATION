@@ -99,6 +99,7 @@ def login_view(request):
 
 @require_POST
 def logout_view(request):
+    request.session.flush()
     auth_logout(request)
     messages.success(request, "You have been logged out successfully.")
     return redirect('core:home')
