@@ -263,42 +263,55 @@
                     {% endif %}
                 </ul>
             </div>
-            <div class="footer-col">
+            <div class="footer-col contact-col">
                 <h4>Contact Us</h4>
-                <p>📍 {% if site_contact and site_contact.address %}{{ site_contact.address }}{% else %}Surbhi complex, F-5, 2nd Floor, Above Bharat Library. Gh-5, Circle, GH Rd, Sector 22, Gandhinagar, Gujarat 382021{% endif %}</p>
-                <p style="display: inline-flex; align-items: center; gap: 8px; width: 100%;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span>{% if site_contact and site_contact.email %}{{ site_contact.email }}{% else %}contact@cdac.in{% endif %}</span></p>
-                <p>📞 {% if site_contact and site_contact.phone %}{{ site_contact.phone }}{% else %}+91 (020) 2570-4100{% endif %}</p>
-                {% if site_contact and site_contact.has_instagram %}
-                <p style="margin-bottom: 0.4rem;">
-                    <a id="footer-instagram-link" href="{{ site_contact.clean_instagram_url }}" target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Follow us on Instagram" class="footer-social-link" style="display: inline-flex; align-items: center; gap: 8px; color: rgba(255, 255, 255, 0.7); text-decoration: none; transition: color 0.15s ease;" onmouseover="this.style.color='#ffffff';" onmouseout="this.style.color='rgba(255, 255, 255, 0.7)';">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink: 0; vertical-align: middle;" aria-hidden="true">
-                            <defs>
-                                <radialGradient id="footer_insta_grad" cx="30%" cy="107%" r="150%">
-                                    <stop offset="0%" stop-color="#fdf497"/>
-                                    <stop offset="5%" stop-color="#fdf497"/>
-                                    <stop offset="45%" stop-color="#fd5949"/>
-                                    <stop offset="60%" stop-color="#d6249f"/>
-                                    <stop offset="90%" stop-color="#285AEB"/>
-                                </radialGradient>
-                            </defs>
-                            <rect width="20" height="20" x="2" y="2" rx="5" ry="5" fill="url(#footer_insta_grad)"/>
-                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span>{{ site_contact.display_instagram }}</span>
-                    </a>
-                </p>
-                {% endif %}
-                {% if site_contact and site_contact.has_facebook %}
-                <p style="margin-bottom: 0.4rem;">
-                    <a id="footer-facebook-link" href="{{ site_contact.clean_facebook_url }}" target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Follow us on Facebook" class="footer-social-link" style="display: inline-flex; align-items: center; gap: 8px; color: rgba(255, 255, 255, 0.7); text-decoration: none; transition: color 0.15s ease;" onmouseover="this.style.color='#ffffff';" onmouseout="this.style.color='rgba(255, 255, 255, 0.7)';">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2" style="flex-shrink: 0; vertical-align: middle;" aria-hidden="true">
-                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                        </svg>
-                        <span>{{ site_contact.display_facebook }}</span>
-                    </a>
-                </p>
-                {% endif %}
+                <div class="footer-contact-info">
+                    <p class="footer-contact-address">
+                        <span class="contact-icon" aria-hidden="true">📍</span>
+                        <span>{% if site_contact and site_contact.address %}{{ site_contact.address }}{% else %}Surbhi complex, F-5, 2nd Floor, Above Bharat Library. Gh-5, Circle, GH Rd, Sector 22, Gandhinagar, Gujarat 382021{% endif %}</span>
+                    </p>
+                    <div class="footer-contact-row">
+                        <a href="mailto:{% if site_contact and site_contact.email %}{{ site_contact.email }}{% else %}contact@cdac.in{% endif %}" class="footer-contact-link" title="Email Us">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="contact-icon" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                            <span>{% if site_contact and site_contact.email %}{{ site_contact.email }}{% else %}contact@cdac.in{% endif %}</span>
+                        </a>
+                        <a href="tel:{% if site_contact and site_contact.phone %}{{ site_contact.phone }}{% else %}+91 (020) 2570-4100{% endif %}" class="footer-contact-link" title="Call Us">
+                            <span class="contact-icon" aria-hidden="true">📞</span>
+                            <span>{% if site_contact and site_contact.phone %}{{ site_contact.phone }}{% else %}+91 (020) 2570-4100{% endif %}</span>
+                        </a>
+                    </div>
+                    {% if site_contact and site_contact.has_instagram or site_contact and site_contact.has_facebook %}
+                    <div class="footer-contact-row footer-social-row">
+                        {% if site_contact and site_contact.has_instagram %}
+                        <a id="footer-instagram-link" href="{{ site_contact.clean_instagram_url }}" target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Follow us on Instagram" class="footer-social-link">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="contact-icon" aria-hidden="true">
+                                <defs>
+                                    <radialGradient id="footer_insta_grad" cx="30%" cy="107%" r="150%">
+                                        <stop offset="0%" stop-color="#fdf497"/>
+                                        <stop offset="5%" stop-color="#fdf497"/>
+                                        <stop offset="45%" stop-color="#fd5949"/>
+                                        <stop offset="60%" stop-color="#d6249f"/>
+                                        <stop offset="90%" stop-color="#285AEB"/>
+                                    </radialGradient>
+                                </defs>
+                                <rect width="20" height="20" x="2" y="2" rx="5" ry="5" fill="url(#footer_insta_grad)"/>
+                                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>{{ site_contact.display_instagram }}</span>
+                        </a>
+                        {% endif %}
+                        {% if site_contact and site_contact.has_facebook %}
+                        <a id="footer-facebook-link" href="{{ site_contact.clean_facebook_url }}" target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Follow us on Facebook" class="footer-social-link">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2" class="contact-icon" aria-hidden="true">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                            <span>{{ site_contact.display_facebook }}</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
         <div class="footer-bottom">
