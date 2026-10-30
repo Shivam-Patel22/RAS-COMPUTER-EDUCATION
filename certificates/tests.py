@@ -1679,7 +1679,7 @@ class CitiQrPositionAndSixDigitSuffixTests(TransactionTestCase):
         self.assertIn('top: 8.3%', html)
         self.assertIn('right: 10.5%', html)
         self.assertIn('top: 18.8%', html)
-        self.assertIn('5005', html)
+        self.assertNotIn('5005', html)
 
     def test_08_citi_public_result_view_qr_in_top_right(self):
         """8. Inspect CITI certificate public verification view: confirm QR code is in top-right corner."""
@@ -1735,6 +1735,6 @@ class CitiQrPositionAndSixDigitSuffixTests(TransactionTestCase):
         self.assertEqual(len(reader.pages), 1)
         text = reader.pages[0].extract_text()
         self.assertIn('SCAN TO VERIFY', text)
-        self.assertIn('5007', text)
+        self.assertNotIn('5007', text)
         self.assertIn('SHIVAM PATEL', text)
         self.assertIn('CITI-2026-10-SP-100000-619284', text)

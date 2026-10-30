@@ -1008,16 +1008,7 @@ def generate_citi_ccc_certificate_pdf(cert, request=None):
     except Exception:
         pass
 
-    # 4. Serial Number (right side under QR code, centered with QR card, y 18.8% from top, bold, ~12 pt)
-    serial_val = (cert.serial_number or '').strip()
-    if not serial_val and cert.certificate_id and '-' in cert.certificate_id:
-        parts = cert.certificate_id.split('-')
-        if len(parts) >= 6:
-            serial_val = parts[-1]
-    if serial_val:
-        c.setFillColor(colors.black)
-        c.setFont('Helvetica-Bold', 12)
-        c.drawCentredString(qr_x + (qr_size / 2.0), height * (1 - 0.188) - (12 * 0.35), serial_val)
+    # 4. Serial Number removed from certificate display as requested
 
     # Center axis: x = 51% of page width
     center_x = width * 0.51
