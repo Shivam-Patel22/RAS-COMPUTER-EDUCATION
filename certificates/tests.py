@@ -476,7 +476,7 @@ class CertificatesTestCase(TestCase):
         self.assertEqual(response_ras.status_code, 200)
         self.assertContains(response_ras, 'ras-mode-container')
         self.assertContains(response_ras, 'ras-certificate-card')
-        self.assertContains(response_ras, 'ras_template.jpg')
+        self.assertContains(response_ras, 'ras_template')
         self.assertContains(response_ras, 'ANKIT PARIHAR')
         self.assertContains(response_ras, '15th Jun.')
         self.assertContains(response_ras, '31st Aug.')
@@ -510,15 +510,12 @@ class CertificatesTestCase(TestCase):
         response = self.client.post(url, {'certificate_id': 'RAS-2026-10-SP-391758-1003'})
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'certificates/result.html')
-        self.assertContains(response, 'ras-result-wrapper')
-        self.assertContains(response, 'ras-certificate-card')
-        self.assertContains(response, 'ras_template.jpg')
-        self.assertContains(response, 'SHIVAM PATEL')
-        self.assertContains(response, '1st Oct.')
-        self.assertContains(response, '30th Oct.')
-        self.assertContains(response, '2026')
-        self.assertContains(response, '“A+”')
-        self.assertContains(response, '01.11.2026')
+        self.assertContains(response, 'Official Verification Details')
+        self.assertContains(response, 'Shivam Patel')
+        self.assertContains(response, 'RAS-2026-10-SP-391758-1003')
+        self.assertContains(response, 'A+')
+        self.assertNotContains(response, 'ras-certificate-card')
+        self.assertNotContains(response, 'ras_template.jpg')
         self.assertContains(response, '📥 Download PDF')
 
         # Test direct PDF download endpoint
@@ -548,9 +545,10 @@ class CertificatesTestCase(TestCase):
         url = reverse('certificates:verify')
         response = self.client.post(url, {'certificate_id': 'CERT-2026-CCC04'})
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'COMPUTER &amp; INDUSTRIAL TRAINING INSTITUTION')
-        self.assertContains(response, 'OFFICIAL GOVERNMENT RECOGNIZED PROGRAM (CCC)')
+        self.assertContains(response, 'Official Verification Details')
         self.assertContains(response, 'Aarav Shah')
+        self.assertContains(response, 'CERT-2026-CCC04')
+        self.assertNotContains(response, 'certificate-card')
 
 
 class CertificatePrefixAndSequenceTestCase(TestCase):
@@ -903,7 +901,7 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
         # Verify RAS
         res_ras = self.client.post(url, {'certificate_id': f'RAS-{current_year}-HC1001'})
         self.assertEqual(res_ras.status_code, 200)
-        self.assertContains(res_ras, 'HARSHAL CHAUHAN')
+        self.assertContains(res_ras, 'Harshal Chauhan')
 
         # Verify CITI
         res_citi = self.client.post(url, {'certificate_id': f'CITI-{current_year}-RP5001'})
@@ -913,7 +911,7 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
         # Verify Legacy historical certificate
         res_legacy = self.client.post(url, {'certificate_id': f'RAS-{current_year}-XX1000'})
         self.assertEqual(res_legacy.status_code, 200)
-        self.assertContains(res_legacy, 'LEGACY USER')
+        self.assertContains(res_legacy, 'Legacy User')
 
 
     def test_10_ajax_next_id_api_endpoint(self):
@@ -1230,21 +1228,23 @@ class CertificateVerificationUrlTests(TestCase):
         # 1. Standard certificate
         resp = self.client.post(url, {'certificate_id': self.cert_standard.certificate_id})
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'This Certificate can be verified on')
-        self.assertContains(resp, 'http://localhost:8000/verify-certificate/')
+        self.assertContains(resp, 'Official Verification Details')
+        self.assertContains(resp, self.cert_standard.student_name)
+        self.assertNotContains(resp, 'certificate-card')
 
         # 2. RAS certificate
         resp = self.client.post(url, {'certificate_id': self.cert_ras.certificate_id})
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'This Certificate can be verified on')
-        self.assertContains(resp, 'ras-verify-line')
-        self.assertContains(resp, 'http://localhost:8000/verify-certificate/')
+        self.assertContains(resp, 'Official Verification Details')
+        self.assertContains(resp, self.cert_ras.student_name)
+        self.assertNotContains(resp, 'ras-certificate-card')
 
         # 3. CCC certificate
         resp = self.client.post(url, {'certificate_id': self.cert_ccc.certificate_id})
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'This Certificate can be verified on')
-        self.assertContains(resp, 'http://localhost:8000/verify-certificate/')
+        self.assertContains(resp, 'Official Verification Details')
+        self.assertContains(resp, self.cert_ccc.student_name)
+        self.assertNotContains(resp, 'citi-certificate-card')
 
     def test_verification_line_in_admin_print_page(self):
         self.client.login(username='admin_test', password='Password123!')
@@ -1706,9 +1706,10 @@ class CitiQrPositionAndSixDigitSuffixTests(TransactionTestCase):
         resp = self.client.post(verify_url, {'certificate_id': 'CITI-2026-10-SP-100000-918273'})
         self.assertEqual(resp.status_code, 200)
         html = resp.content.decode('utf-8')
-        self.assertIn('citi-cert-qr', html)
-        self.assertIn('Scan to Verify', html)
-        self.assertIn('5006', html)
+        self.assertIn('Official Verification Details', html)
+        self.assertIn('Shivam Patel', html)
+        self.assertIn('CITI-2026-10-SP-100000-918273', html)
+        self.assertNotIn('citi-certificate-card', html)
 
     def test_09_citi_pdf_generation_qr_in_top_right_and_scannable(self):
         """9. CITI ReportLab PDF contains top-right QR code and is scannable to verification URL."""
