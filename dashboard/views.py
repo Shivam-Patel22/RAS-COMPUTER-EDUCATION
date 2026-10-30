@@ -799,7 +799,7 @@ def add_certificate(request):
                 if saved:
                     # Update registry status to active for this certificate
                     parts = cert.certificate_id.split('-')
-                    if len(parts) == 6 and len(parts[4]) == 6:
+                    if (len(parts) == 5 or len(parts) == 6) and len(parts[4]) == 6:
                         from certificates.models import CertificateRandomCodeRegistry
                         CertificateRandomCodeRegistry.objects.filter(code=parts[4]).update(certificate_id=cert.certificate_id, status='active')
 
@@ -1105,6 +1105,17 @@ def admin_verify_search(request):
                     Q(certificate_id__iexact=cert_id) | Q(registration_number__iexact=cert_id)
                 ).first()
                 if not certificate:
+                    parts = cert_id.split('-')
+                    if len(parts) == 6 and parts[0].upper() in ('RAS', 'CITI') and len(parts[4]) == 6:
+                        stripped_id = '-'.join(parts[:5])
+                        certificate = Certificate.objects.select_related('course', 'student').filter(
+                            Q(certificate_id__iexact=stripped_id) | Q(registration_number__iexact=stripped_id)
+                        ).first()
+                    elif len(parts) == 5 and parts[0].upper() in ('RAS', 'CITI') and len(parts[4]) == 6:
+                        certificate = Certificate.objects.select_related('course', 'student').filter(
+                            certificate_id__istartswith=f"{cert_id}-"
+                        ).first()
+                if not certificate:
                     raise Certificate.DoesNotExist
                 certificate.last_verified_at = timezone.now()
                 if not certificate.verification_hash:
@@ -1123,6 +1134,17 @@ def admin_verify_search(request):
                 certificate = Certificate.objects.select_related('course', 'student').filter(
                     Q(certificate_id__iexact=cert_id) | Q(registration_number__iexact=cert_id)
                 ).first()
+                if not certificate:
+                    parts = cert_id.split('-')
+                    if len(parts) == 6 and parts[0].upper() in ('RAS', 'CITI') and len(parts[4]) == 6:
+                        stripped_id = '-'.join(parts[:5])
+                        certificate = Certificate.objects.select_related('course', 'student').filter(
+                            Q(certificate_id__iexact=stripped_id) | Q(registration_number__iexact=stripped_id)
+                        ).first()
+                    elif len(parts) == 5 and parts[0].upper() in ('RAS', 'CITI') and len(parts[4]) == 6:
+                        certificate = Certificate.objects.select_related('course', 'student').filter(
+                            certificate_id__istartswith=f"{cert_id}-"
+                        ).first()
                 if not certificate:
                     raise Certificate.DoesNotExist
                 certificate.last_verified_at = timezone.now()

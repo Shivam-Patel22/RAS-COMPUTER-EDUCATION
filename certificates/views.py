@@ -78,6 +78,17 @@ def verify(request, certificate_id=None):
                 Q(certificate_id__iexact=cert_id) | Q(registration_number__iexact=cert_id)
             ).first()
             if not certificate:
+                parts = cert_id.split('-')
+                if len(parts) == 6 and parts[0].upper() in ('RAS', 'CITI') and len(parts[4]) == 6:
+                    stripped_id = '-'.join(parts[:5])
+                    certificate = Certificate.objects.select_related('course', 'student').filter(
+                        Q(certificate_id__iexact=stripped_id) | Q(registration_number__iexact=stripped_id)
+                    ).first()
+                elif len(parts) == 5 and parts[0].upper() in ('RAS', 'CITI') and len(parts[4]) == 6:
+                    certificate = Certificate.objects.select_related('course', 'student').filter(
+                        certificate_id__istartswith=f"{cert_id}-"
+                    ).first()
+            if not certificate:
                 raise Certificate.DoesNotExist
         except Certificate.DoesNotExist:
             error_message = f"No valid certificate found matching Certificate ID / Registration No '{cert_id}'."
@@ -138,6 +149,17 @@ def download_certificate_pdf(request, certificate_id):
     cert = Certificate.objects.select_related('course', 'student').filter(
         Q(certificate_id__iexact=clean_id) | Q(registration_number__iexact=clean_id)
     ).first()
+    if not cert:
+        parts = clean_id.split('-')
+        if len(parts) == 6 and parts[0].upper() in ('RAS', 'CITI') and len(parts[4]) == 6:
+            stripped_id = '-'.join(parts[:5])
+            cert = Certificate.objects.select_related('course', 'student').filter(
+                Q(certificate_id__iexact=stripped_id) | Q(registration_number__iexact=stripped_id)
+            ).first()
+        elif len(parts) == 5 and parts[0].upper() in ('RAS', 'CITI') and len(parts[4]) == 6:
+            cert = Certificate.objects.select_related('course', 'student').filter(
+                certificate_id__istartswith=f"{clean_id}-"
+            ).first()
     if not cert:
         raise Http404("Certificate not found.")
     if cert.is_revoked:

@@ -116,17 +116,17 @@ class CertificatesTestCase(TestCase):
         self.assertTrue(CERTIFICATE_ID_REGEX.match(cert_id_ras))
         self.assertTrue(cert_id_ras.startswith(f'RAS-{year}-{month:02d}-HC-'))
         parts_ras = cert_id_ras.split('-')
+        self.assertEqual(len(parts_ras), 5)
         self.assertEqual(len(parts_ras[4]), 6)
         self.assertTrue(100000 <= int(parts_ras[4]) <= 999999)
-        self.assertEqual(parts_ras[5], '1001')
 
         cert_id_citi = generate_certificate_id('CITI', first_name='Harshal', last_name='Chauhan')
         self.assertTrue(CERTIFICATE_ID_REGEX.match(cert_id_citi))
         self.assertTrue(cert_id_citi.startswith(f'CITI-{year}-{month:02d}-HC-'))
         parts_citi = cert_id_citi.split('-')
+        self.assertEqual(len(parts_citi), 5)
         self.assertEqual(len(parts_citi[4]), 6)
         self.assertTrue(100000 <= int(parts_citi[4]) <= 999999)
-        self.assertEqual(parts_citi[5], '5001')
 
     def test_admin_verify_certificate_endpoint(self):
         self.client.login(username='certadmin', password='adminpassword123')
@@ -575,9 +575,9 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
         self.assertTrue(CERTIFICATE_ID_REGEX.match(cert_id))
         self.assertTrue(cert_id.startswith(f"RAS-{current_year}-{current_month:02d}-HC-"))
         parts = cert_id.split('-')
+        self.assertEqual(len(parts), 5)
         self.assertEqual(len(parts[4]), 6)
         self.assertTrue(100000 <= int(parts[4]) <= 999999)
-        self.assertEqual(parts[5], '1001')
 
     def test_02_automatic_citi_generation_with_initials(self):
         """2. Automatic CITI generation produces CITI-YYYY-MM-FL-XXXXXX-5001 for student."""
@@ -589,9 +589,9 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
         self.assertTrue(CERTIFICATE_ID_REGEX.match(cert_id))
         self.assertTrue(cert_id.startswith(f"CITI-{current_year}-{current_month:02d}-HC-"))
         parts = cert_id.split('-')
+        self.assertEqual(len(parts), 5)
         self.assertEqual(len(parts[4]), 6)
         self.assertTrue(100000 <= int(parts[4]) <= 999999)
-        self.assertEqual(parts[5], '5001')
 
     def test_03_independent_prefix_and_continuous_student_sequences(self):
         """3. Each certificate generates unique 6-digit code and increments sequence independently."""
@@ -600,14 +600,14 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
         current_year = datetime.now().year
         current_month = datetime.now().month
 
-        # Student 1: Harshal Chauhan (RAS) -> 1001
+        # Student 1: Harshal Chauhan (RAS)
         ras1_id = generate_certificate_id('RAS', first_name='Harshal', last_name='Chauhan')
         self.assertTrue(CERTIFICATE_ID_REGEX.match(ras1_id))
         self.assertTrue(ras1_id.startswith(f"RAS-{current_year}-{current_month:02d}-HC-"))
         parts1 = ras1_id.split('-')
+        self.assertEqual(len(parts1), 5)
         self.assertEqual(len(parts1[4]), 6)
         self.assertTrue(100000 <= int(parts1[4]) <= 999999)
-        self.assertEqual(parts1[5], '1001')
         Certificate.objects.create(
             certificate_id=ras1_id,
             first_name='Harshal',
@@ -617,14 +617,14 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
             issue_date=date(current_year, 1, 10)
         )
 
-        # Student 2: Amit Patel (RAS) -> 1002
+        # Student 2: Amit Patel (RAS)
         ras2_id = generate_certificate_id('RAS', first_name='Amit', last_name='Patel')
         self.assertTrue(CERTIFICATE_ID_REGEX.match(ras2_id))
         self.assertTrue(ras2_id.startswith(f"RAS-{current_year}-{current_month:02d}-AP-"))
         parts2 = ras2_id.split('-')
+        self.assertEqual(len(parts2), 5)
         self.assertEqual(len(parts2[4]), 6)
         self.assertTrue(100000 <= int(parts2[4]) <= 999999)
-        self.assertEqual(parts2[5], '1002')
         self.assertNotEqual(parts1[4], parts2[4])
         Certificate.objects.create(
             certificate_id=ras2_id,
@@ -635,12 +635,13 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
             issue_date=date(current_year, 1, 11)
         )
 
-        # Student 3: Priya Sharma (RAS) -> 1003
+        # Student 3: Priya Sharma (RAS)
         ras3_id = generate_certificate_id('RAS', first_name='Priya', last_name='Sharma')
         self.assertTrue(CERTIFICATE_ID_REGEX.match(ras3_id))
         self.assertTrue(ras3_id.startswith(f"RAS-{current_year}-{current_month:02d}-PS-"))
         parts3 = ras3_id.split('-')
-        self.assertEqual(parts3[5], '1003')
+        self.assertEqual(len(parts3), 5)
+        self.assertNotEqual(parts2[4], parts3[4])
         Certificate.objects.create(
             certificate_id=ras3_id,
             first_name='Priya',
@@ -650,14 +651,14 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
             issue_date=date(current_year, 1, 12)
         )
 
-        # CITI generation independent of RAS -> starts at 5001
+        # CITI generation independent of RAS
         citi1_id = generate_certificate_id('CITI', first_name='Harshal', last_name='Chauhan')
         self.assertTrue(CERTIFICATE_ID_REGEX.match(citi1_id))
         self.assertTrue(citi1_id.startswith(f"CITI-{current_year}-{current_month:02d}-HC-"))
         parts_c1 = citi1_id.split('-')
+        self.assertEqual(len(parts_c1), 5)
         self.assertEqual(len(parts_c1[4]), 6)
         self.assertTrue(100000 <= int(parts_c1[4]) <= 999999)
-        self.assertEqual(parts_c1[5], '5001')
         Certificate.objects.create(
             certificate_id=citi1_id,
             first_name='Harshal',
@@ -667,12 +668,13 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
             issue_date=date(current_year, 1, 12)
         )
 
-        # Next CITI: Riya Patel -> 5002
+        # Next CITI: Riya Patel
         citi2_id = generate_certificate_id('CITI', first_name='Riya', last_name='Patel')
         self.assertTrue(CERTIFICATE_ID_REGEX.match(citi2_id))
         self.assertTrue(citi2_id.startswith(f"CITI-{current_year}-{current_month:02d}-RP-"))
         parts_c2 = citi2_id.split('-')
-        self.assertEqual(parts_c2[5], '5002')
+        self.assertEqual(len(parts_c2), 5)
+        self.assertNotEqual(citi1_id, citi2_id)
         self.assertNotEqual(citi1_id, citi2_id)
 
     def test_04_manual_generation_rules_and_validation(self):
@@ -817,14 +819,14 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
         citi_2027 = generate_certificate_id('CITI', year=2027, first_name='Harshal', last_name='Chauhan')
         self.assertTrue(ras_2027.startswith('RAS-2027-'))
         parts_r = ras_2027.split('-')
+        self.assertEqual(len(parts_r), 5)
         self.assertEqual(len(parts_r[4]), 6)
         self.assertTrue(100000 <= int(parts_r[4]) <= 999999)
-        self.assertEqual(parts_r[5], '1002')
         self.assertTrue(citi_2027.startswith('CITI-2027-'))
         parts_c = citi_2027.split('-')
+        self.assertEqual(len(parts_c), 5)
         self.assertEqual(len(parts_c[4]), 6)
         self.assertTrue(100000 <= int(parts_c[4]) <= 999999)
-        self.assertEqual(parts_c[5], '5002')
 
         # Existing 2026 certificates remain untouched
         self.assertTrue(Certificate.objects.filter(certificate_id='RAS-2026-HC1001').exists())
@@ -930,12 +932,12 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
         self.assertEqual(ras_parts[2], f'{current_month:02d}')
         self.assertEqual(ras_parts[3], 'HC')
         self.assertTrue(100000 <= int(ras_parts[4]) <= 999999)
-        self.assertEqual(ras_parts[5], '1001')
+        self.assertEqual(len(ras_parts), 5)
         self.assertEqual(res_ras.json()['initials'], 'HC')
 
         res_citi = self.client.get(url, {'prefix': 'CITI', 'first_name': 'Harshal', 'last_name': 'Chauhan', 'random_code': '855104'})
         self.assertEqual(res_citi.status_code, 200)
-        self.assertEqual(res_citi.json()['certificate_id'], f'CITI-{current_year}-{current_month:02d}-HC-855104-5001')
+        self.assertEqual(res_citi.json()['certificate_id'], f'CITI-{current_year}-{current_month:02d}-HC-855104')
 
     def test_11_student_initials_rules(self):
         """11. Verify initials generation rules according to prompt specification."""
@@ -968,47 +970,41 @@ class CertificateIDFormatterTestCase(TestCase):
 
     def test_format_certificate_id_success(self):
         from certificates.utils import format_certificate_id
-        # Standard RAS example from specification: RAS-2026-10-DV-482716-1001
-        res_ras = format_certificate_id('RAS', 2026, 10, 'DV', 482716, 1001)
-        self.assertEqual(res_ras, 'RAS-2026-10-DV-482716-1001')
+        # Standard RAS example without final numeric suffix: RAS-2026-10-DV-482716
+        res_ras = format_certificate_id('RAS', 2026, 10, 'DV', 482716)
+        self.assertEqual(res_ras, 'RAS-2026-10-DV-482716')
 
         # CITI example with single-digit month (must produce 2-digit MM with leading zero)
-        res_citi = format_certificate_id('CITI', 2026, 4, 'RP', 100000, 5001)
-        self.assertEqual(res_citi, 'CITI-2026-04-RP-100000-5001')
+        res_citi = format_certificate_id('CITI', 2026, 4, 'RP', 100000)
+        self.assertEqual(res_citi, 'CITI-2026-04-RP-100000')
 
-        # Maximum boundary sequence and random code
-        res_max = format_certificate_id('RAS', 2026, 12, 'AS', 999999, 9999)
-        self.assertEqual(res_max, 'RAS-2026-12-AS-999999-9999')
+        # Maximum boundary random code
+        res_max = format_certificate_id('RAS', 2026, 12, 'AS', 999999)
+        self.assertEqual(res_max, 'RAS-2026-12-AS-999999')
 
     def test_format_certificate_id_invalid_inputs(self):
         from certificates.utils import format_certificate_id
         # Invalid prefix
         with self.assertRaises(ValueError):
-            format_certificate_id('XYZ', 2026, 10, 'DV', 482716, 1001)
+            format_certificate_id('XYZ', 2026, 10, 'DV', 482716)
 
         # Invalid month (0 or 13)
         with self.assertRaises(ValueError):
-            format_certificate_id('RAS', 2026, 0, 'DV', 482716, 1001)
+            format_certificate_id('RAS', 2026, 0, 'DV', 482716)
         with self.assertRaises(ValueError):
-            format_certificate_id('RAS', 2026, 13, 'DV', 482716, 1001)
+            format_certificate_id('RAS', 2026, 13, 'DV', 482716)
 
         # Invalid random code (< 100000 or > 999999)
         with self.assertRaises(ValueError):
-            format_certificate_id('RAS', 2026, 10, 'DV', 99999, 1001)
+            format_certificate_id('RAS', 2026, 10, 'DV', 99999)
         with self.assertRaises(ValueError):
-            format_certificate_id('RAS', 2026, 10, 'DV', 1000000, 1001)
-
-        # Invalid sequence (< 1000 or > 9999)
-        with self.assertRaises(ValueError):
-            format_certificate_id('RAS', 2026, 10, 'DV', 482716, 999)
-        with self.assertRaises(ValueError):
-            format_certificate_id('RAS', 2026, 10, 'DV', 482716, 10000)
+            format_certificate_id('RAS', 2026, 10, 'DV', 1000000)
 
         # Invalid initials (not 2 letters)
         with self.assertRaises(ValueError):
-            format_certificate_id('RAS', 2026, 10, 'D', 482716, 1001)
+            format_certificate_id('RAS', 2026, 10, 'D', 482716)
         with self.assertRaises(ValueError):
-            format_certificate_id('RAS', 2026, 10, 'D1', 482716, 1001)
+            format_certificate_id('RAS', 2026, 10, 'D1', 482716)
 
     def test_extract_recipient_initials(self):
         from certificates.utils import extract_recipient_initials
@@ -1069,7 +1065,7 @@ class CertificateSequenceAndRandomCodeTestCase(TestCase):
 
         # Preview must NOT consume or advance sequence numbers
         prev_id = preview_certificate_id(prefix='RAS', first_name='Divyaraj', last_name='Vihol')
-        self.assertIn('1001', prev_id)
+        self.assertTrue(prev_id.startswith('RAS-'))
         self.assertEqual(peek_next_certificate_sequence('RAS'), 1001)
 
         # Reserve RAS
@@ -1143,8 +1139,8 @@ class CertificateSequenceAndRandomCodeTestCase(TestCase):
         self.assertTrue(cid.startswith('RAS-2026-10-DV-'))
 
         parts = cid.split('-')
+        self.assertEqual(len(parts), 5)
         random_part = parts[4]
-        seq_part = parts[5]
 
         # Verify registry entry is updated
         reg = CertificateRandomCodeRegistry.objects.get(code=random_part)
@@ -1557,12 +1553,11 @@ class CitiQrPositionAndSixDigitSuffixTests(TransactionTestCase):
             cid = generate_certificate_id('RAS', first_name=f'Student{i}', last_name='Patel', reserve=True)
             self.assertTrue(CERTIFICATE_ID_REGEX.match(cid))
             parts = cid.split('-')
+            self.assertEqual(len(parts), 5)
             rand_code = parts[4]
-            serial_str = parts[5]
             self.assertEqual(len(rand_code), 6, f"Random code '{rand_code}' is not 6 digits in '{cid}'")
             self.assertTrue(rand_code.isdigit(), f"Random code '{rand_code}' contains non-digits in '{cid}'")
             self.assertTrue(100000 <= int(rand_code) <= 999999, f"Code {rand_code} is outside 100000-999999")
-            self.assertEqual(int(serial_str), 1001 + i)
 
     def test_02_uniqueness_across_months_years_courses_types(self):
         """2. Certificate numbers are unique across different months, years, courses, and prefixes."""
@@ -1702,6 +1697,8 @@ class CitiQrPositionAndSixDigitSuffixTests(TransactionTestCase):
             practical_marks=42,
             serial_number='5006',
         )
+        from django.core.cache import cache
+        cache.clear()
         verify_url = reverse('certificates:verify')
         resp = self.client.post(verify_url, {'certificate_id': 'CITI-2026-10-SP-100000-918273'})
         self.assertEqual(resp.status_code, 200)

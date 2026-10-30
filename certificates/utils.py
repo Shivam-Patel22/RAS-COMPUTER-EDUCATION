@@ -6,7 +6,8 @@ from django.db import transaction, IntegrityError
 
 _cert_gen_lock = threading.Lock()
 
-CERTIFICATE_ID_REGEX = re.compile(r'^(RAS|CITI)-\d{4}-(0[1-9]|1[0-2])-[A-Z]{2}-[1-9]\d{5}-(\d{6}|\d{4})$')
+CERTIFICATE_ID_REGEX = re.compile(r'^(RAS|CITI)-\d{4}-(0[1-9]|1[0-2])-[A-Z]{2}-[1-9]\d{5}$')
+LEGACY_CERTIFICATE_ID_REGEX = re.compile(r'^(RAS|CITI)-\d{4}-(0[1-9]|1[0-2])-[A-Z]{2}-[1-9]\d{5}-(\d{6}|\d{4})$')
 
 
 def generate_six_digit_suffix():
@@ -65,7 +66,7 @@ def extract_recipient_initials(first_name="", last_name="", student_name=""):
     return f"{f_char}{l_char}"
 
 
-def format_certificate_id(prefix, year, month, initials, random_code=100000, sequence=None, suffix=None):
+def format_certificate_id(prefix, year, month, initials, random_code=100000, sequence=None, suffix=None, *args, **kwargs):
     """
     Formats the authoritative Certificate ID according to the standard:
     PREFIX-YYYY-MM-FL-XXXXXX-SERIAL
@@ -109,21 +110,7 @@ def format_certificate_id(prefix, year, month, initials, random_code=100000, seq
     except (ValueError, TypeError):
         raise ValueError(f"Invalid random code '{random_code}'. Must be a 6-digit number between 100000 and 999999.")
 
-    target_seq = sequence if sequence is not None else suffix
-    if target_seq is None:
-        target_seq = 1001 if clean_prefix == 'RAS' else 5001
-
-    try:
-        s_int = int(target_seq)
-        if not ((1000 <= s_int <= 9999) or (100000 <= s_int <= 999999)):
-            raise ValueError()
-    except (ValueError, TypeError):
-        raise ValueError(f"Invalid suffix/sequence number '{target_seq}'. Must be a 4-digit sequence (1000-9999) or 6-digit number.")
-
-    if s_int < 10000:
-        formatted_id = f"{clean_prefix}-{y_int:04d}-{m_int:02d}-{clean_initials}-{r_int:06d}-{s_int:04d}"
-    else:
-        formatted_id = f"{clean_prefix}-{y_int:04d}-{m_int:02d}-{clean_initials}-{r_int:06d}-{s_int:06d}"
+    formatted_id = f"{clean_prefix}-{y_int:04d}-{m_int:02d}-{clean_initials}-{r_int:06d}"
 
     if not CERTIFICATE_ID_REGEX.match(formatted_id):
         raise ValueError(f"Formatted certificate ID '{formatted_id}' failed standard pattern verification.")
@@ -270,8 +257,11 @@ def allocate_unique_random_code(certificate_id="", max_retries=100):
     for _ in range(max_retries):
         code_str = str(secrets.randbelow(900000) + 100000)
 
-        # Check against existing Certificate records (5th segment: -XXXXXX-)
-        if Certificate.objects.filter(certificate_id__contains=f"-{code_str}-").exists():
+        # Check against existing Certificate records (ending segment: -XXXXXX or legacy: -XXXXXX-)
+        from django.db.models import Q
+        if Certificate.objects.filter(
+            Q(certificate_id__endswith=f"-{code_str}") | Q(certificate_id__contains=f"-{code_str}-")
+        ).exists():
             continue
 
         try:
@@ -375,7 +365,10 @@ def generate_certificate_id(
                 if explicit_random_code is not None and attempt == 0:
                     code_str = str(explicit_random_code)
                     # Check if this explicit random code is available (not already in Certificate or Registry)
-                    if not Certificate.objects.filter(certificate_id__contains=f"-{code_str}-").exists():
+                    from django.db.models import Q
+                    if not Certificate.objects.filter(
+                        Q(certificate_id__endswith=f"-{code_str}") | Q(certificate_id__contains=f"-{code_str}-")
+                    ).exists():
                         try:
                             with transaction.atomic():
                                 CertificateRandomCodeRegistry.objects.create(
@@ -473,6 +466,19 @@ def validate_certificate_id_format(cert_id, prefix=None, expected_initials=None,
 
     # 2. Check Legacy Formats if allowed
     if allow_legacy:
+        match_prev = LEGACY_CERTIFICATE_ID_REGEX.match(cert_id)
+        if match_prev:
+            cert_prefix = match_prev.group(1)
+            if prefix and cert_prefix != prefix.strip().upper():
+                return False, f"Certificate ID must start with the selected prefix '{prefix.strip().upper()}'."
+            parts = cert_id.split('-')
+            extracted_initials = parts[3]
+            if expected_initials and expected_initials != 'FL':
+                clean_expected = re.sub(r'[^A-Z]', '', expected_initials.strip().upper())
+                if clean_expected and extracted_initials != clean_expected:
+                    return False, f"Certificate ID initials '{extracted_initials}' do not match student initials '{clean_expected}'."
+            return True, None
+
         # Check Legacy PREFIX-YYYY-FLSEQUENCE
         parts = cert_id.split('-')
         if len(parts) == 3:
@@ -495,7 +501,7 @@ def validate_certificate_id_format(cert_id, prefix=None, expected_initials=None,
         elif len(parts) >= 3 and parts[0] == 'CERT':
             return True, None
 
-    return False, "Certificate ID must follow the format 'PREFIX-YYYY-MM-FL-XXXXXX-SERIAL' (e.g. RAS-2026-10-SP-483271-1001)."
+    return False, "Certificate ID must follow the format 'PREFIX-YYYY-MM-FL-XXXXXX' (e.g. RAS-2026-10-SP-483271)."
 
 
 
@@ -1005,7 +1011,9 @@ def generate_citi_ccc_certificate_pdf(cert, request=None):
     # 4. Serial Number (right side under QR code, centered with QR card, y 18.8% from top, bold, ~12 pt)
     serial_val = (cert.serial_number or '').strip()
     if not serial_val and cert.certificate_id and '-' in cert.certificate_id:
-        serial_val = cert.certificate_id.split('-')[-1]
+        parts = cert.certificate_id.split('-')
+        if len(parts) >= 6:
+            serial_val = parts[-1]
     if serial_val:
         c.setFillColor(colors.black)
         c.setFont('Helvetica-Bold', 12)

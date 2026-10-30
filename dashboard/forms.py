@@ -393,7 +393,7 @@ class AdminCertificateForm(forms.ModelForm):
                 else:
                     # Register manual random code if it matches standard pattern
                     parts = cert_id.split('-')
-                    if len(parts) == 6 and len(parts[4]) == 6 and parts[4].isdigit():
+                    if (len(parts) == 5 or len(parts) == 6) and len(parts[4]) == 6 and parts[4].isdigit():
                         from certificates.models import CertificateRandomCodeRegistry
                         CertificateRandomCodeRegistry.objects.get_or_create(
                             code=parts[4],
@@ -501,7 +501,7 @@ class AdminCertificateForm(forms.ModelForm):
                     extracted_code = None
                     if submitted_cert_id:
                         parts = submitted_cert_id.split('-')
-                        if len(parts) >= 6 and parts[4].isdigit() and len(parts[4]) == 6:
+                        if (len(parts) == 5 or len(parts) == 6) and parts[4].isdigit() and len(parts[4]) == 6:
                             extracted_code = int(parts[4])
 
                     cert_id = generate_certificate_id(

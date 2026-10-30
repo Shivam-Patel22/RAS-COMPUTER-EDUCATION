@@ -62,7 +62,7 @@
             <div class="form-group">
                 <label for="{{ form.certificate_id.id_for_label }}">Certificate ID *</label>
                 {{ form.certificate_id }}
-                <small id="id-mode-hint" style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.3rem;">⚡ Auto mode active: Format PREFIX-YYYY-MM-FL-XXXXXX-SERIAL (Server auto-generated)</small>
+                <small id="id-mode-hint" style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.3rem;">⚡ Auto mode active: Format PREFIX-YYYY-MM-FL-XXXXXX (Server auto-generated)</small>
                 <div id="cert-id-duplicate-warning" class="form-error" style="display: none; margin-top: 0.35rem; font-size: 0.82rem; color: #dc2626; font-weight: 600;">
                     ⚠ Certificate ID already exists. Please enter a unique ID.
                 </div>
@@ -283,7 +283,7 @@ function getOrGenerateRandomCode() {
     var certInput = document.getElementById('id_certificate_id');
     if (certInput && certInput.value) {
         var parts = certInput.value.trim().split('-');
-        if (parts.length >= 6 && /^\d{6}$/.test(parts[4])) {
+        if (parts.length >= 5 && /^\d{6}$/.test(parts[4])) {
             currentRandomCode = parts[4];
             return currentRandomCode;
         }
@@ -299,7 +299,7 @@ function computeCertId(prefix, initials, seq, code) {
     var month = String(now.getMonth() + 1).padStart(2, '0');
     var cleanInit = initials && initials.length === 2 ? initials : 'FL';
     var rCode = code || getOrGenerateRandomCode();
-    return prefix + '-' + currentYear + '-' + month + '-' + cleanInit + '-' + rCode + '-' + seq;
+    return prefix + '-' + currentYear + '-' + month + '-' + cleanInit + '-' + rCode;
 }
 
 function updateCertId() {
@@ -361,7 +361,7 @@ function toggleIdMode(mode) {
         certInput.removeAttribute('readonly');
         certInput.placeholder = 'e.g. ' + computeCertId(prefix, initials, seq, randomCode);
         if (hint) {
-            hint.textContent = '✏️ Manual mode active: Format ' + prefix + '-YYYY-MM-FL-XXXXXX-SERIAL (e.g. ' + computeCertId(prefix, initials, seq, randomCode) + ').';
+            hint.textContent = '✏️ Manual mode active: Format ' + prefix + '-YYYY-MM-FL-XXXXXX (e.g. ' + computeCertId(prefix, initials, seq, randomCode) + ').';
         }
         certInput.focus();
         if (certInput.value.trim()) {
@@ -370,7 +370,7 @@ function toggleIdMode(mode) {
     } else {
         certInput.setAttribute('readonly', 'readonly');
         if (hint) {
-            hint.textContent = '⚡ Auto mode active: Format ' + prefix + '-YYYY-MM-FL-XXXXXX-SERIAL (Server auto-generated)';
+            hint.textContent = '⚡ Auto mode active: Format ' + prefix + '-YYYY-MM-FL-XXXXXX (Server auto-generated)';
         }
         if (warningEl) warningEl.style.display = 'none';
         if (serverErrorEl) serverErrorEl.style.display = 'none';
@@ -523,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 certInput.placeholder = 'e.g. ' + computeCertId(prefix, initials, seq, randomCode);
             }
             if (hint) {
-                hint.textContent = '✏️ Manual mode active: Format ' + prefix + '-YYYY-MM-FL-XXXXXX-SERIAL (e.g. ' + computeCertId(prefix, initials, seq, randomCode) + ').';
+                hint.textContent = '✏️ Manual mode active: Format ' + prefix + '-YYYY-MM-FL-XXXXXX (e.g. ' + computeCertId(prefix, initials, seq, randomCode) + ').';
             }
         }
     }
@@ -626,7 +626,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (certInput) certInput.setAttribute('readonly', 'readonly');
             var hint = document.getElementById('id-mode-hint');
             if (hint) {
-                hint.textContent = '⚡ Auto mode active: Format PREFIX-YYYY-MM-FL-XXXXXX-SERIAL (Server auto-generated)';
+                hint.textContent = '⚡ Auto mode active: Format PREFIX-YYYY-MM-FL-XXXXXX (Server auto-generated)';
             }
         }
     }
