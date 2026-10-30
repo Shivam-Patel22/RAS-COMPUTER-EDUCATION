@@ -1,0 +1,39 @@
+{% extends 'dashboard/admin_base.html' %}
+
+{% block title %}{{ title }} | Admin Panel{% endblock %}
+
+{% block secondary_back_btn %}
+<a href="{% url 'dashboard:manage_course_categories' %}" class="admin-back-btn">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Back to Categories
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="form-card" style="max-width: 650px;">
+        <h1 style="font-size: 1.75rem; margin-bottom: 1.5rem; color: var(--gray-900);">{{ title }}</h1>
+
+        <form method="post" data-validate="true">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="{{ form.name.id_for_label }}">Category Name *</label>
+                {{ form.name }}
+                {% if form.name.errors %}<div class="form-error">{{ form.name.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.description.id_for_label }}">Description (Optional)</label>
+                {{ form.description }}
+                {% if form.description.errors %}<div class="form-error">{{ form.description.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Save Category</button>
+                <a href="{% url 'dashboard:manage_course_categories' %}" class="btn btn-outline-dark">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

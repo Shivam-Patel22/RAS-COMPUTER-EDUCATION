@@ -9,7 +9,10 @@
             <h1 class="page-title" style="text-align: left; margin-bottom: 0.25rem;">Manage Courses</h1>
             <p class="page-subtitle" style="text-align: left;">Create, edit, and organize training courses.</p>
         </div>
-        <a href="{% url 'dashboard:add_course' %}" class="btn btn-primary">+ Add New Course</a>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <a href="{% url 'dashboard:manage_course_categories' %}" class="btn btn-outline-dark">🏷️ Manage Categories</a>
+            <a href="{% url 'dashboard:add_course' %}" class="btn btn-primary">+ Add New Course</a>
+        </div>
     </div>
 
     {% if courses %}

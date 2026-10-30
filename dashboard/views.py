@@ -24,11 +24,11 @@ from django.db import transaction, IntegrityError
 from .decorators import staff_required
 from .forms import (
     AdminLoginForm, TwoFactorVerifyForm, TwoFactorSetupForm,
-    AdminCourseForm, AdminCertificateForm, AdminOfferForm,
+    AdminCourseForm, AdminCourseCategoryForm, AdminCertificateForm, AdminOfferForm,
     AdminStudentForm, AdminAboutForm, AdminContactForm,
     AdminChangeUsernameForm, AdminChangePasswordForm
 )
-from courses.models import Course, CourseOffer
+from courses.models import Course, CourseOffer, CourseCategory
 from certificates.models import Certificate
 from certificates.utils import (
     generate_certificate_id,
@@ -429,6 +429,74 @@ def toggle_course_featured(request, pk):
         messages.success(request, f"Course '{course.name}' removed from homepage featured list.")
 
     return get_safe_redirect(request, 'dashboard:manage_courses')
+
+
+@staff_required
+def manage_course_categories(request):
+    categories = CourseCategory.objects.all().order_by('name')
+    return render(request, 'dashboard/manage_course_categories.html', {
+        'categories': categories,
+    })
+
+
+@staff_required
+def add_course_category(request):
+    if request.method == 'POST':
+        form = AdminCourseCategoryForm(request.POST)
+        if form.is_valid():
+            category = form.save()
+            messages.success(request, f"Course Category '{category.name}' created successfully.")
+            return redirect('dashboard:manage_course_categories')
+    else:
+        form = AdminCourseCategoryForm()
+
+    return render(request, 'dashboard/course_category_form.html', {
+        'form': form,
+        'title': 'Add Course Category',
+    })
+
+
+@staff_required
+def edit_course_category(request, pk):
+    category = get_object_or_404(CourseCategory, pk=pk)
+    if request.method == 'POST':
+        form = AdminCourseCategoryForm(request.POST, instance=category)
+        if form.is_valid():
+            category = form.save()
+            # Sync courses that use this category slug
+            Course.objects.filter(category_ref=category).update(category=category.slug)
+            messages.success(request, f"Course Category '{category.name}' updated successfully.")
+            return redirect('dashboard:manage_course_categories')
+    else:
+        form = AdminCourseCategoryForm(instance=category)
+
+    return render(request, 'dashboard/course_category_form.html', {
+        'form': form,
+        'category': category,
+        'title': f'Edit Category: {category.name}',
+    })
+
+
+@staff_required
+def delete_course_category(request, pk):
+    category = get_object_or_404(CourseCategory, pk=pk)
+    if request.method == 'POST':
+        cat_name = category.name
+        # Check courses in this category
+        courses_count = Course.objects.filter(category_ref=category).count()
+        # Unlink category from courses before deleting to preserve courses
+        Course.objects.filter(category_ref=category).update(category_ref=None, category='')
+        category.delete()
+        if courses_count > 0:
+            messages.success(request, f"Course Category '{cat_name}' deleted. {courses_count} course(s) are now uncategorized.")
+        else:
+            messages.success(request, f"Course Category '{cat_name}' deleted successfully.")
+        return redirect('dashboard:manage_course_categories')
+
+    return render(request, 'dashboard/course_category_delete_confirm.html', {
+        'category': category,
+        'assigned_courses_count': Course.objects.filter(category_ref=category).count(),
+    })
 
 @staff_required
 def manage_certificates(request):

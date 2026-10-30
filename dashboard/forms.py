@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from courses.models import Course
+from courses.models import Course, CourseCategory
 from certificates.models import Certificate
 from certificates.utils import (
     generate_certificate_id,
@@ -51,7 +51,59 @@ class TwoFactorSetupForm(forms.Form):
         label="Verification Code",
     )
 
+class AdminCourseCategoryForm(forms.ModelForm):
+    class Meta:
+        model = CourseCategory
+        fields = ['name', 'description']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Category Name (e.g. Data Science, Web Design)', 'required': 'required'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Brief description of this category (optional)', 'rows': 3}),
+        }
+        labels = {
+            'name': 'Category Name *',
+            'description': 'Description',
+        }
+
+    def clean_name(self):
+        name = self.cleaned_data.get('name', '').strip()
+        if not name:
+            raise forms.ValidationError("Category name cannot be empty.")
+        qs = CourseCategory.objects.filter(name__iexact=name)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError(f"A category with name '{name}' already exists.")
+        return name
+
+
+class FlexibleCategoryChoiceField(forms.ModelChoiceField):
+    def to_python(self, value):
+        if value in self.empty_values:
+            return None
+        try:
+            return super().to_python(value)
+        except forms.ValidationError:
+            from django.db.models import Q
+            from django.utils.text import slugify
+            str_val = str(value).strip()
+            if not str_val:
+                return None
+            cat = CourseCategory.objects.filter(Q(slug=str_val) | Q(name__iexact=str_val)).first()
+            if not cat:
+                slug_cand = slugify(str_val) or str_val.lower()
+                name_cand = str_val.replace('-', ' ').title()
+                cat, _ = CourseCategory.objects.get_or_create(slug=slug_cand, defaults={'name': name_cand})
+            return cat
+
+
 class AdminCourseForm(forms.ModelForm):
+    category = FlexibleCategoryChoiceField(
+        queryset=CourseCategory.objects.all().order_by('name'),
+        required=False,
+        empty_label="-- Select Category (Optional) --",
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label="Course Category"
+    )
     remove_image = forms.BooleanField(
         required=False,
         label="Remove current image",
@@ -63,16 +115,34 @@ class AdminCourseForm(forms.ModelForm):
         fields = ['name', 'category', 'duration', 'description', 'image', 'is_featured']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Course Name', 'required': 'required'}),
-            'category': forms.Select(attrs={'class': 'form-control', 'required': 'required'}),
             'duration': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 8 Weeks / 3 Months', 'required': 'required'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Detailed syllabus and overview', 'rows': 5, 'required': 'required'}),
             'image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
             'is_featured': forms.CheckboxInput(attrs={'style': 'width: 20px; height: 20px; cursor: pointer;'}),
         }
         labels = {
-            'category': 'Course Category *',
+            'category': 'Course Category',
             'is_featured': '⭐ Feature this course on homepage',
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['category'].queryset = CourseCategory.objects.all().order_by('name')
+        if self.instance and self.instance.pk:
+            if self.instance.category_ref:
+                self.initial['category'] = self.instance.category_ref.pk
+            elif self.instance.category:
+                from django.db.models import Q
+                cat = CourseCategory.objects.filter(
+                    Q(slug=self.instance.category) | Q(name__iexact=self.instance.category)
+                ).first()
+                if cat:
+                    self.initial['category'] = cat.pk
+
+    def clean_category(self):
+        cat_obj = self.cleaned_data.get('category')
+        # Return slug string so CharField validation passes
+        return cat_obj.slug if cat_obj else ''
 
     def clean_image(self):
         image = self.cleaned_data.get('image')
@@ -85,6 +155,14 @@ class AdminCourseForm(forms.ModelForm):
 
     def save(self, commit=True):
         instance = super().save(commit=False)
+        # Note: self.cleaned_data['category'] is slug string
+        slug_val = self.cleaned_data.get('category')
+        if slug_val:
+            instance.category = slug_val
+            instance.category_ref = CourseCategory.objects.filter(slug=slug_val).first()
+        else:
+            instance.category = ''
+            instance.category_ref = None
         remove_image = self.cleaned_data.get('remove_image', False)
         has_new_image = bool(self.files and self.files.get('image'))
 
