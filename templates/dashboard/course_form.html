@@ -25,7 +25,10 @@
             </div>
 
             <div class="form-group">
-                <label for="{{ form.category.id_for_label }}">Course Category *</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                    <label for="{{ form.category.id_for_label }}" style="margin: 0;">Course Category</label>
+                    <a href="{% url 'dashboard:manage_course_categories' %}" target="_blank" style="font-size: 0.8rem; color: var(--primary); text-decoration: none; font-weight: 500;">+ Manage Categories</a>
+                </div>
                 {{ form.category }}
                 {% if form.category.errors %}<div class="form-error">{{ form.category.errors.0 }}</div>{% endif %}
             </div>

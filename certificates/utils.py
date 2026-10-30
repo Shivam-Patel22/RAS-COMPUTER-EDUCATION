@@ -1101,12 +1101,12 @@ def generate_citi_ccc_certificate_pdf(cert, request=None):
     c.setFillColor(colors.black)
     c.drawCentredString(center_x, height * (1 - 0.774) - (13.5 * 0.35), "F-5, 2nd Floor, Surbhi Complex, Sector - 22, Gandhinagar - 382022.")
 
-    # verify line (y 81.5%, ~8.5-9 pt, dark gray)
+    # verify line (y 43.0%, ~8.5-9 pt, dark gray)
     verify_url = get_certificate_verify_url()
     verify_line = f"This Certificate can be verified on {verify_url}"
     c.setFont('Helvetica', 8.5)
     c.setFillColor(colors.HexColor('#334155'))
-    c.drawCentredString(center_x, height * (1 - 0.815) - (8.5 * 0.35), verify_line)
+    c.drawCentredString(center_x, height * (1 - 0.430) - (8.5 * 0.35), verify_line)
 
     # Bottom-left Date / Place block (left edge x 27.4%, Date at y 90.8%, Place at y 92.9%, bold, ~14 pt)
     left_dp_x = width * 0.274
