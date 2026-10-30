@@ -116,7 +116,9 @@
     </script>
     {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body class="has-fixed-header">
+    <!-- Fixed Site Header (Navbar + Offer Ticker) -->
+    <div class="site-header-fixed" id="site-header-fixed">
     <!-- Navbar Header -->
     <header class="navbar-header">
         <div class="nav-container">
@@ -198,11 +200,18 @@
         </div>
     </div>
     {% endif %}
+    </div>
     <script>
         (function() {
-            var nb = document.querySelector('.navbar-header');
-            var tk = document.querySelector('.offers-ticker-container');
-            var h = (nb ? nb.getBoundingClientRect().height : 0) + (tk && tk.offsetParent !== null ? tk.getBoundingClientRect().height : 0);
+            var fh = document.getElementById('site-header-fixed');
+            var h = 0;
+            if (fh) {
+                h = fh.getBoundingClientRect().height;
+            } else {
+                var nb = document.querySelector('.navbar-header');
+                var tk = document.querySelector('.offers-ticker-container');
+                h = (nb ? nb.getBoundingClientRect().height : 0) + (tk && tk.offsetParent !== null ? tk.getBoundingClientRect().height : 0);
+            }
             if (h > 0) document.documentElement.style.setProperty('--header-height', Math.round(h) + 'px');
         })();
     </script>

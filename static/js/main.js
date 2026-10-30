@@ -27,16 +27,21 @@ function updateThemeToggleIcons() {
     });
 }
 
-// Dynamic Header Height Measurement for Hero Section
+// Dynamic Header Height Measurement for Fixed Header and Content Spacing
 function updateHeaderHeight() {
-    const navbar = document.querySelector('.navbar-header');
-    const ticker = document.querySelector('.offers-ticker-container');
+    const fixedHeader = document.getElementById('site-header-fixed') || document.querySelector('.site-header-fixed');
     let totalHeight = 0;
-    if (navbar) {
-        totalHeight += navbar.getBoundingClientRect().height;
-    }
-    if (ticker && ticker.offsetParent !== null) {
-        totalHeight += ticker.getBoundingClientRect().height;
+    if (fixedHeader) {
+        totalHeight = fixedHeader.getBoundingClientRect().height;
+    } else {
+        const navbar = document.querySelector('.navbar-header');
+        const ticker = document.querySelector('.offers-ticker-container');
+        if (navbar) {
+            totalHeight += navbar.getBoundingClientRect().height;
+        }
+        if (ticker && ticker.offsetParent !== null) {
+            totalHeight += ticker.getBoundingClientRect().height;
+        }
     }
     if (totalHeight > 0) {
         document.documentElement.style.setProperty('--header-height', `${Math.round(totalHeight)}px`);
@@ -52,10 +57,15 @@ if (window.ResizeObserver) {
     const headerObserver = new ResizeObserver(() => {
         updateHeaderHeight();
     });
-    const navbarEl = document.querySelector('.navbar-header');
-    const tickerEl = document.querySelector('.offers-ticker-container');
-    if (navbarEl) headerObserver.observe(navbarEl);
-    if (tickerEl) headerObserver.observe(tickerEl);
+    const fixedHeaderEl = document.getElementById('site-header-fixed') || document.querySelector('.site-header-fixed');
+    if (fixedHeaderEl) {
+        headerObserver.observe(fixedHeaderEl);
+    } else {
+        const navbarEl = document.querySelector('.navbar-header');
+        const tickerEl = document.querySelector('.offers-ticker-container');
+        if (navbarEl) headerObserver.observe(navbarEl);
+        if (tickerEl) headerObserver.observe(tickerEl);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
