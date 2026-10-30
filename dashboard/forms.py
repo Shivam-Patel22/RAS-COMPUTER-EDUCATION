@@ -54,14 +54,22 @@ class TwoFactorSetupForm(forms.Form):
 class AdminCourseCategoryForm(forms.ModelForm):
     class Meta:
         model = CourseCategory
-        fields = ['name', 'description']
+        fields = ['name', 'icon', 'duration', 'display_order', 'description', 'is_active']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Category Name (e.g. Data Science, Web Design)', 'required': 'required'}),
+            'icon': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 💻, 📊, ⚙️, 🤖'}),
+            'duration': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 6 Months, Flexible, Career Track'}),
+            'display_order': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Brief description of this category (optional)', 'rows': 3}),
+            'is_active': forms.CheckboxInput(attrs={'style': 'width: 20px; height: 20px; cursor: pointer;'}),
         }
         labels = {
             'name': 'Category Name *',
+            'icon': 'Icon / Emoji',
+            'duration': 'Duration Track (optional)',
+            'display_order': 'Display Order',
             'description': 'Description',
+            'is_active': 'Active in User Panel',
         }
 
     def clean_name(self):

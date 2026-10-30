@@ -6,13 +6,18 @@ from django.utils import timezone
 class CourseCategory(models.Model):
     name = models.CharField(max_length=100, unique=True, help_text="Category name, e.g. Basic, Programming, Accounting")
     slug = models.SlugField(max_length=120, unique=True, blank=True)
-    description = models.TextField(blank=True, default='')
+    description = models.TextField(blank=True, default='', help_text="Short summary of this category")
+    icon = models.CharField(max_length=50, blank=True, default='💻', help_text="Icon or emoji, e.g. 💻, 📊, ⚙️, 🎓, 🏆, 🚀, 🧩")
+    duration = models.CharField(max_length=50, blank=True, default='', help_text="Default duration or track tag (e.g. 6 Months, Flexible)")
+    display_order = models.PositiveIntegerField(default=0, help_text="Order in which category appears (lower numbers first)")
+    is_active = models.BooleanField(default=True, help_text="Designates whether this category is active and visible in the user panel")
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = 'Course Category'
         verbose_name_plural = 'Course Categories'
-        ordering = ['name']
+        ordering = ['display_order', 'id']
 
     def __str__(self):
         return self.name
@@ -28,6 +33,16 @@ class CourseCategory(models.Model):
                 idx += 1
             self.slug = candidate
         super().save(*args, **kwargs)
+
+    @property
+    def subcourses_count(self):
+        return self.get_subcourses().count()
+
+    def get_subcourses(self):
+        all_cat_names = set(CourseCategory.objects.values_list('name', flat=True))
+        return Course.objects.filter(
+            models.Q(category_ref=self) | models.Q(category=self.slug)
+        ).exclude(name__in=all_cat_names)
 
 
 class Course(models.Model):

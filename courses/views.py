@@ -1,6 +1,7 @@
 import json
 from django.shortcuts import render, get_object_or_404
-from .models import Course
+from django.db.models import Q
+from .models import Course, CourseCategory
 
 CATEGORY_METADATA = {
     'basic': {
@@ -18,8 +19,8 @@ CATEGORY_METADATA = {
         'duration': 'Specialized'
     },
     'programming': {
-        'id': 'programming',
         'name': 'Programming',
+        'id': 'programming',
         'icon': '⚙️',
         'description': 'Core and object-oriented programming languages, web scripting, backend technology, and database management.',
         'duration': 'Modular Tracks'
@@ -55,40 +56,52 @@ CATEGORY_METADATA = {
 }
 
 def course_list(request):
-    db_courses = Course.objects.all().order_by('created_at')
+    # Fetch all active categories dynamically from the database
+    active_categories = CourseCategory.objects.filter(is_active=True).order_by('display_order', 'id')
+    all_cat_names = set(CourseCategory.objects.values_list('name', flat=True))
 
-    # Prepare categories dictionary
     categories_dict = {}
-    for cat_id, cat_info in CATEGORY_METADATA.items():
-        categories_dict[cat_id] = {
-            'id': cat_info['id'],
-            'name': cat_info['name'],
-            'icon': cat_info['icon'],
-            'description': cat_info['description'],
-            'duration': cat_info['duration'],
+    for cat in active_categories:
+        cat_key = cat.slug or str(cat.id)
+        categories_dict[cat_key] = {
+            'id': cat_key,
+            'pk': cat.pk,
+            'name': cat.name,
+            'icon': cat.icon or '💻',
+            'description': cat.description,
+            'duration': cat.duration,
             'subCourses': []
         }
 
     # Group database courses dynamically
+    db_courses = Course.objects.all().select_related('category_ref').order_by('created_at')
+
     for course in db_courses:
         image_url = course.image_url_or_default
 
-        if course.name in [c['name'] for c in CATEGORY_METADATA.values()]:
-            for c_id, c_data in CATEGORY_METADATA.items():
+        # Category cover placeholder course handling
+        if course.name in all_cat_names:
+            for c_id, c_data in categories_dict.items():
                 if c_data['name'] == course.name and image_url:
-                    categories_dict[c_id]['image_url'] = image_url
+                    c_data['image_url'] = image_url
             continue
 
-        cat_key = course.category if course.category in categories_dict else 'basic'
-        categories_dict[cat_key]['subCourses'].append({
-            'id': course.id,
-            'name': course.name,
-            'description': course.description or f"Professional {course.name} course program tailored with practical lab training and certification.",
-            'preview_description': course.clean_preview_description,
-            'duration': course.duration or categories_dict[cat_key]['duration'],
-            'fee': f"₹{course.fee:,.0f}" if course.fee else '',
-            'image_url': image_url,
-        })
+        cat_key = None
+        if course.category_ref and course.category_ref.slug in categories_dict:
+            cat_key = course.category_ref.slug
+        elif course.category and course.category in categories_dict:
+            cat_key = course.category
+
+        if cat_key:
+            categories_dict[cat_key]['subCourses'].append({
+                'id': course.id,
+                'name': course.name,
+                'description': course.description or f"Professional {course.name} course program tailored with practical lab training and certification.",
+                'preview_description': course.clean_preview_description,
+                'duration': course.duration or categories_dict[cat_key]['duration'],
+                'fee': f"₹{course.fee:,.0f}" if course.fee else '',
+                'image_url': image_url,
+            })
 
     courses_data_list = list(categories_dict.values())
 
@@ -104,12 +117,16 @@ def course_detail(request, pk=None, slug=None):
         course = get_object_or_404(Course, slug=slug)
 
     # Contextual related courses within same category for SEO internal linking
-    related_courses = Course.objects.filter(
-        category=course.category
-    ).exclude(pk=course.pk).order_by('name')[:4]
+    if course.category_ref:
+        cat_query = Q(category_ref=course.category_ref) | Q(category=course.category_ref.slug)
+    elif course.category:
+        cat_query = Q(category=course.category)
+    else:
+        cat_query = Q(pk=course.pk)
+
+    related_courses = Course.objects.filter(cat_query).exclude(pk=course.pk).order_by('name')[:4]
 
     return render(request, 'courses/course_detail.html', {
         'course': course,
         'related_courses': related_courses,
     })
-

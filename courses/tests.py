@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
 from django.core.files.uploadedfile import SimpleUploadedFile
-from courses.models import Course, CourseOffer
+from courses.models import Course, CourseOffer, CourseCategory
 from dashboard.forms import AdminCourseForm
 
 class CourseOfferTestCase(TestCase):
@@ -238,3 +238,165 @@ class CourseDescriptionAndDetailsTestCase(TestCase):
         self.assertIn('## Course Syllabus', sub['description'])
         self.assertEqual(sub['fee'], '₹8,500')
 
+
+
+class DynamicCourseCategoryTestCase(TestCase):
+    def setUp(self):
+        self.cat1 = CourseCategory.objects.create(
+            name="Cloud Computing",
+            slug="cloud-computing",
+            icon="☁️",
+            description="AWS, Azure and DevOps cloud engineering",
+            duration="6 Months",
+            display_order=10,
+            is_active=True
+        )
+
+    def test_new_category_appears_dynamically_in_user_panel(self):
+        """Newly created category should automatically appear in course_list without template changes."""
+        response = self.client.get(reverse('courses:course_list'))
+        self.assertEqual(response.status_code, 200)
+        courses_json = response.context['courses_json']
+        data = json.loads(courses_json)
+        cat_ids = [c['id'] for c in data]
+        self.assertIn('cloud-computing', cat_ids)
+
+        cloud_cat = next(c for c in data if c['id'] == 'cloud-computing')
+        self.assertEqual(cloud_cat['name'], 'Cloud Computing')
+        self.assertEqual(cloud_cat['icon'], '☁️')
+        self.assertEqual(cloud_cat['description'], 'AWS, Azure and DevOps cloud engineering')
+        self.assertEqual(len(cloud_cat['subCourses']), 0)
+
+    def test_subcourse_count_calculated_from_database(self):
+        """Adding sub-courses dynamically increases the sub-courses count for that category."""
+        Course.objects.create(
+            name="AWS Certified Solutions Architect",
+            category_ref=self.cat1,
+            duration="3 Months"
+        )
+        Course.objects.create(
+            name="Azure Cloud Fundamentals",
+            category_ref=self.cat1,
+            duration="2 Months"
+        )
+
+        response = self.client.get(reverse('courses:course_list'))
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.context['courses_json'])
+        cloud_cat = next(c for c in data if c['id'] == 'cloud-computing')
+        self.assertEqual(len(cloud_cat['subCourses']), 2)
+        sub_names = [s['name'] for s in cloud_cat['subCourses']]
+        self.assertIn("AWS Certified Solutions Architect", sub_names)
+        self.assertIn("Azure Cloud Fundamentals", sub_names)
+
+    def test_edit_category_updates_card_automatically(self):
+        """Editing category in admin/DB automatically updates the user panel card."""
+        self.cat1.name = "Cloud & DevOps Architecture"
+        self.cat1.icon = "⚡"
+        self.cat1.description = "Updated DevOps syllabus with Kubernetes"
+        self.cat1.save()
+
+        response = self.client.get(reverse('courses:course_list'))
+        data = json.loads(response.context['courses_json'])
+        cloud_cat = next(c for c in data if c['id'] == self.cat1.slug)
+        self.assertEqual(cloud_cat['name'], "Cloud & DevOps Architecture")
+        self.assertEqual(cloud_cat['icon'], "⚡")
+        self.assertEqual(cloud_cat['description'], "Updated DevOps syllabus with Kubernetes")
+
+    def test_deactivated_category_hidden_from_user_panel(self):
+        """Deactivating category removes its card from user panel without breaking courses."""
+        course = Course.objects.create(
+            name="DevOps CI/CD",
+            category_ref=self.cat1,
+            duration="1 Month"
+        )
+
+        self.cat1.is_active = False
+        self.cat1.save()
+
+        response = self.client.get(reverse('courses:course_list'))
+        data = json.loads(response.context['courses_json'])
+        cat_ids = [c['id'] for c in data]
+        self.assertNotIn('cloud-computing', cat_ids)
+
+        # Confirm course record still intact in database
+        course.refresh_from_db()
+        self.assertEqual(course.category_ref, self.cat1)
+
+    def test_deleted_category_preserves_courses_safely(self):
+        """Deleting a category unlinks category_ref without deleting the course."""
+        course = Course.objects.create(
+            name="Kubernetes Administration",
+            category_ref=self.cat1,
+            duration="2 Months"
+        )
+        course_id = course.id
+        self.cat1.delete()
+
+        # Course should still exist
+        course_after = Course.objects.get(id=course_id)
+        self.assertIsNone(course_after.category_ref)
+
+        # Category should no longer be in user panel
+        response = self.client.get(reverse('courses:course_list'))
+        data = json.loads(response.context['courses_json'])
+        cat_ids = [c['id'] for c in data]
+        self.assertNotIn('cloud-computing', cat_ids)
+
+    def test_category_ordering_by_display_order(self):
+        """Categories are displayed in order of display_order."""
+        cat_early = CourseCategory.objects.create(
+            name="Cyber Security",
+            slug="cyber-security",
+            display_order=0,
+            is_active=True
+        )
+        response = self.client.get(reverse('courses:course_list'))
+        data = json.loads(response.context['courses_json'])
+        self.assertEqual(data[0]['id'], 'cyber-security')
+
+    def test_admin_panel_crud_and_user_panel_appearance(self):
+        """Admin can create a category via Django admin, add sub-courses, and see it in user panel."""
+        from django.contrib.auth.models import User
+        admin_user = User.objects.create_superuser(username='admin_test', email='admin@test.com', password='password123')
+        self.client.login(username='admin_test', password='password123')
+
+        # 1. Admin adds a new category
+        response = self.client.post(reverse('admin:courses_coursecategory_add'), {
+            'name': 'Data Analytics',
+            'slug': 'data-analytics',
+            'icon': '📈',
+            'description': 'Advanced Data Analysis with Power BI, Excel & SQL',
+            'duration': '4 Months',
+            'display_order': 8,
+            'is_active': True,
+        }, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        new_cat = CourseCategory.objects.filter(slug='data-analytics').first()
+        self.assertIsNotNone(new_cat)
+        self.assertEqual(new_cat.name, 'Data Analytics')
+
+        # 2. Admin adds a course under this category
+        response = self.client.post(reverse('admin:courses_course_add'), {
+            'name': 'Power BI for Business Analytics',
+            'category_ref': new_cat.pk,
+            'description': 'Master Power BI dashboards and DAX',
+            'duration': '2 Months',
+            'fee': 6000,
+            'slug': 'power-bi-business-analytics',
+        }, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        # 3. User Panel automatically reflects this category card and sub-course
+        self.client.logout()
+        user_response = self.client.get(reverse('courses:course_list'))
+        self.assertEqual(user_response.status_code, 200)
+        data = json.loads(user_response.context['courses_json'])
+
+        matched_cat = next((c for c in data if c['id'] == 'data-analytics'), None)
+        self.assertIsNotNone(matched_cat)
+        self.assertEqual(matched_cat['name'], 'Data Analytics')
+        self.assertEqual(matched_cat['icon'], '📈')
+        self.assertEqual(len(matched_cat['subCourses']), 1)
+        self.assertEqual(matched_cat['subCourses'][0]['name'], 'Power BI for Business Analytics')

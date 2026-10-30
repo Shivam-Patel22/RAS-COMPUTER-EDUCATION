@@ -289,7 +289,7 @@ let currentActiveCategoryId = null;
 // Helper to safely set up category cards
 function createCategoryCard(cat, onClick) {
     const subCount = cat.subCourses ? cat.subCourses.length : 0;
-    const countLabel = subCount > 0 ? `${subCount} ${subCount === 1 ? 'Sub-Course' : 'Sub-Courses'}` : 'Direct Course';
+    const countLabel = `${subCount} ${subCount === 1 ? 'Sub-Course' : 'Sub-Courses'}`;
 
     const card = document.createElement('div');
     card.className = 'course-category-card';
@@ -316,7 +316,7 @@ function createCategoryCard(cat, onClick) {
 
     const desc = document.createElement('p');
     desc.className = 'category-desc';
-    desc.textContent = cat.description;
+    desc.textContent = cat.description || `Explore our comprehensive range of ${cat.name} courses and training programs.`;
 
     body.appendChild(title);
     body.appendChild(desc);
