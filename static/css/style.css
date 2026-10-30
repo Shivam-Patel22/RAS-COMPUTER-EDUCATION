@@ -762,6 +762,14 @@ textarea.form-control {
     vertical-align: middle;
 }
 
+.manage-certs-table td {
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.manage-certs-table tr:last-child td {
+    border-bottom: none;
+}
+
 .manage-certs-table .cert-actions-wrap {
     display: flex;
     flex-wrap: wrap;
@@ -1816,7 +1824,23 @@ textarea.form-control {
 
 [data-theme="dark"] .custom-table td {
     color: #f8fafc;
-    border-bottom-color: #3A3B3E;
+    border-bottom: 1px solid #4a4b4e;
+}
+
+[data-theme="dark"] .custom-table tr:last-child td {
+    border-bottom: none;
+}
+
+[data-theme="dark"] .custom-table tr:hover td {
+    background: #424347;
+}
+
+[data-theme="dark"] .manage-certs-table td {
+    border-bottom: 1px solid #4a4b4e;
+}
+
+[data-theme="dark"] .manage-certs-table tr:last-child td {
+    border-bottom: none;
 }
 
 /* CITI CCC Dedicated Admin Fields - Theme Support */

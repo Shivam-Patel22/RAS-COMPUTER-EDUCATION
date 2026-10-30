@@ -75,3 +75,20 @@ class ManageCertificatesTableTests(TestCase):
         self.assertIn('.manage-certs-table', css)
         self.assertIn('.cert-actions-wrap', css)
         self.assertIn('flex-wrap: wrap;', css)
+
+    def test_horizontal_separators_css_rules(self):
+        """CSS must define subtle horizontal dividers between rows and remove bottom border on last row."""
+        css_path = os.path.join(settings.BASE_DIR, 'static', 'css', 'style.css')
+        with open(css_path, 'r', encoding='utf-8') as f:
+            css = f.read()
+
+        # Check divider borders
+        self.assertIn('.manage-certs-table td', css)
+        self.assertIn('border-bottom: 1px solid var(--gray-200);', css)
+        self.assertIn('.manage-certs-table tr:last-child td', css)
+        self.assertIn('border-bottom: none;', css)
+
+        # Check dark theme divider borders
+        self.assertIn('[data-theme="dark"] .manage-certs-table td', css)
+        self.assertIn('border-bottom: 1px solid #4a4b4e;', css)
+        self.assertIn('[data-theme="dark"] .manage-certs-table tr:last-child td', css)
