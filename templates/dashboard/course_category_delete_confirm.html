@@ -1,0 +1,33 @@
+{% extends 'dashboard/admin_base.html' %}
+
+{% block title %}Confirm Category Delete | Admin Panel{% endblock %}
+
+{% block secondary_back_btn %}
+<a href="{% url 'dashboard:manage_course_categories' %}" class="admin-back-btn">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Back to Categories
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="form-card" style="max-width: 600px; margin: 0 auto; border-top: 5px solid var(--error);">
+        <h1 style="font-size: 1.5rem; color: var(--error); margin-bottom: 1rem;">Confirm Category Deletion</h1>
+        <p style="color: var(--gray-700); margin-bottom: 1.25rem; line-height: 1.6;">
+            Are you sure you want to delete the category <strong>"{{ category.name }}"</strong>?
+        </p>
+
+        <div style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--gray-600);">
+            ℹ️ <strong>Note:</strong> {% if assigned_courses_count > 0 %}{{ assigned_courses_count }} associated course(s) will NOT be deleted. They will remain safely in your database as uncategorized.{% else %}No courses are currently assigned to this category.{% endif %}
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div style="display: flex; gap: 1rem;">
+                <button type="submit" class="btn btn-danger" style="flex: 1;">Yes, Delete Category</button>
+                <a href="{% url 'dashboard:manage_course_categories' %}" class="btn btn-outline-dark">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

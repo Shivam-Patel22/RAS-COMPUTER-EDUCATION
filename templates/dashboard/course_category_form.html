@@ -1,0 +1,70 @@
+{% extends 'dashboard/admin_base.html' %}
+
+{% block title %}{{ title }} | Admin Panel{% endblock %}
+
+{% block secondary_back_btn %}
+<a href="{% url 'dashboard:manage_course_categories' %}" class="admin-back-btn">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Back to Categories
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="form-card" style="max-width: 650px; margin: 0 auto;">
+        <h1 style="font-size: 1.75rem; margin-bottom: 1.5rem; color: var(--gray-900);">{{ title }}</h1>
+
+        <form method="post" data-validate="true">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="{{ form.name.id_for_label }}">Category Name *</label>
+                {{ form.name }}
+                {% if form.name.errors %}<div class="form-error">{{ form.name.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="{{ form.icon.id_for_label }}">Icon / Emoji</label>
+                    {{ form.icon }}
+                    <small style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.25rem;">e.g. 💻, 📊, ⚙️, 🎓, 🏆, 🚀, 🧩, 🤖</small>
+                    {% if form.icon.errors %}<div class="form-error">{{ form.icon.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.display_order.id_for_label }}">Display Order</label>
+                    {{ form.display_order }}
+                    <small style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.25rem;">Lower numbers appear first (e.g. 1, 2, 3)</small>
+                    {% if form.display_order.errors %}<div class="form-error">{{ form.display_order.errors.0 }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.duration.id_for_label }}">Default Duration / Track</label>
+                {{ form.duration }}
+                <small style="color: var(--gray-500); font-size: 0.8rem; display: block; margin-top: 0.25rem;">e.g. 6 Months, Flexible, Career Track (optional)</small>
+                {% if form.duration.errors %}<div class="form-error">{{ form.duration.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.description.id_for_label }}">Description</label>
+                {{ form.description }}
+                {% if form.description.errors %}<div class="form-error">{{ form.description.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="form-group" style="display: flex; align-items: center; gap: 0.75rem; background: var(--gray-50); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--gray-200);">
+                {{ form.is_active }}
+                <label for="{{ form.is_active.id_for_label }}" style="margin: 0; cursor: pointer; font-weight: 600;">
+                    Active in User Panel (visible on website)
+                </label>
+            </div>
+            {% if form.is_active.errors %}<div class="form-error">{{ form.is_active.errors.0 }}</div>{% endif %}
+
+            <div style="display: flex; gap: 1rem; margin-top: 1.75rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Save Category</button>
+                <a href="{% url 'dashboard:manage_course_categories' %}" class="btn btn-outline-dark">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
