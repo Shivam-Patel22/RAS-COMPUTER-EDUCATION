@@ -964,6 +964,34 @@ textarea.form-control {
     flex-shrink: 0;
 }
 
+.footer-phone-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.footer-whatsapp-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.footer-whatsapp-link:hover {
+    transform: scale(1.15);
+    opacity: 0.95;
+}
+
+.footer-whatsapp-link svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
 .footer-bottom {
     max-width: 1200px;
     margin: 0 auto;

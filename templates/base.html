@@ -284,10 +284,18 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="contact-icon" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                             <span>{% if site_contact and site_contact.email %}{{ site_contact.email }}{% else %}contact@cdac.in{% endif %}</span>
                         </a>
-                        <a href="tel:{% if site_contact and site_contact.phone %}{{ site_contact.phone }}{% else %}+91 (020) 2570-4100{% endif %}" class="footer-contact-link" title="Call Us">
-                            <span class="contact-icon" aria-hidden="true">📞</span>
-                            <span>{% if site_contact and site_contact.phone %}{{ site_contact.phone }}{% else %}+91 (020) 2570-4100{% endif %}</span>
-                        </a>
+                        <span class="footer-phone-wrap">
+                            <a href="tel:{% if site_contact and site_contact.phone %}{{ site_contact.phone }}{% else %}+91 (020) 2570-4100{% endif %}" class="footer-contact-link" title="Call Us">
+                                <span class="contact-icon" aria-hidden="true">📞</span>
+                                <span>{% if site_contact and site_contact.phone %}{{ site_contact.phone }}{% else %}+91 (020) 2570-4100{% endif %}</span>
+                            </a>
+                            <a href="https://wa.me/919737044211" target="_blank" rel="noopener noreferrer" class="footer-whatsapp-link" title="Chat on WhatsApp" aria-label="Chat on WhatsApp with RAS Computer Education">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                    <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.04 14.69 2 12.04 2Z" fill="#25D366"/>
+                                    <path d="M17.36 14.37C17.07 14.22 15.65 13.52 15.39 13.42C15.12 13.33 14.93 13.28 14.73 13.57C14.54 13.86 13.99 14.51 13.82 14.7C13.65 14.89 13.48 14.92 13.19 14.77C12.9 14.63 11.97 14.32 10.87 13.34C10.01 12.57 9.43 11.63 9.26 11.34C9.09 11.05 9.24 10.89 9.39 10.75C9.52 10.62 9.68 10.41 9.83 10.24C9.97 10.07 10.02 9.95 10.12 9.76C10.22 9.56 10.17 9.39 10.1 9.24C10.02 9.1 9.44 7.68 9.2 7.1C8.97 6.54 8.73 6.61 8.56 6.6C8.4 6.59 8.21 6.59 8.01 6.59C7.82 6.59 7.51 6.66 7.24 6.95C6.98 7.24 6.23 7.94 6.23 9.37C6.23 10.8 7.27 12.18 7.42 12.37C7.56 12.57 9.46 15.5 12.37 16.75C13.06 17.05 13.6 17.23 14.02 17.36C14.71 17.58 15.34 17.55 15.84 17.48C16.39 17.4 17.54 16.78 17.78 16.1C18.02 15.42 18.02 14.84 17.95 14.72C17.88 14.6 17.65 14.52 17.36 14.37Z" fill="#FFFFFF"/>
+                                </svg>
+                            </a>
+                        </span>
                     </div>
                     {% if site_contact and site_contact.has_instagram or site_contact and site_contact.has_facebook %}
                     <div class="footer-contact-row footer-social-row">

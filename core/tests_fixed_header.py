@@ -57,3 +57,41 @@ class FixedHeaderTests(TestCase):
         with open(js_path, 'r', encoding='utf-8') as f:
             js = f.read()
         self.assertIn('site-header-fixed', js)
+
+
+class FooterWhatsAppIconTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+
+    def test_footer_whatsapp_icon_present_and_clickable(self):
+        """Verify WhatsApp icon is rendered beside phone number with correct wa.me link and green color."""
+        response = self.client.get(reverse('core:home'))
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+
+        # Check footer phone-whatsapp wrapper
+        self.assertIn('class="footer-phone-wrap"', content)
+
+        # Check WhatsApp link
+        self.assertIn('href="https://wa.me/919737044211"', content)
+        self.assertIn('class="footer-whatsapp-link"', content)
+        self.assertIn('target="_blank"', content)
+
+        # Check official WhatsApp green color #25D366 in SVG
+        self.assertIn('fill="#25D366"', content)
+
+        # Check alignment: phone link comes immediately before WhatsApp link inside footer-phone-wrap
+        phone_pos = content.find('tel:')
+        wa_pos = content.find('https://wa.me/919737044211')
+        self.assertTrue(phone_pos != -1 and wa_pos != -1)
+        self.assertLess(phone_pos, wa_pos)
+
+    def test_footer_whatsapp_css_rules(self):
+        """CSS must define .footer-phone-wrap and .footer-whatsapp-link."""
+        css_path = os.path.join(settings.BASE_DIR, 'static', 'css', 'style.css')
+        with open(css_path, 'r', encoding='utf-8') as f:
+            css = f.read()
+
+        self.assertIn('.footer-phone-wrap', css)
+        self.assertIn('.footer-whatsapp-link', css)
+        self.assertIn('display: inline-flex;', css)
