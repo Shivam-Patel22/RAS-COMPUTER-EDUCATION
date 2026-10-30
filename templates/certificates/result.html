@@ -263,6 +263,91 @@
         }
     }
 
+
+    /* Scoped Styles for Official Verification Details Card */
+    .ov-card {
+        max-width: 950px;
+        margin: 0 auto;
+        background: var(--card-bg, #ffffff);
+        border-radius: 12px;
+        border: 1px solid var(--gray-200, #e2e8f0);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        padding: 1.5rem 1.75rem;
+        box-sizing: border-box;
+    }
+
+    .ov-header {
+        margin-top: 0;
+        margin-bottom: 1.25rem;
+        font-size: 1.15rem;
+        color: var(--gray-900);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-bottom: 1px solid var(--gray-200, #e2e8f0);
+        padding-bottom: 0.75rem;
+    }
+
+    .ov-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1.75rem;
+        align-items: start;
+    }
+
+    .ov-col {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        min-width: 0;
+    }
+
+    .ov-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        min-width: 0;
+    }
+
+    .ov-label {
+        font-size: 0.75rem;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+        display: block;
+        line-height: 1.3;
+    }
+
+    .ov-value {
+        font-size: 0.95rem;
+        color: var(--gray-900);
+        line-height: 1.45;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+
+    .ov-code {
+        font-family: var(--font-mono, monospace);
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--primary, #2563eb);
+        word-break: break-all;
+        overflow-wrap: anywhere;
+        display: inline-block;
+        max-width: 100%;
+    }
+
+    @media (max-width: 768px) {
+        .ov-card {
+            padding: 1.25rem 1rem;
+        }
+        .ov-grid {
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+        }
+    }
+
 </style>
 {% endblock %}
 
@@ -362,61 +447,72 @@
 
 
     <!-- Official Verification Summary Card (Section 5) -->
-    <div style="max-width: 950px; margin: 0 auto; background: var(--card-bg, #ffffff); border-radius: 12px; border: 1px solid var(--gray-200, #e2e8f0); box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 1.5rem 1.75rem;">
-        <h3 style="margin-top: 0; margin-bottom: 1.25rem; font-size: 1.15rem; color: var(--gray-900); display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--gray-200, #e2e8f0); padding-bottom: 0.75rem;">
+    <div class="ov-card">
+        <h3 class="ov-header">
             <span>📋</span> Official Verification Details
         </h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem;">
-            <div>
-                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Verification Status</span>
-                {% if certificate.is_revoked %}
-                <span class="badge" style="background-color: #ef4444; color: #ffffff; font-size: 0.85rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 4px;">✕ Revoked</span>
-                {% else %}
-                <span class="badge badge-success" style="font-size: 0.85rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 4px;">✓ Valid & Active</span>
+        <div class="ov-grid">
+            <!-- Column 1: Verification Status, Course / Program, Grade Awarded -->
+            <div class="ov-col">
+                <div class="ov-item">
+                    <span class="ov-label">Verification Status</span>
+                    <div>
+                        {% if certificate.is_revoked %}
+                        <span class="badge" style="background-color: #ef4444; color: #ffffff; font-size: 0.85rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 4px;">✕ Revoked</span>
+                        {% else %}
+                        <span class="badge badge-success" style="font-size: 0.85rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 4px;">✓ Valid & Active</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="ov-item">
+                    <span class="ov-label">Course / Program</span>
+                    <strong class="ov-value">{{ certificate.course.name }}</strong>
+                </div>
+                {% if certificate.grade %}
+                <div class="ov-item">
+                    <span class="ov-label">Grade Awarded</span>
+                    <strong class="ov-value" style="color: var(--success, #16a34a);">{{ certificate.grade }}</strong>
+                </div>
                 {% endif %}
             </div>
-            <div>
-                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Certificate Holder</span>
-                <strong style="font-size: 0.95rem; color: var(--gray-900);">{{ certificate.student_name }}</strong>
+
+            <!-- Column 2: Certificate Holder, Issuing Institute -->
+            <div class="ov-col">
+                <div class="ov-item">
+                    <span class="ov-label">Certificate Holder</span>
+                    <strong class="ov-value">{{ certificate.student_name }}</strong>
+                </div>
+                <div class="ov-item">
+                    <span class="ov-label">Issuing Institute</span>
+                    <strong class="ov-value">{% if certificate.prefix == 'CITI' %}COMPUTER &amp; INDUSTRIAL TRAINING INSTITUTION{% else %}RAS Computer Education &amp; Spoken English{% endif %}</strong>
+                </div>
             </div>
-            <div>
-                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Certificate ID</span>
-                <code style="font-family: monospace; font-size: 0.92rem; font-weight: 700; color: var(--primary, #2563eb);">{{ certificate.certificate_id }}</code>
-            </div>
-            <div>
-                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Course / Program</span>
-                <strong style="font-size: 0.95rem; color: var(--gray-900);">{{ certificate.course.name }}</strong>
-            </div>
-            <div>
-                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Issuing Institute</span>
-                <strong style="font-size: 0.95rem; color: var(--gray-900);">{% if certificate.prefix == 'CITI' %}COMPUTER &amp; INDUSTRIAL TRAINING INSTITUTION{% else %}RAS Computer Education &amp; Spoken English{% endif %}</strong>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+
+            <!-- Column 3: Certificate ID, Start Date, End Date, Issue Date -->
+            <div class="ov-col">
+                <div class="ov-item">
+                    <span class="ov-label">Certificate ID</span>
+                    <div>
+                        <code class="ov-code">{{ certificate.certificate_id }}</code>
+                    </div>
+                </div>
                 {% if certificate.course_start_date %}
-                <div>
-                    <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Start Date</span>
-                    <strong style="font-size: 0.95rem; color: var(--gray-900);">{{ certificate.course_start_date|date:"F j, Y" }}</strong>
+                <div class="ov-item">
+                    <span class="ov-label">Start Date</span>
+                    <strong class="ov-value">{{ certificate.course_start_date|date:"F j, Y" }}</strong>
                 </div>
                 {% endif %}
                 {% if certificate.course_end_date %}
-                <div>
-                    <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">End Date</span>
-                    <strong style="font-size: 0.95rem; color: var(--gray-900);">{{ certificate.course_end_date|date:"F j, Y" }}</strong>
+                <div class="ov-item">
+                    <span class="ov-label">End Date</span>
+                    <strong class="ov-value">{{ certificate.course_end_date|date:"F j, Y" }}</strong>
                 </div>
                 {% endif %}
-                <div>
-                    <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Issue Date</span>
-                    <strong style="font-size: 0.95rem; color: var(--gray-900);">{{ certificate.issue_date|date:"F j, Y" }}</strong>
+                <div class="ov-item">
+                    <span class="ov-label">Issue Date</span>
+                    <strong class="ov-value">{{ certificate.issue_date|date:"F j, Y" }}</strong>
                 </div>
             </div>
-
-            {% if certificate.grade %}
-            <div>
-                <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">Grade Awarded</span>
-                <strong style="font-size: 0.95rem; color: var(--success, #16a34a);">{{ certificate.grade }}</strong>
-            </div>
-            {% endif %}
-
         </div>
     </div>
 
