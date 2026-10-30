@@ -433,7 +433,17 @@ def toggle_course_featured(request, pk):
 
 @staff_required
 def manage_course_categories(request):
-    categories = CourseCategory.objects.all().order_by('display_order', 'id')
+    try:
+        categories = list(CourseCategory.objects.all().order_by('display_order', 'id'))
+    except Exception:
+        try:
+            categories = list(CourseCategory.objects.all().order_by('name'))
+        except Exception:
+            try:
+                categories = list(CourseCategory.objects.all())
+            except Exception:
+                categories = []
+
     return render(request, 'dashboard/manage_course_categories.html', {
         'categories': categories,
     })

@@ -56,25 +56,42 @@ CATEGORY_METADATA = {
 }
 
 def course_list(request):
-    # Fetch all active categories dynamically from the database
-    active_categories = CourseCategory.objects.filter(is_active=True).order_by('display_order', 'id')
-    all_cat_names = set(CourseCategory.objects.values_list('name', flat=True))
+    # Fetch all active categories dynamically with fallback if unmigrated
+    try:
+        active_categories = list(CourseCategory.objects.filter(is_active=True).order_by('display_order', 'id'))
+    except Exception:
+        try:
+            active_categories = list(CourseCategory.objects.all().order_by('name'))
+        except Exception:
+            try:
+                active_categories = list(CourseCategory.objects.all())
+            except Exception:
+                active_categories = []
+
+    try:
+        all_cat_names = set(CourseCategory.objects.values_list('name', flat=True))
+    except Exception:
+        all_cat_names = set()
 
     categories_dict = {}
     for cat in active_categories:
-        cat_key = cat.slug or str(cat.id)
+        cat_key = getattr(cat, 'slug', None) or str(cat.id)
         categories_dict[cat_key] = {
             'id': cat_key,
             'pk': cat.pk,
             'name': cat.name,
-            'icon': cat.icon or '💻',
-            'description': cat.description,
-            'duration': cat.duration,
+            'icon': getattr(cat, 'icon', None) or '💻',
+            'description': getattr(cat, 'description', '') or '',
+            'duration': getattr(cat, 'duration', '') or '',
             'subCourses': []
         }
 
     # Group database courses dynamically
-    db_courses = Course.objects.all().select_related('category_ref').order_by('created_at')
+    try:
+        db_courses = Course.objects.all().select_related('category_ref').order_by('created_at')
+        list(db_courses)
+    except Exception:
+        db_courses = Course.objects.all().order_by('created_at')
 
     for course in db_courses:
         image_url = course.image_url_or_default
@@ -87,7 +104,7 @@ def course_list(request):
             continue
 
         cat_key = None
-        if course.category_ref and course.category_ref.slug in categories_dict:
+        if hasattr(course, 'category_ref') and course.category_ref and course.category_ref.slug in categories_dict:
             cat_key = course.category_ref.slug
         elif course.category and course.category in categories_dict:
             cat_key = course.category

@@ -1,4 +1,3 @@
-
 ---
 deployment:
   tasks:
@@ -21,6 +20,7 @@ deployment:
     - /bin/mkdir -p "$BACKUP/computer_class_site"
     - /bin/cp -Rp "$DEST/templates" "$DEST/accounts" "$DEST/certificates" "$DEST/core" "$DEST/courses" "$DEST/dashboard" "$DEST/static" "$BACKUP/"
     - /bin/cp -p "$DEST/computer_class_site/urls.py" "$BACKUP/computer_class_site/urls.py"
+    - /bin/cp -p "$DEST/passenger_wsgi.py" "$BACKUP/passenger_wsgi.py" 2>/dev/null || true
 
     # Deploy templates and application modules
     - /bin/cp -Rp "$SRC/templates/." "$DEST/templates/"
@@ -30,9 +30,18 @@ deployment:
     - /bin/cp -Rp "$SRC/courses/." "$DEST/courses/"
     - /bin/cp -Rp "$SRC/dashboard/." "$DEST/dashboard/"
     - /bin/cp -p "$SRC/computer_class_site/urls.py" "$DEST/computer_class_site/urls.py"
+    - /bin/cp -p "$SRC/passenger_wsgi.py" "$DEST/passenger_wsgi.py"
+    - /bin/cp -p "$SRC/passanger_wsgi.py" "$DEST/passanger_wsgi.py" 2>/dev/null || true
 
     # Deploy static assets
     - /bin/cp -Rp "$SRC/static/." "$DEST/static/"
 
+    # Run database migrations
+    - /home/faesgvfk/virtualenv/cdac-class-website/3.12/bin/python "$DEST/manage.py" migrate --noinput
+
     # Collect static files
     - /home/faesgvfk/virtualenv/cdac-class-website/3.12/bin/python "$DEST/manage.py" collectstatic --noinput
+
+    # Restart application
+    - /bin/mkdir -p "$DEST/tmp"
+    - /bin/touch "$DEST/tmp/restart.txt"

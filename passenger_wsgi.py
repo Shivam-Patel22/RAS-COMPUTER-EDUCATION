@@ -11,4 +11,12 @@ os.environ.setdefault(
 
 from django.core.wsgi import get_wsgi_application
 
+try:
+    import django
+    django.setup()
+    from django.core.management import call_command
+    call_command('migrate', interactive=False)
+except Exception:
+    pass
+
 application = get_wsgi_application()

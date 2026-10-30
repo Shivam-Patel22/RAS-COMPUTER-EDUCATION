@@ -36,13 +36,22 @@ class CourseCategory(models.Model):
 
     @property
     def subcourses_count(self):
-        return self.get_subcourses().count()
+        try:
+            return self.get_subcourses().count()
+        except Exception:
+            return 0
 
     def get_subcourses(self):
-        all_cat_names = set(CourseCategory.objects.values_list('name', flat=True))
-        return Course.objects.filter(
-            models.Q(category_ref=self) | models.Q(category=self.slug)
-        ).exclude(name__in=all_cat_names)
+        try:
+            all_cat_names = set(CourseCategory.objects.values_list('name', flat=True))
+            return Course.objects.filter(
+                models.Q(category_ref=self) | models.Q(category=self.slug)
+            ).exclude(name__in=all_cat_names)
+        except Exception:
+            try:
+                return Course.objects.filter(category=self.slug)
+            except Exception:
+                return Course.objects.none()
 
 
 class Course(models.Model):
