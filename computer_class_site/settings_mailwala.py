@@ -354,15 +354,6 @@ LOGGING = {
             "formatter": "security_format",
             "encoding": "utf-8",
         },
-        "error_file": {
-            "level": "ERROR",
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": LOGS_DIR / "django_error.log",
-            "maxBytes": 5 * 1024 * 1024,
-            "backupCount": 5,
-            "formatter": "verbose",
-            "encoding": "utf-8",
-        },
     },
     "loggers": {
         "admin_security": {
@@ -373,16 +364,6 @@ LOGGING = {
         "axes": {
             "handlers": ["console", "security_file"],
             "level": "INFO",
-            "propagate": False,
-        },
-        "django.request": {
-            "handlers": ["console", "error_file"],
-            "level": "ERROR",
-            "propagate": False,
-        },
-        "django": {
-            "handlers": ["console", "error_file"],
-            "level": "ERROR",
             "propagate": False,
         },
     },

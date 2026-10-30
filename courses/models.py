@@ -2,34 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-
-class CourseCategory(models.Model):
-    name = models.CharField(max_length=100, unique=True, help_text="Category name, e.g. Basic, Programming, Accounting")
-    slug = models.SlugField(max_length=120, unique=True, blank=True)
-    description = models.TextField(blank=True, default='')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name = 'Course Category'
-        verbose_name_plural = 'Course Categories'
-        ordering = ['name']
-
-    def __str__(self):
-        return self.name
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            from django.utils.text import slugify
-            base_slug = slugify(self.name) or 'category'
-            candidate = base_slug
-            idx = 1
-            while CourseCategory.objects.filter(slug=candidate).exclude(pk=self.pk).exists():
-                candidate = f"{base_slug}-{idx}"
-                idx += 1
-            self.slug = candidate
-        super().save(*args, **kwargs)
-
-
 class Course(models.Model):
     CATEGORY_CHOICES = [
         ('basic', 'Basic'),
@@ -44,18 +16,9 @@ class Course(models.Model):
     name = models.CharField(max_length=200)
     category = models.CharField(
         max_length=100,
+        choices=CATEGORY_CHOICES,
         default='basic',
-        blank=True,
-        null=True,
         help_text="Select the main Course Category"
-    )
-    category_ref = models.ForeignKey(
-        CourseCategory,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='courses',
-        help_text="Assigned Course Category"
     )
     description = models.TextField()
     duration = models.CharField(max_length=50)
@@ -66,16 +29,6 @@ class Course(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        if self.category_ref:
-            self.category = self.category_ref.slug
-        elif self.category:
-            cat = CourseCategory.objects.filter(
-                models.Q(slug=self.category) | models.Q(name__iexact=self.category)
-            ).first()
-            if cat:
-                self.category_ref = cat
-                self.category = cat.slug
-
         if not self.slug:
             from .utils import generate_course_slug
             base_slug = generate_course_slug(self.name)
@@ -95,21 +48,6 @@ class Course(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.get_category_display()})"
-
-    def get_category_display(self):
-        if self.category_ref:
-            return self.category_ref.name
-        choices_dict = dict(self.CATEGORY_CHOICES)
-        if self.category in choices_dict:
-            return choices_dict[self.category]
-        if self.category:
-            cat = CourseCategory.objects.filter(
-                models.Q(slug=self.category) | models.Q(name__iexact=self.category)
-            ).first()
-            if cat:
-                return cat.name
-            return self.category.replace('-', ' ').title()
-        return "Uncategorized"
 
     @property
     def image_url_or_default(self):

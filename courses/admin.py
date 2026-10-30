@@ -1,16 +1,9 @@
 from django.contrib import admin
-from .models import Course, CourseOffer, CourseCategory
-
-@admin.register(CourseCategory)
-class CourseCategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug', 'created_at')
-    search_fields = ('name', 'description')
-    prepopulated_fields = {'slug': ('name',)}
-
+from .models import Course, CourseOffer
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'category_ref', 'duration', 'fee', 'is_featured', 'created_at')
+    list_display = ('name', 'category', 'duration', 'fee', 'is_featured', 'created_at')
     search_fields = ('name', 'description')
     list_filter = ('category', 'is_featured', 'created_at')
     list_editable = ('category', 'is_featured')
