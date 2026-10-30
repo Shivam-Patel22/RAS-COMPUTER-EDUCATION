@@ -750,6 +750,58 @@ textarea.form-control {
     display: inline-block;
 }
 
+/* Manage Certificates Table Responsive Sizing & Overflow Prevention */
+.manage-certs-table {
+    width: 100%;
+    table-layout: auto;
+}
+
+.manage-certs-table th,
+.manage-certs-table td {
+    padding: 0.65rem 0.5rem;
+    vertical-align: middle;
+}
+
+.manage-certs-table .cert-actions-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.manage-certs-table .cert-actions-wrap .btn-sm {
+    min-height: unset;
+    line-height: 1.3;
+}
+
+@media (max-width: 992px) {
+    .manage-certs-table th,
+    .manage-certs-table td {
+        padding: 0.55rem 0.35rem;
+        font-size: 0.82rem;
+    }
+    .manage-certs-table .cert-id-code {
+        font-size: 0.76rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .manage-certs-table th,
+    .manage-certs-table td {
+        padding: 0.45rem 0.25rem;
+        font-size: 0.78rem;
+    }
+    .manage-certs-table .cert-id-code {
+        font-size: 0.72rem;
+        padding: 0.15rem 0.25rem;
+    }
+    .manage-certs-table .cert-actions-wrap .btn-sm {
+        padding: 0.15rem 0.35rem;
+        font-size: 0.72rem;
+    }
+}
+
 /* Badges */
 .badge {
     display: inline-block;

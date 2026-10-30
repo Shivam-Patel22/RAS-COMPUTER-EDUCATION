@@ -65,52 +65,44 @@
 
     {% if certificates %}
     <div class="table-container animate__animated animate__fadeInUp anim-delay-1">
-        <table class="custom-table">
+        <table class="custom-table manage-certs-table">
             <thead>
                 <tr>
-                    <th style="white-space: nowrap; padding-left: 0.85rem;">Certificate ID</th>
-                    <th style="white-space: nowrap;">Student Name</th>
-                    <th style="white-space: nowrap;">Linked Account</th>
-                    <th>Course</th>
-                    <th style="white-space: nowrap;">Issue Date</th>
-                    <th style="white-space: nowrap;">Grade</th>
-                    <th style="white-space: nowrap; text-align: right; padding-right: 0.85rem;">Actions</th>
+                    <th style="padding-left: 0.85rem; width: 22%;">Certificate ID</th>
+                    <th style="width: 18%;">Student Name</th>
+                    <th style="width: 22%;">Course</th>
+                    <th style="width: 12%; white-space: nowrap;">Issue Date</th>
+                    <th style="width: 6%; text-align: center; white-space: nowrap;">Grade</th>
+                    <th style="width: 20%; text-align: right; padding-right: 0.85rem; white-space: nowrap;">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for cert in certificates %}
                 <tr>
-                    <td style="white-space: nowrap; padding-left: 0.85rem;">
-                        <code class="cert-id-code">{{ cert.certificate_id }}</code>
+                    <td style="padding-left: 0.85rem;">
+                        <code class="cert-id-code" style="font-size: 0.8rem; word-break: break-all;">{{ cert.certificate_id }}</code>
                         {% if cert.prefix == 'CITI' and cert.registration_number %}
                             <div style="font-size: 0.72rem; color: var(--gray-500); font-family: monospace; margin-top: 2px;">{{ cert.registration_number }}</div>
                         {% endif %}
                     </td>
-                    <td style="white-space: nowrap; font-size: 0.88rem;"><strong>{{ cert.student_name }}</strong></td>
-                    <td style="white-space: nowrap; font-size: 0.82rem;">
-                        {% if cert.student %}
-                            <span class="badge badge-primary" style="white-space: nowrap; display: inline-block; font-size: 0.78rem;">👤 {{ cert.student.email }}</span>
-                        {% else %}
-                            <span style="color: var(--gray-400); font-style: italic;">Unlinked</span>
-                        {% endif %}
-                    </td>
-                    <td style="font-size: 0.88rem; line-height: 1.35;">{{ cert.course.name }}</td>
+                    <td style="font-size: 0.88rem; word-break: break-word;"><strong>{{ cert.student_name }}</strong></td>
+                    <td style="font-size: 0.88rem; line-height: 1.35; word-break: break-word;">{{ cert.course.name }}</td>
                     <td style="white-space: nowrap; font-size: 0.85rem;">{{ cert.issue_date|date:"Y-m-d" }}</td>
-                    <td style="white-space: nowrap;">
+                    <td style="text-align: center; white-space: nowrap;">
                         {% if cert.grade %}<span class="badge badge-success" style="white-space: nowrap; display: inline-block; font-size: 0.78rem;">{{ cert.grade }}</span>{% else %}—{% endif %}
                     </td>
-                    <td style="white-space: nowrap; text-align: right; padding-right: 0.85rem;">
-                        <div style="display: inline-flex; gap: 0.25rem; align-items: center; justify-content: flex-end; white-space: nowrap;">
+                    <td style="text-align: right; padding-right: 0.85rem;">
+                        <div class="cert-actions-wrap" style="display: flex; flex-wrap: wrap; gap: 0.25rem; align-items: center; justify-content: flex-end;">
                             {% if cert.prefix == 'CITI' %}
-                            <a href="{% url 'dashboard:download_citi_bundle' cert.id %}" class="btn btn-primary btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.78rem;" title="Download Certificate + Marksheet in 1 Click">📦 Cert + Marksheet</a>
-                            <a href="{% url 'dashboard:print_citi_marksheet' cert.id %}" target="_blank" class="btn btn-outline-dark btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.78rem;" title="View CCC Marksheet">📊 Marksheet</a>
+                            <a href="{% url 'dashboard:download_citi_bundle' cert.id %}" class="btn btn-primary btn-sm" style="padding: 0.2rem 0.45rem; font-size: 0.76rem; white-space: nowrap;" title="Download Certificate + Marksheet in 1 Click">📦 Cert + Marksheet</a>
+                            <a href="{% url 'dashboard:print_citi_marksheet' cert.id %}" target="_blank" class="btn btn-outline-dark btn-sm" style="padding: 0.2rem 0.45rem; font-size: 0.76rem; white-space: nowrap;" title="View CCC Marksheet">📊 Marksheet</a>
                             {% endif %}
-                            <a href="{% url 'dashboard:print_certificate' cert.id %}" target="_blank" class="btn btn-outline-dark btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.78rem;" title="Print Certificate">🖨️ Print</a>
-                            <a href="{% url 'dashboard:edit_certificate' cert.id %}" class="btn btn-outline-dark btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.78rem;">Edit</a>
+                            <a href="{% url 'dashboard:print_certificate' cert.id %}" target="_blank" class="btn btn-outline-dark btn-sm" style="padding: 0.2rem 0.45rem; font-size: 0.76rem; white-space: nowrap;" title="Print Certificate">🖨️ Print</a>
+                            <a href="{% url 'dashboard:edit_certificate' cert.id %}" class="btn btn-outline-dark btn-sm" style="padding: 0.2rem 0.45rem; font-size: 0.76rem; white-space: nowrap;">Edit</a>
                             {% if cert.is_revoked %}
-                            <span class="badge" style="background-color: #ef4444; color: #ffffff; font-size: 0.75rem; padding: 0.25rem 0.55rem; border-radius: 4px;" title="Revoked on {{ cert.revoked_at|date:'Y-m-d' }}">Revoked</span>
+                            <span class="badge" style="background-color: #ef4444; color: #ffffff; font-size: 0.75rem; padding: 0.2rem 0.45rem; border-radius: 4px; white-space: nowrap;" title="Revoked on {{ cert.revoked_at|date:'Y-m-d' }}">Revoked</span>
                             {% else %}
-                            <a href="{% url 'dashboard:revoke_certificate' cert.id %}" class="btn btn-danger btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.78rem;">Revoke</a>
+                            <a href="{% url 'dashboard:revoke_certificate' cert.id %}" class="btn btn-danger btn-sm" style="padding: 0.2rem 0.45rem; font-size: 0.76rem; white-space: nowrap;">Revoke</a>
                             {% endif %}
                         </div>
                     </td>
