@@ -1206,7 +1206,8 @@ def generate_citi_marksheet_pdf(cert):
     ]
 
     col_widths = [249, 62, 62, 63, 63]  # Total: 499 pt
-    t = Table(table_data, colWidths=col_widths)
+    row_heights = [22, 20, 95, 24]  # Increased vertical height for subject row
+    t = Table(table_data, colWidths=col_widths, rowHeights=row_heights)
     t.setStyle(TableStyle([
         ('SPAN', (0, 0), (0, 1)),   # Subject title across row 0 & 1
         ('SPAN', (1, 0), (2, 0)),   # Max. Marks across col 1 & 2
@@ -1223,21 +1224,18 @@ def generate_citi_marksheet_pdf(cert):
         ('ALIGN', (1, 2), (-1, 3), 'CENTER'),
         ('TOPPADDING', (0, 0), (-1, -1), 4),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-        ('LEFTPADDING', (0, 0), (-1, -1), 4),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+        ('LEFTPADDING', (0, 0), (-1, -1), 5),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 5),
+        ('TOPPADDING', (0, 2), (-1, 2), 12),
+        ('BOTTOMPADDING', (0, 2), (-1, 2), 12),
     ]))
 
     w_t, h_t = t.wrapOn(c, usable_w, height)
     t_y = 620 - h_t
     t.drawOn(c, left_m, t_y)
 
-    # 5. G.R. line and Registration No.
-    gr_y = t_y - 20
-    c.setFont('Helvetica', 8.5)
-    c.drawString(left_m, gr_y, "Above Course contents are as per Govt. of Gujarat's")
-    c.drawString(left_m, gr_y - 12, "G.R. No.: CRR-10-2007-120320-G5, Dated: 13/08/08")
-
-    reg_y = gr_y - 32
+    # 5. Registration No. (G.R. line removed as requested)
+    reg_y = t_y - 22
     c.setFont('Helvetica-Bold', 10)
     reg_no = cert.certificate_id or cert.registration_number
     c.drawString(left_m, reg_y, f"Student's Registration No.: {reg_no}")
@@ -1298,8 +1296,8 @@ def generate_citi_marksheet_pdf(cert):
     sum_draw_y = side_y - h_sum
     t_summary.drawOn(c, right_x, sum_draw_y)
 
-    # Authorized Signatory on Right
-    sig_y = leg_draw_y + 12
+    # Authorized Signatory inside the gray decorative area on the right
+    sig_y = 142
     c.setFont('Helvetica-Bold', 10)
     c.drawCentredString(right_x + 102, sig_y, "Authorized Signatory")
 
