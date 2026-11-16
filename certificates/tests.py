@@ -1776,6 +1776,7 @@ class SpokenEnglishCertificateTests(TestCase):
         self.client.force_login(self.user)
         resp = self.client.get(f'/cdac-admin/certificates/{cert.pk}/print/')
         self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'ras_spoken_english_template')
         self.assertContains(resp, 'RAS Spoken English copy')
         self.assertContains(resp, 'alt="RAS Spoken English Certificate Background Template"')
         self.assertContains(resp, 'RAHUL KUMAR')

@@ -677,6 +677,19 @@
                 print-color-adjust: exact !important;
             }
 
+            .ras-bg-template {
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                object-fit: fill !important;
+                display: block !important;
+                z-index: 1 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
             .ras-student-name {
                 font-size: 18pt !important;
             }
@@ -972,7 +985,14 @@
     <div class="printable-certificate-container ras-mode-container">
         <div class="ras-certificate-card">
             <!-- Uploaded Background Template -->
-            <img src="{% static 'images/RAS Spoken English copy.jpg.jpeg' %}" alt="RAS Spoken English Certificate Background Template" class="ras-bg-template">
+            <img src="{% static 'certificates/ras_spoken_english_template.jpg' %}"
+                 data-fallback="{% static 'images/RAS Spoken English copy.jpg.jpeg' %}"
+                 alt="RAS Spoken English Certificate Background Template"
+                 class="ras-bg-template"
+                 loading="eager"
+                 decoding="sync"
+                 fetchpriority="high"
+                 onerror="if(!this.dataset.tried){this.dataset.tried='1';if(this.dataset.fallback){this.src=this.dataset.fallback;}}">
 
             <!-- Dynamic Field Overlays -->
             <!-- 1. Student Name: x 65.25%, y 39.5% -->
@@ -1321,12 +1341,73 @@
             document.title = originalDocTitle;
         });
 
-        // Auto trigger window.print() after layout finishes
-        window.addEventListener('load', () => {
+        // Ensure background template image is fully loaded and decoded before triggering window.print()
+        function triggerPrintWhenReady() {
+            const bgImg = document.querySelector('.ras-bg-template, .citi-bg-template, .ccc-bg-template');
+
+            function safePrint() {
+                // Yield to ensure the decoded bitmap has painted to the DOM
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        window.print();
+                    }, 250);
+                });
+            }
+
+            if (!bgImg) {
+                safePrint();
+                return;
+            }
+
+            // If image is already loaded and decoded
+            if (bgImg.complete && bgImg.naturalWidth > 0) {
+                if (typeof bgImg.decode === 'function') {
+                    bgImg.decode().then(safePrint).catch(safePrint);
+                } else {
+                    safePrint();
+                }
+                return;
+            }
+
+            let printed = false;
+            function onImageReady() {
+                if (printed) return;
+                printed = true;
+                if (typeof bgImg.decode === 'function') {
+                    bgImg.decode().then(safePrint).catch(safePrint);
+                } else {
+                    safePrint();
+                }
+            }
+
+            bgImg.addEventListener('load', onImageReady, { once: true });
+            bgImg.addEventListener('error', () => {
+                if (bgImg.dataset.fallback && !bgImg.dataset.tried) {
+                    bgImg.dataset.tried = '1';
+                    bgImg.src = bgImg.dataset.fallback;
+                    bgImg.addEventListener('load', onImageReady, { once: true });
+                    bgImg.addEventListener('error', () => {
+                        if (!printed) { printed = true; safePrint(); }
+                    }, { once: true });
+                } else {
+                    if (!printed) { printed = true; safePrint(); }
+                }
+            }, { once: true });
+
+            // Safety timeout: never hang the page indefinitely
             setTimeout(() => {
-                window.print();
-            }, 300);
-        });
+                if (!printed) {
+                    printed = true;
+                    safePrint();
+                }
+            }, 2500);
+        }
+
+        if (document.readyState === 'complete') {
+            triggerPrintWhenReady();
+        } else {
+            window.addEventListener('load', triggerPrintWhenReady);
+        }
     </script>
 
 </body>

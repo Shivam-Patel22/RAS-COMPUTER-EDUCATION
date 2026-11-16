@@ -801,6 +801,8 @@ def generate_ras_spoken_english_certificate_pdf(cert, request=None):
     c = canvas.Canvas(buf, pagesize=(page_w, page_h))
 
     template_candidates = [
+        os.path.join(settings.BASE_DIR, 'static', 'certificates', 'ras_spoken_english_template.jpg'),
+        os.path.join(settings.BASE_DIR, 'static', 'images', 'ras_spoken_english_template.jpg'),
         os.path.join(settings.BASE_DIR, 'static', 'images', 'RAS Spoken English copy.jpg.jpeg'),
         os.path.join(settings.BASE_DIR, 'static', 'certificates', 'RAS Spoken English copy.jpg.jpeg'),
     ]
