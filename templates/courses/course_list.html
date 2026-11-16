@@ -580,16 +580,21 @@ function openCourseDetailModal(courseTitle, categoryName, duration, description,
 
     // Extract dynamic topic / module chips if present, else fallback
     modalTopicsContainer.innerHTML = '';
+    const cleanTitle = (courseTitle || '').trim().toLowerCase();
+    const isCcc = cleanTitle === 'ccc' || cleanTitle.includes('course on computer concepts') || cleanTitle.includes('(ccc)');
+    const certPreparationLabel = isCcc ? 'CITI Certification Preparation' : 'RAS Certification Preparation';
+
     const moduleMatches = fullContent.match(/\*\*Module\s+\d+:[^*]+\*\*/gi);
     let topics = [];
     if (moduleMatches && moduleMatches.length > 0) {
-        topics = moduleMatches.slice(0, 6).map(m => m.replace(/\*\*/g, '').trim());
+        topics = moduleMatches.slice(0, 5).map(m => m.replace(/\*\*/g, '').trim());
+        topics.push(certPreparationLabel);
     } else {
         topics = [
             `Hands-on ${courseTitle} Practicals`,
             `Core ${categoryName} Concepts`,
             'Lab Exercises & Assignments',
-            'C-DAC Certification Preparation'
+            certPreparationLabel
         ];
     }
     topics.forEach(topic => {

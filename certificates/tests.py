@@ -516,7 +516,9 @@ class CertificatesTestCase(TestCase):
         self.assertContains(response, 'A+')
         self.assertNotContains(response, 'ras-certificate-card')
         self.assertNotContains(response, 'ras_template.jpg')
-        self.assertContains(response, '📥 Download PDF')
+        self.assertNotContains(response, '📥 Download PDF')
+        self.assertNotContains(response, 'Verify Another Certificate')
+        self.assertNotContains(response, 'Print / Save Certificate')
 
         # Test direct PDF download endpoint
         dl_url = reverse('certificates:download_certificate_pdf', kwargs={'certificate_id': ras_cert.certificate_id})

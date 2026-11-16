@@ -138,7 +138,7 @@ class QRCodeCertificateVerificationTests(TestCase):
         self.assertContains(scan_resp, 'CERTIFICATE REVOKED')
         self.assertContains(scan_resp, 'REVOKED')
         self.assertContains(scan_resp, 'Revocation Notice')
-        self.assertContains(scan_resp, 'Download PDF Disabled (Revoked)')
+        self.assertNotContains(scan_resp, 'Download PDF')
         self.assertNotContains(scan_resp, 'VERIFIED AUTHENTIC CERTIFICATE')
 
         # Public PDF download must return 403 Forbidden

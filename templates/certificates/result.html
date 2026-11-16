@@ -516,15 +516,7 @@
         </div>
     </div>
 
-    <div class="no-print animate__animated animate__fadeInUp anim-delay-1" style="text-align: center; margin-top: 2.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-        <a href="{% url 'certificates:verify' %}" class="btn btn-outline-dark">&larr; Verify Another Certificate</a>
-        {% if certificate.is_revoked %}
-        <span class="btn btn-outline-danger" style="opacity: 0.6; cursor: not-allowed; display: inline-flex; align-items: center; gap: 0.4rem;" title="Revoked certificates cannot be downloaded">🚫 Download PDF Disabled (Revoked)</span>
-        {% else %}
-        <a href="{% url 'certificates:download_certificate_pdf' certificate.certificate_id %}" class="btn btn-success" style="display: inline-flex; align-items: center; gap: 0.4rem;">📥 Download PDF</a>
-        <button onclick="window.print();" class="btn btn-primary">🖨️ Print / Save Certificate</button>
-        {% endif %}
-    </div>
+
 </div>
 {% endblock %}
 

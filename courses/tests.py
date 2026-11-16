@@ -400,3 +400,18 @@ class DynamicCourseCategoryTestCase(TestCase):
         self.assertEqual(matched_cat['icon'], '📈')
         self.assertEqual(len(matched_cat['subCourses']), 1)
         self.assertEqual(matched_cat['subCourses'][0]['name'], 'Power BI for Business Analytics')
+
+
+class CourseCertificationPreparationLabelTests(TestCase):
+    def test_course_list_certification_labels(self):
+        """Verify that course_list template replaces C-DAC with CITI for CCC and RAS for others."""
+        response = self.client.get(reverse('courses:course_list'))
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode('utf-8')
+
+        # C-DAC Certification Preparation must no longer appear anywhere
+        self.assertNotIn('C-DAC Certification Preparation', html)
+        # CITI Certification Preparation must appear for CCC courses
+        self.assertIn('CITI Certification Preparation', html)
+        # RAS Certification Preparation must appear for other courses
+        self.assertIn('RAS Certification Preparation', html)
