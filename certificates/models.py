@@ -168,6 +168,18 @@ class Certificate(models.Model):
         )
 
     @property
+    def is_spoken_english(self):
+        """Returns True if the certificate belongs to Spoken English Course."""
+        if not getattr(self, 'course', None):
+            return False
+        course_name = (getattr(self.course, 'name', None) or str(self.course) or '').strip().lower()
+        return (
+            'spoken english' in course_name or
+            course_name == 'english speaking' or
+            ('english' in course_name and ('spoken' in course_name or 'speaking' in course_name))
+        )
+
+    @property
     def prefix(self):
         """Returns the certificate prefix (RAS, CITI, etc.) from certificate_id."""
         if self.certificate_id and '-' in self.certificate_id:

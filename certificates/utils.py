@@ -537,6 +537,22 @@ def is_ras_certificate(cert):
     return False
 
 
+def is_spoken_english_certificate(cert):
+    """
+    Checks whether a certificate is for the Spoken English program.
+    """
+    if hasattr(cert, 'is_spoken_english'):
+        return bool(cert.is_spoken_english)
+    if not cert or not getattr(cert, 'course', None):
+        return False
+    course_name = (getattr(cert.course, 'name', None) or str(cert.course) or '').strip().lower()
+    return (
+        'spoken english' in course_name or
+        course_name == 'english speaking' or
+        ('english' in course_name and ('spoken' in course_name or 'speaking' in course_name))
+    )
+
+
 def _format_ordinal_date(d):
     """
     Formats a date object as day with ordinal suffix + abbreviated month with dot,
@@ -724,6 +740,128 @@ def generate_ras_certificate_pdf(cert, request=None):
         font_size -= 0.5
     c.setFont('Helvetica', font_size)
     c.drawCentredString(page_w * 0.50, page_h * (1 - 0.782), verify_line)
+
+    # 9. Dynamic Scannable QR Code Overlay in Top-Right Corner (x 88.5%, y 12%)
+    qr_verify_url = get_certificate_verify_url(cert, request=request)
+    try:
+        from PIL import Image
+        from reportlab.lib.utils import ImageReader
+        qr_img = generate_qr_code_image(qr_verify_url, box_size=4, border=1)
+        qr_buf = io.BytesIO()
+        qr_img.save(qr_buf, format='PNG')
+        qr_buf.seek(0)
+
+        qr_size = 62
+        qr_x = page_w * 0.885 - (qr_size / 2)
+        qr_y = page_h * (1 - 0.12) - (qr_size / 2)
+
+        c.setFillColor(colors.white)
+        c.setStrokeColor(colors.HexColor('#CBD5E1'))
+        c.setLineWidth(0.8)
+        c.roundRect(qr_x - 3, qr_y - 10, qr_size + 6, qr_size + 13, 3, fill=True, stroke=True)
+        c.drawImage(ImageReader(qr_buf), qr_x, qr_y, width=qr_size, height=qr_size)
+
+        c.setFont('Helvetica-Bold', 5.5)
+        c.setFillColor(colors.HexColor('#475569'))
+        c.drawCentredString(qr_x + (qr_size / 2), qr_y - 7, 'SCAN TO VERIFY')
+    except Exception:
+        pass
+
+    # Authority Signatory: left empty per requirements
+
+    c.save()
+    buf.seek(0)
+    return buf.getvalue()
+
+
+def generate_ras_spoken_english_certificate_pdf(cert, request=None):
+    """
+    Generates a high-quality A4 landscape PDF in memory for an RAS Spoken English certificate
+    using the official uploaded template background: 'RAS Spoken English copy.jpg.jpeg'.
+    Dynamic fields are positioned matching the template's printed blanks:
+    - Student name: x 65.25%, y 40.2% from top (UPPERCASE, Bold)
+    - Course name: x 65.25%, y 44.8% from top (UPPERCASE, Bold, in quotes)
+    - Period from: x 34.14%, y 50.5% from top
+    - Period to: x 44.54%, y 50.5% from top
+    - Year: x 58.59%, y 50.5% from top
+    - Grade: x 35.05%, y 60.0% from top (in quotes)
+    - Student Registration No: x 31.5% (left-aligned), y 64.0% from top (Bold)
+    - Issue date: x 23.45%, y 71.3% from top
+    - QR Code: x 88.5%, y 12% in top-right corner
+    """
+    import io
+    import os
+    from django.conf import settings
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.pdfgen import canvas
+    from reportlab.lib import colors
+
+    buf = io.BytesIO()
+    page_w, page_h = landscape(A4)  # 841.89 x 595.27 points
+    c = canvas.Canvas(buf, pagesize=(page_w, page_h))
+
+    template_candidates = [
+        os.path.join(settings.BASE_DIR, 'static', 'images', 'RAS Spoken English copy.jpg.jpeg'),
+        os.path.join(settings.BASE_DIR, 'static', 'certificates', 'RAS Spoken English copy.jpg.jpeg'),
+    ]
+    template_path = None
+    for cand in template_candidates:
+        if os.path.exists(cand):
+            template_path = cand
+            break
+
+    if template_path:
+        c.drawImage(template_path, 0, 0, width=page_w, height=page_h)
+
+    # 1. Student Name (x 65.25%, y 40.2% from top)
+    student_name = (cert.student_name or '').strip().upper()
+    c.setFillColor(colors.HexColor('#000000'))
+    c.setFont('Helvetica-Bold', 18)
+    c.drawCentredString(page_w * 0.6525, page_h * (1 - 0.402), student_name)
+
+    # 2. Course Name (x 65.25%, y 44.8% from top)
+    course_name = (cert.course.name if cert.course else '').strip().upper()
+    c.setFont('Helvetica-Bold', 15)
+    c.drawCentredString(page_w * 0.6525, page_h * (1 - 0.448), f'“{course_name}”')
+
+    # 3. Period From (x 34.14%, y 50.5% from top)
+    c.setFont('Helvetica', 12)
+    from_str = _format_ordinal_date(cert.course_start_date)
+    if from_str:
+        c.drawCentredString(page_w * 0.3414, page_h * (1 - 0.505), from_str)
+
+    # 4. Period To (x 44.54%, y 50.5% from top)
+    to_str = _format_ordinal_date(cert.course_end_date)
+    if to_str:
+        c.drawCentredString(page_w * 0.4454, page_h * (1 - 0.505), to_str)
+
+    # 5. Year (x 58.59%, y 50.5% from top)
+    if cert.course_end_date:
+        year_str = str(cert.course_end_date.year)
+    elif cert.issue_date:
+        year_str = str(cert.issue_date.year)
+    else:
+        year_str = ''
+    if year_str:
+        c.drawCentredString(page_w * 0.5859, page_h * (1 - 0.505), year_str)
+
+    # 6. Grade (x 35.05%, y 60.0% from top)
+    if cert.grade:
+        grade_str = f'“{cert.grade.strip()}”'
+        c.setFont('Helvetica-Bold', 13)
+        c.drawCentredString(page_w * 0.3505, page_h * (1 - 0.600), grade_str)
+
+    # 7. Student Registration No (left-aligned at x 31.5%, y 64.0% from top)
+    reg_no = (cert.certificate_id or cert.registration_number or '').strip()
+    if reg_no:
+        c.setFont('Helvetica-Bold', 12)
+        c.drawString(page_w * 0.315, page_h * (1 - 0.640), reg_no)
+
+    # 8. Issue Date (x 23.45%, y 71.3% from top)
+    if cert.issue_date:
+        date_str = cert.issue_date.strftime('%d.%m.%Y')
+        c.setFont('Helvetica', 11)
+        c.drawCentredString(page_w * 0.2345, page_h * (1 - 0.713), date_str)
 
     # 9. Dynamic Scannable QR Code Overlay in Top-Right Corner (x 88.5%, y 12%)
     qr_verify_url = get_certificate_verify_url(cert, request=request)
@@ -1315,11 +1453,15 @@ def generate_citi_marksheet_pdf(cert):
 def generate_certificate_pdf(cert, request=None):
     """
     Generates a high-quality PDF in memory for a given Certificate instance.
+    For RAS Spoken English certificates, it uses the official RAS Spoken English template.
     For RAS institute certificates, it uses the official RAS template image.
     For CITI certificates, it uses the official CITI CCC template image with photo.
     For CCC courses, it uses the official CCC certificate template.
     For all other courses, it retains the standard C-DAC certificate layout.
     """
+    if is_spoken_english_certificate(cert):
+        return generate_ras_spoken_english_certificate_pdf(cert, request=request)
+
     if is_ras_certificate(cert):
         return generate_ras_certificate_pdf(cert, request=request)
 

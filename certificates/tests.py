@@ -1740,3 +1740,57 @@ class CitiQrPositionAndSixDigitSuffixTests(TransactionTestCase):
         self.assertNotIn('5007', text)
         self.assertIn('SHIVAM PATEL', text)
         self.assertIn('CITI-2026-10-SP-100000-619284', text)
+
+
+class SpokenEnglishCertificateTests(TestCase):
+    def setUp(self):
+        self.spoken_course = Course.objects.create(
+            name='Spoken English Course',
+            description='Spoken English Course',
+            duration='3 Months'
+        )
+        self.regular_course = Course.objects.create(
+            name='Python Development',
+            description='Python Course',
+            duration='3 Months'
+        )
+        self.user = User.objects.create_user('admin_user_se', 'admin_se@example.com', 'password123', is_staff=True)
+
+    def test_spoken_english_detection_and_pdf(self):
+        from certificates.utils import is_spoken_english_certificate, generate_certificate_pdf
+        cert = Certificate.objects.create(
+            certificate_id='RAS-2026-11-SP-100001',
+            student_name='Rahul Kumar',
+            course=self.spoken_course,
+            course_start_date=date(2026, 1, 1),
+            course_end_date=date(2026, 3, 31),
+            issue_date=date(2026, 4, 15),
+            grade='A+'
+        )
+        self.assertTrue(cert.is_spoken_english)
+        self.assertTrue(is_spoken_english_certificate(cert))
+        pdf = generate_certificate_pdf(cert)
+        self.assertTrue(pdf.startswith(b'%PDF'))
+
+        # Test print view
+        self.client.force_login(self.user)
+        resp = self.client.get(f'/cdac-admin/certificates/{cert.pk}/print/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'RAS Spoken English copy')
+        self.assertContains(resp, 'alt="RAS Spoken English Certificate Background Template"')
+        self.assertContains(resp, 'RAHUL KUMAR')
+        self.assertContains(resp, 'SPOKEN ENGLISH COURSE')
+
+    def test_regular_course_does_not_trigger_spoken_english(self):
+        from certificates.utils import is_spoken_english_certificate
+        cert = Certificate.objects.create(
+            certificate_id='RAS-2026-11-PY-100002',
+            student_name='Neha Sharma',
+            course=self.regular_course,
+            course_start_date=date(2026, 1, 1),
+            course_end_date=date(2026, 3, 31),
+            issue_date=date(2026, 4, 15),
+            grade='A'
+        )
+        self.assertFalse(cert.is_spoken_english)
+        self.assertFalse(is_spoken_english_certificate(cert))

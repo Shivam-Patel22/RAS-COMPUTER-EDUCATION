@@ -533,6 +533,13 @@
             font-size: 1.4cqw;
         }
 
+        .ras-registration-no {
+            font-weight: 700;
+            font-size: 13px;
+            font-size: 1.4cqw;
+            color: #000000;
+        }
+
         .cert-verify-line {
             font-size: clamp(0.72rem, 1.2cqw, 0.85rem);
             white-space: nowrap;
@@ -571,7 +578,7 @@
 
         /* Print Media Queries */
         @page {
-            {% if certificate.prefix == 'RAS' %}
+            {% if certificate.is_spoken_english or certificate.prefix == 'RAS' %}
             size: A4 landscape;
             {% else %}
             size: A4 portrait;
@@ -683,6 +690,9 @@
                 font-size: 14pt !important;
             }
             .ras-issue-date {
+                font-size: 12pt !important;
+            }
+            .ras-registration-no {
                 font-size: 12pt !important;
             }
             .ras-verify-line {
@@ -957,7 +967,50 @@
         </div>
     </div>
 
-    {% if certificate.prefix == 'RAS' %}
+    {% if certificate.is_spoken_english %}
+    <!-- RAS Spoken English Dedicated Certificate Frame with Uploaded Background Template (A4 Landscape) -->
+    <div class="printable-certificate-container ras-mode-container">
+        <div class="ras-certificate-card">
+            <!-- Uploaded Background Template -->
+            <img src="{% static 'images/RAS Spoken English copy.jpg.jpeg' %}" alt="RAS Spoken English Certificate Background Template" class="ras-bg-template">
+
+            <!-- Dynamic Field Overlays -->
+            <!-- 1. Student Name: x 65.25%, y 39.5% -->
+            <div class="ras-field ras-student-name" style="left: 65.25%; top: 39.5%;">{{ certificate.student_name|upper }}</div>
+
+            <!-- 2. Course Name: x 65.25%, y 44.2% -->
+            <div class="ras-field ras-course-name" style="left: 65.25%; top: 44.2%;">“{{ certificate.course.name|upper }}”</div>
+
+            <!-- 3. Period From: x 34.14%, y 50% -->
+            <div class="ras-field ras-period-from" style="left: 34.14%; top: 50%;">{% if certificate.course_start_date %}{{ certificate.course_start_date|date:"jS M." }}{% endif %}</div>
+
+            <!-- 4. Period To: x 44.54%, y 50% -->
+            <div class="ras-field ras-period-to" style="left: 44.54%; top: 50%;">{% if certificate.course_end_date %}{{ certificate.course_end_date|date:"jS M." }}{% endif %}</div>
+
+            <!-- 5. Year: x 58.59%, y 50% -->
+            <div class="ras-field ras-year" style="left: 58.59%; top: 50%;">{{ certificate.course_end_date.year|default:certificate.issue_date.year }}</div>
+
+            <!-- 6. Grade: x 35.05%, y 59.6% -->
+            <div class="ras-field ras-grade" style="left: 35.05%; top: 59.6%;">{% if certificate.grade %}“{{ certificate.grade }}”{% endif %}</div>
+
+            <!-- 7. Registration Number: left-aligned at 31.5%, y 63.6% -->
+            <div class="ras-field ras-registration-no" style="left: 31.5%; top: 63.6%; transform: translateY(-50%); text-align: left;">{{ certificate.certificate_id|default:certificate.registration_number }}</div>
+
+            <!-- 8. Issue Date: x 23.45%, y 70.8% -->
+            <div class="ras-field ras-issue-date" style="left: 23.45%; top: 70.8%;">{{ certificate.issue_date|date:"d.m.Y" }}</div>
+
+            <!-- 9. Dynamic Scannable QR Code Overlay in Top-Right Corner (x: 88.5%, y: 12%) -->
+            <div class="ras-field ras-qr-box" style="left: 88.5%; top: 12%; text-align: center;">
+                {% if qr_data_uri %}
+                <div style="background: #ffffff; padding: 3px 3px 2px 3px; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: inline-block;">
+                    <img src="{{ qr_data_uri }}" alt="Scan to Verify" style="width: 4.8cqw; height: 4.8cqw; min-width: 58px; min-height: 58px; max-width: 78px; max-height: 78px; object-fit: contain; display: block; margin: 0 auto;">
+                    <span style="font-size: 0.62cqw; font-weight: 700; color: #334155; letter-spacing: 0.4px; text-transform: uppercase; display: block; margin-top: 2px;">Scan to Verify</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% elif certificate.prefix == 'RAS' %}
     <!-- RAS Dedicated Certificate Frame with Uploaded Background Template (A4 Landscape) -->
     <div class="printable-certificate-container ras-mode-container">
         <div class="ras-certificate-card">
