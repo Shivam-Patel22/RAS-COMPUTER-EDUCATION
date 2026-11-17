@@ -1264,7 +1264,7 @@ def generate_citi_ccc_certificate_pdf(cert, request=None):
 def generate_citi_marksheet_pdf(cert):
     """
     Generates high-resolution A4 portrait Statement of Marks PDF for CITI CCC
-    matching the layout and tables of CCC_marksheet.docx using citi_marksheet_bg.jpg.
+    matching the exact template layout, typography, and styling of CCC_MarkSheet_Sample.pdf.
     """
     import io
     import os
@@ -1274,14 +1274,38 @@ def generate_citi_marksheet_pdf(cert):
     from reportlab.lib import colors
     from reportlab.platypus import Table, TableStyle, Paragraph
     from reportlab.lib.styles import ParagraphStyle
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
 
     buf = io.BytesIO()
-    width, height = A4  # 595.27 x 841.89 points
+    width, height = A4  # 595.27559 x 841.88976 points
     c = canvas.Canvas(buf, pagesize=A4)
 
-    # 1. Background Letterhead Template
+    # 1. Fonts Registration (Calibri with fallback to Helvetica)
+    f_reg = 'Helvetica'
+    f_bld = 'Helvetica-Bold'
+    f_itl = 'Helvetica-Oblique'
+    for font_dir in [r'C:\Windows\Fonts', '/usr/share/fonts/truetype', '/usr/local/share/fonts']:
+        cal_p = os.path.join(font_dir, 'calibri.ttf')
+        cal_b = os.path.join(font_dir, 'calibrib.ttf')
+        cal_i = os.path.join(font_dir, 'calibrii.ttf')
+        if os.path.exists(cal_p) and os.path.exists(cal_b) and os.path.exists(cal_i):
+            try:
+                if 'Calibri' not in pdfmetrics.getRegisteredFontNames():
+                    pdfmetrics.registerFont(TTFont('Calibri', cal_p))
+                    pdfmetrics.registerFont(TTFont('Calibri-Bold', cal_b))
+                    pdfmetrics.registerFont(TTFont('Calibri-Italic', cal_i))
+                f_reg = 'Calibri'
+                f_bld = 'Calibri-Bold'
+                f_itl = 'Calibri-Italic'
+                break
+            except Exception:
+                pass
+
+    # 2. Background Letterhead Template
     bg_candidates = [
         os.path.join(settings.BASE_DIR, 'static', 'certificates', 'citi_marksheet_bg.jpg'),
+        os.path.join(settings.BASE_DIR, 'staticfiles', 'certificates', 'citi_marksheet_bg.jpg'),
         os.path.join(settings.BASE_DIR, 'static', 'images', 'citi_marksheet_bg.jpg'),
     ]
     bg_path = None
@@ -1292,47 +1316,60 @@ def generate_citi_marksheet_pdf(cert):
     if bg_path:
         c.drawImage(bg_path, 0, 0, width=width, height=height)
 
-    # Content margins
-    left_m = 48
-    usable_w = width - (left_m * 2)  # ~499.27
-
-    # 2. Document Title (Centered, Bold, ~15.5% from top)
+    # 3. Document Title: STATEMENT OF MARKS (Underlined, Centered)
+    c.setFont(f_bld, 14)
     c.setFillColor(colors.black)
-    c.setFont('Helvetica-Bold', 15)
-    c.drawCentredString(width / 2, 712, "STATEMENT OF MARKS")
+    c.drawCentredString(width / 2.0, 629.9, "STATEMENT OF MARKS")
+    c.setLineWidth(0.8)
+    c.line(229.7, 628.6, 365.8, 628.6)
 
-    # 3. Student & Course Information Header
-    c.setFont('Helvetica-Bold', 10)
-    c.drawString(left_m, 680, "Student's Name :")
-    c.setFont('Helvetica-Bold', 10.5)
-    c.drawString(left_m + 105, 680, (cert.student_name or '').upper())
-
-    c.setFont('Helvetica-Bold', 10)
-    c.drawString(left_m, 660, "Course Name :")
-    c.setFont('Helvetica', 10)
-    c.drawString(left_m + 105, 660, "CERTIFICATE COURSE ON COMPUTER CONCEPTS (CCC)")
-
-    c.setFont('Helvetica-Bold', 10)
-    c.drawString(left_m, 640, "Course Duration :")
-    c.setFont('Helvetica', 10)
+    # 4. Student & Course Information
+    student_name = (cert.student_name or '').upper()
     duration_val = (cert.course_duration or '').strip() or (cert.course.duration if cert.course else '') or "3 Months"
-    c.drawString(left_m + 105, 640, duration_val)
 
-    # 4. Main Examination Marks Table (Matching docx Table 0)
+    c.setFont(f_bld, 11)
+    c.drawString(151.2, 603.5, "Student’s Name")
+    c.drawString(259.2, 603.5, f":  {student_name}")
+
+    c.drawString(151.2, 590.0, "Course Name")
+    c.setFont(f_reg, 11)
+    c.drawString(259.2, 590.0, ":  CERTIFICATE COURSE ON COMPUTER CONCEPTS (CCC)")
+
+    c.setFont(f_bld, 11)
+    c.drawString(151.2, 576.5, "Course Duration")
+    c.setFont(f_reg, 11)
+    c.drawString(259.2, 576.5, f":  {duration_val}")
+
+    # 5. Main Examination Marks Table (Matching CCC_MarkSheet_Sample.pdf)
+    col_widths = [283.6, 67.4, 67.6, 67.5, 61.1]  # Total: 547.2 pt
+    row_heights = [13.9, 14.1, 147.6, 14.0]        # Total: 189.6 pt
+
     subject_style = ParagraphStyle(
-        'SubjectStyle',
-        fontName='Helvetica',
-        fontSize=8.5,
-        leading=11.5,
+        'ExactSubject',
+        fontName=f_reg,
+        fontSize=11,
+        leading=20.1,
         alignment=0,
         textColor=colors.black
     )
-    exact_subject_text = (
-        "MS-Office 2003 with Indic Version (Word, Excel, PowerPoint, Outlook Express and "
-        "Indic 2003 (Gujarati), Computer Fundamentals, Operating System Concepts, "
-        "System Utility, Networks and Internet, Installation, Troubleshooting, PDF File Concepts."
+    subj_html = (
+        "Ms-Office  2003 with Indic Version ( Word, Excel, Power<br/>"
+        "Point, Outlook Express  and Indic 2003(Gujarati)<br/>"
+        "Computer Fundaments, Operating System, Concepts,<br/>"
+        "System Utility, Networks and Internet,<br/>"
+        "Installation, Trouble shooting,<br/>"
+        "PDF File Concepts."
     )
-    subj_para = Paragraph(exact_subject_text, subject_style)
+    subj_para = Paragraph(subj_html, subject_style)
+
+    num_style = ParagraphStyle(
+        'NumStyle',
+        fontName=f_reg,
+        fontSize=11,
+        leading=13,
+        alignment=1,  # Centered
+        textColor=colors.black
+    )
 
     th_m = str(cert.theory_marks) if cert.theory_marks is not None else "0"
     pr_m = str(cert.practical_marks) if cert.practical_marks is not None else "0"
@@ -1341,48 +1378,53 @@ def generate_citi_marksheet_pdf(cert):
     table_data = [
         ["Subject", "Max. Marks", "", "Marks Obtained", ""],
         ["", "Theory", "Practical", "Theory", "Practical"],
-        [subj_para, "50", "50", th_m, pr_m],
+        [subj_para, Paragraph("50", num_style), Paragraph("50", num_style), Paragraph(th_m, num_style), Paragraph(pr_m, num_style)],
         ["Total Marks", "100", "", tot_m, ""]
     ]
 
-    col_widths = [249, 62, 62, 63, 63]  # Total: 499 pt
-    row_heights = [22, 20, 95, 24]  # Increased vertical height for subject row
     t = Table(table_data, colWidths=col_widths, rowHeights=row_heights)
     t.setStyle(TableStyle([
-        ('SPAN', (0, 0), (0, 1)),   # Subject title across row 0 & 1
-        ('SPAN', (1, 0), (2, 0)),   # Max. Marks across col 1 & 2
-        ('SPAN', (3, 0), (4, 0)),   # Marks Obtained across col 3 & 4
-        ('SPAN', (1, 3), (2, 3)),   # Total Max Marks across col 1 & 2
-        ('SPAN', (3, 3), (4, 3)),   # Total Obtained Marks across col 3 & 4
-        ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ('FONTNAME', (0, 0), (-1, 1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 1), 9),
+        ('SPAN', (0, 0), (0, 1)),      # Subject across header rows 0 & 1
+        ('SPAN', (1, 0), (2, 0)),      # Max. Marks across Theory/Practical
+        ('SPAN', (3, 0), (4, 0)),      # Marks Obtained across Theory/Practical
+        ('SPAN', (1, 3), (2, 3)),      # Total 100 across Theory/Practical
+        ('SPAN', (3, 3), (4, 3)),      # Total Obtained across Theory/Practical
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+
+        # Headers styling
+        ('FONTNAME', (0, 0), (-1, 1), f_bld),
+        ('FONTSIZE', (0, 0), (-1, 1), 11),
         ('ALIGN', (0, 0), (-1, 1), 'CENTER'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('FONTNAME', (0, 3), (-1, 3), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 3), (-1, 3), 9.5),
-        ('ALIGN', (1, 2), (-1, 3), 'CENTER'),
-        ('TOPPADDING', (0, 0), (-1, -1), 4),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-        ('LEFTPADDING', (0, 0), (-1, -1), 5),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 5),
-        ('TOPPADDING', (0, 2), (-1, 2), 12),
-        ('BOTTOMPADDING', (0, 2), (-1, 2), 12),
+        ('VALIGN', (0, 0), (-1, 1), 'MIDDLE'),
+
+        # Content Row (Row 2)
+        ('VALIGN', (0, 2), (-1, 2), 'TOP'),
+        ('LEFTPADDING', (0, 2), (0, 2), 5.6),
+        ('TOPPADDING', (0, 2), (-1, 2), 4.5),
+
+        # Total Row (Row 3)
+        ('FONTNAME', (0, 3), (0, 3), f_bld),
+        ('FONTNAME', (1, 3), (2, 3), f_bld),
+        ('FONTNAME', (3, 3), (-1, 3), f_reg),
+        ('FONTSIZE', (0, 3), (-1, 3), 11),
+        ('ALIGN', (0, 3), (0, 3), 'LEFT'),
+        ('ALIGN', (1, 3), (-1, 3), 'CENTER'),
+        ('VALIGN', (0, 3), (-1, 3), 'MIDDLE'),
+        ('LEFTPADDING', (0, 3), (0, 3), 5.6),
     ]))
 
-    w_t, h_t = t.wrapOn(c, usable_w, height)
-    t_y = 620 - h_t
-    t.drawOn(c, left_m, t_y)
+    t_y = 841.89 - 295.0 - 189.6  # 357.29 pt
+    t.wrapOn(c, 547.2, 189.6)
+    t.drawOn(c, 25.0, t_y)
 
-    # 5. Registration No. (G.R. line removed as requested)
-    reg_y = t_y - 22
-    c.setFont('Helvetica-Bold', 10)
-    reg_no = cert.certificate_id or cert.registration_number
-    c.drawString(left_m, reg_y, f"Student's Registration No.: {reg_no}")
+    # 6. Government GR Details & Registration No. (Horizontally Centered)
+    reg_no = cert.certificate_id or cert.registration_number or ""
+    c.setFont(f_reg, 12)
+    c.drawCentredString(width / 2.0, 841.89 - 524.9, "Above Course contents are as per Govt. of Gujarat’s")
+    c.drawCentredString(width / 2.0, 841.89 - 539.6, "G.R. No.: CRR-10-2007-120320-G5, Dated: 13/08/08")
+    c.drawCentredString(width / 2.0, 841.89 - 554.2, f"Student’s Registration No.: {reg_no}")
 
-    # 6. Side-by-side Section: GRADE LEGEND (Left) & Obtained Summary (Right)
-    side_y = reg_y - 20
-
+    # 7. Side-by-side Section: GRADE LEGEND (Left) & Obtained Summary (Right)
     # Left: GRADE LEGEND Table
     legend_data = [
         ["GRADE LEGEND", ""],
@@ -1393,59 +1435,44 @@ def generate_citi_marksheet_pdf(cert):
         ["C", "55% to 64%"],
         ["D", "50% to 54%"],
     ]
-    t_legend = Table(legend_data, colWidths=[65, 120])
-    t_legend.setStyle(TableStyle([
+    t_leg = Table(legend_data, colWidths=[71.3, 71.3], rowHeights=[13.0, 13.1, 13.2, 13.1, 13.1, 13.1, 12.7])
+    t_leg.setStyle(TableStyle([
         ('SPAN', (0, 0), (1, 0)),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ('FONTNAME', (0, 0), (-1, 1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 1), 8.5),
-        ('ALIGN', (0, 0), (-1, 1), 'CENTER'),
-        ('ALIGN', (0, 2), (0, -1), 'CENTER'),
-        ('ALIGN', (1, 2), (1, -1), 'CENTER'),
-        ('FONTNAME', (0, 2), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 2), (-1, -1), 8),
-        ('TOPPADDING', (0, 0), (-1, -1), 2),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ('FONTNAME', (0, 0), (-1, 0), f_reg),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('FONTNAME', (0, 1), (0, -1), f_reg),
+        ('FONTNAME', (1, 1), (1, -1), f_itl),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
     ]))
-    w_leg, h_leg = t_legend.wrapOn(c, 185, height)
-    leg_draw_y = side_y - h_leg
-    t_legend.drawOn(c, left_m, leg_draw_y)
+    t_leg.wrapOn(c, 142.6, 91.3)
+    t_leg.drawOn(c, 21.0, 841.89 - 665.6)
 
     # Right: Obtained Percentage and Grade Table
-    pct_val = f"{cert.percentage or 0}"
+    raw_pct = cert.percentage if cert.percentage is not None else 0
+    pct_str = f"{raw_pct}%" if not str(raw_pct).endswith('%') else str(raw_pct)
     grade_val = cert.grade or "A"
     summary_data = [
-        ["Obtained Percentage", f"  {pct_val}"],
-        ["Obtained Grade", f"  {grade_val}"],
+        ["Obtained Percentage", f"  {pct_str}"],
+        ["Obtained Grade", str(grade_val)],
     ]
-    t_summary = Table(summary_data, colWidths=[130, 75])
-    t_summary.setStyle(TableStyle([
-        ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, -1), 9.5),
+    t_sum = Table(summary_data, colWidths=[140.5, 58.6], rowHeights=[13.9, 13.9])
+    t_sum.setStyle(TableStyle([
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ('FONTNAME', (0, 0), (-1, -1), f_reg),
+        ('FONTSIZE', (0, 0), (-1, -1), 11),
         ('ALIGN', (0, 0), (0, -1), 'LEFT'),
         ('ALIGN', (1, 0), (1, -1), 'CENTER'),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING', (0, 0), (-1, -1), 6),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+        ('LEFTPADDING', (0, 0), (0, -1), 5.7),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
     ]))
-    right_x = width - left_m - 205
-    w_sum, h_sum = t_summary.wrapOn(c, 205, height)
-    sum_draw_y = side_y - h_sum
-    t_summary.drawOn(c, right_x, sum_draw_y)
-
-    # Authorized Signatory inside the gray decorative area on the right
-    sig_y = 142
-    c.setFont('Helvetica-Bold', 10)
-    c.drawCentredString(right_x + 102, sig_y, "Authorized Signatory")
-
-    # 7. Verification Line at Bottom
-    verify_url = get_certificate_verify_url()
-    c.setFont('Helvetica', 8)
-    c.setFillColor(colors.HexColor('#475569'))
-    c.drawCentredString(width / 2, 80, f"This Marksheet can be verified on {verify_url}")
+    t_sum.wrapOn(c, 199.1, 27.8)
+    t_sum.drawOn(c, 306.0, 841.89 - 600.8)
 
     c.save()
     buf.seek(0)

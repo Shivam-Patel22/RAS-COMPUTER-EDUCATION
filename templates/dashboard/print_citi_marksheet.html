@@ -15,7 +15,7 @@
             background-color: #f1f5f9;
             margin: 0;
             padding: 20px 0;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif;
             color: #000000;
         }
 
@@ -44,7 +44,7 @@
         }
 
         .marksheet-outer {
-            max-width: 820px;
+            width: 820px;
             margin: 0 auto;
             background: #ffffff;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
@@ -74,7 +74,7 @@
             width: 100%;
             height: 100%;
             z-index: 2;
-            padding: 15% 7.5% 0 7.5%;
+            padding: 24.5% 4.2% 0 4.2%;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -82,28 +82,36 @@
 
         .ms-title {
             text-align: center;
-            font-size: 1.4rem;
-            font-weight: 800;
+            font-size: 1.25rem;
+            font-weight: 700;
             letter-spacing: 0.5px;
-            margin: 0 0 1.25rem 0;
+            margin: 0 0 1.2rem 0;
             text-transform: uppercase;
+            text-decoration: underline;
+            text-underline-offset: 3px;
         }
 
         .ms-meta-section {
-            margin-bottom: 1.25rem;
-            line-height: 1.8;
-            font-size: 0.92rem;
+            margin-bottom: 1.35rem;
+            line-height: 1.55;
+            font-size: 0.95rem;
+            padding-left: 21%;
         }
 
         .ms-meta-row {
             display: flex;
-            margin-bottom: 0.35rem;
+            margin-bottom: 0.18rem;
         }
 
         .ms-meta-label {
-            width: 140px;
+            width: 135px;
             font-weight: 700;
             flex-shrink: 0;
+        }
+
+        .ms-meta-colon {
+            margin-right: 0.5rem;
+            font-weight: 700;
         }
 
         .ms-meta-value {
@@ -111,50 +119,56 @@
         }
 
         .ms-meta-value.normal {
-            font-weight: 500;
+            font-weight: 400;
         }
 
         /* Marks Table */
         .ms-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.82rem;
-            border: 1.5px solid #000000;
+            font-size: 0.88rem;
+            border: 1px solid #000000;
             margin-bottom: 0.85rem;
         }
 
         .ms-table th, .ms-table td {
             border: 1px solid #000000;
-            padding: 4px 6px;
+            padding: 3px 5px;
         }
 
         .ms-table th {
             font-weight: 700;
             text-align: center;
             background: #ffffff;
-            padding: 7px 6px;
+            padding: 3px 5px;
+            height: 18px;
         }
 
         .ms-subject-row td {
-            padding: 22px 8px;
-            height: 110px;
+            padding: 4px 6px;
+            vertical-align: top;
+            height: 165px;
         }
 
         .ms-total-row td {
-            padding: 7px 6px;
+            padding: 3px 6px;
+            height: 18px;
         }
 
         .ms-subject-text {
-            font-size: 0.78rem;
-            line-height: 1.45;
+            font-size: 0.88rem;
+            line-height: 1.82;
             text-align: left;
-            vertical-align: middle;
+            font-weight: 400;
         }
 
-        .ms-reg-line {
-            font-size: 0.88rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
+        /* Government GR Details Section (Centered) */
+        .ms-gr-section {
+            text-align: center;
+            font-size: 0.95rem;
+            line-height: 1.45;
+            margin: 0.65rem 0 1.25rem 0;
+            font-weight: 400;
         }
 
         /* Tables section: Grade Legend + Obtained Summary side by side */
@@ -162,66 +176,42 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-top: 0.75rem;
-            margin-bottom: 0;
-            gap: 1.5rem;
+            margin-top: 0;
+            padding: 0 0.5% 0 0;
         }
 
         .ms-legend-table {
             border-collapse: collapse;
-            font-size: 0.75rem;
+            font-size: 0.82rem;
             border: 1px solid #000000;
-            width: 42%;
+            width: 185px;
         }
 
         .ms-legend-table th, .ms-legend-table td {
             border: 1px solid #000000;
-            padding: 3px 6px;
+            padding: 2px 4px;
             text-align: center;
         }
 
         .ms-legend-table th {
-            font-weight: 700;
+            font-weight: 400;
+        }
+
+        .ms-legend-table td.italic {
+            font-style: italic;
         }
 
         .ms-summary-table {
             border-collapse: collapse;
-            font-size: 0.85rem;
-            border: 1.5px solid #000000;
-            width: 48%;
+            font-size: 0.88rem;
+            border: 1px solid #000000;
+            width: 260px;
         }
 
         .ms-summary-table td {
             border: 1px solid #000000;
-            padding: 6px 10px;
-            font-weight: 700;
-        }
-
-        /* Signatory inside gray decorative section on right side */
-        .ms-signatory {
-            position: absolute;
-            right: 7.5%;
-            top: 83.2%;
-            text-align: right;
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: #000000;
-            z-index: 5;
-        }
-
-        .ms-verify-line {
-            position: absolute;
-            left: 7.5%;
-            right: 7.5%;
-            bottom: 5.5%;
-            text-align: center;
-            font-size: 0.75rem;
-            color: #475569;
-            margin: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            z-index: 5;
+            padding: 3px 8px;
+            font-weight: 400;
         }
 
         @page {
@@ -265,28 +255,6 @@
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-
-            .ms-signatory {
-                position: absolute !important;
-                right: 7.5% !important;
-                top: 83.2% !important;
-                text-align: right !important;
-                font-size: 10pt !important;
-                font-weight: bold !important;
-                color: #000 !important;
-                z-index: 5 !important;
-            }
-
-            .ms-verify-line {
-                position: absolute !important;
-                left: 7.5% !important;
-                right: 7.5% !important;
-                bottom: 5.5% !important;
-                text-align: center !important;
-                font-size: 8pt !important;
-                color: #475569 !important;
-                z-index: 5 !important;
-            }
         }
     </style>
 </head>
@@ -317,15 +285,18 @@
 
                 <div class="ms-meta-section">
                     <div class="ms-meta-row">
-                        <span class="ms-meta-label">Student's Name :</span>
+                        <span class="ms-meta-label">Student’s Name</span>
+                        <span class="ms-meta-colon">:</span>
                         <span class="ms-meta-value">{{ certificate.student_name|upper }}</span>
                     </div>
                     <div class="ms-meta-row">
-                        <span class="ms-meta-label">Course Name :</span>
+                        <span class="ms-meta-label">Course Name</span>
+                        <span class="ms-meta-colon">:</span>
                         <span class="ms-meta-value normal">CERTIFICATE COURSE ON COMPUTER CONCEPTS (CCC)</span>
                     </div>
                     <div class="ms-meta-row">
-                        <span class="ms-meta-label">Course Duration :</span>
+                        <span class="ms-meta-label">Course Duration</span>
+                        <span class="ms-meta-colon">:</span>
                         <span class="ms-meta-value normal">{{ certificate.course_duration|default:"3 Months" }}</span>
                     </div>
                 </div>
@@ -334,101 +305,98 @@
                 <table class="ms-table">
                     <thead>
                         <tr>
-                            <th rowspan="2" style="width: 52%; text-align: left; padding-left: 8px;">Subject</th>
-                            <th colspan="2" style="width: 24%;">Max. Marks</th>
-                            <th colspan="2" style="width: 24%;">Marks Obtained</th>
+                            <th rowspan="2" style="width: 51.8%; text-align: center; vertical-align: middle;">Subject</th>
+                            <th colspan="2" style="width: 24.6%;">Max. Marks</th>
+                            <th colspan="2" style="width: 23.6%;">Marks Obtained</th>
                         </tr>
                         <tr>
-                            <th style="width: 12%;">Theory</th>
-                            <th style="width: 12%;">Practical</th>
-                            <th style="width: 12%;">Theory</th>
-                            <th style="width: 12%;">Practical</th>
+                            <th style="width: 12.3%;">Theory</th>
+                            <th style="width: 12.3%;">Practical</th>
+                            <th style="width: 12.3%;">Theory</th>
+                            <th style="width: 11.3%;">Practical</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr class="ms-subject-row">
                             <td class="ms-subject-text">
-                                MS-Office 2003 with Indic Version (Word, Excel, PowerPoint, Outlook Express and Indic 2003 (Gujarati), Computer Fundamentals, Operating System Concepts, System Utility, Networks and Internet, Installation, Troubleshooting, PDF File Concepts.
+                                Ms-Office  2003 with Indic Version ( Word, Excel, Power<br>
+                                Point, Outlook Express  and Indic 2003(Gujarati)<br>
+                                Computer Fundaments, Operating System, Concepts,<br>
+                                System Utility, Networks and Internet,<br>
+                                Installation, Trouble shooting,<br>
+                                PDF File Concepts.
                             </td>
-                            <td style="text-align: center; vertical-align: middle; font-weight: 700;">50</td>
-                            <td style="text-align: center; vertical-align: middle; font-weight: 700;">50</td>
-                            <td style="text-align: center; vertical-align: middle; font-weight: 700;">{{ certificate.theory_marks|default:"0" }}</td>
-                            <td style="text-align: center; vertical-align: middle; font-weight: 700;">{{ certificate.practical_marks|default:"0" }}</td>
+                            <td style="text-align: center; vertical-align: top; font-weight: 400; padding-top: 5px;">50</td>
+                            <td style="text-align: center; vertical-align: top; font-weight: 400; padding-top: 5px;">50</td>
+                            <td style="text-align: center; vertical-align: top; font-weight: 400; padding-top: 5px;">{{ certificate.theory_marks|default:"0" }}</td>
+                            <td style="text-align: center; vertical-align: top; font-weight: 400; padding-top: 5px;">{{ certificate.practical_marks|default:"0" }}</td>
                         </tr>
                         <tr class="ms-total-row">
-                            <td style="text-align: left; font-weight: 700; padding-left: 8px;">Total Marks : 100</td>
+                            <td style="text-align: left; font-weight: 700; padding-left: 6px;">Total Marks</td>
                             <td colspan="2" style="text-align: center; font-weight: 700;">100</td>
-                            <td colspan="2" style="text-align: center; font-weight: 700;">{{ certificate.total_marks|default:"0" }}</td>
+                            <td colspan="2" style="text-align: center; font-weight: 400;">{{ certificate.total_marks|default:"0" }}</td>
                         </tr>
                     </tbody>
                 </table>
 
-                <div class="ms-reg-line">
-                    Student Registration No : {{ certificate.certificate_id|default:certificate.registration_number }}
+                <!-- Government GR Details Section (Centered) -->
+                <div class="ms-gr-section">
+                    <div>Above Course contents are as per Govt. of Gujarat’s</div>
+                    <div>G.R. No.: CRR-10-2007-120320-G5, Dated: 13/08/08</div>
+                    <div>Student’s Registration No.: {{ certificate.certificate_id|default:certificate.registration_number }}</div>
                 </div>
-                <!-- Grade Legend and Obtained Summary Tables (side by side, immediately after Registration No.) -->
+
+                <!-- Grade Legend and Obtained Summary Tables (side by side) -->
                 <div class="ms-bottom-grid">
                     <!-- Left: Grade Legend -->
                     <table class="ms-legend-table">
                         <thead>
                             <tr>
-                                <th colspan="2">GRADE LEGEND</th>
+                                <th colspan="2" style="font-weight: 400;">GRADE LEGEND</th>
                             </tr>
                             <tr>
-                                <th>Grade</th>
-                                <th>Marks Range</th>
+                                <th style="width: 50%; font-weight: 400;">Grade</th>
+                                <th style="width: 50%; font-weight: 400; font-style: italic;">Percentage</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td style="font-weight: 700;">S</td>
-                                <td>85% and Above</td>
+                                <td>S</td>
+                                <td class="italic">85% &amp; Above</td>
                             </tr>
                             <tr>
-                                <td style="font-weight: 700;">A</td>
-                                <td>75% to 84%</td>
+                                <td>A</td>
+                                <td class="italic">75% to 84%</td>
                             </tr>
                             <tr>
-                                <td style="font-weight: 700;">B</td>
-                                <td>65% to 74%</td>
+                                <td>B</td>
+                                <td class="italic">65% to 74%</td>
                             </tr>
                             <tr>
-                                <td style="font-weight: 700;">C</td>
-                                <td>55% to 64%</td>
+                                <td>C</td>
+                                <td class="italic">55% to 64%</td>
                             </tr>
                             <tr>
-                                <td style="font-weight: 700;">D</td>
-                                <td>50% to 54%</td>
+                                <td>D</td>
+                                <td class="italic">50% to 54%</td>
                             </tr>
                         </tbody>
                     </table>
 
                     <!-- Right: Obtained Percentage / Obtained Grade Summary Table -->
-                    <div style="width: 48%; display: flex; flex-direction: column; align-items: center;">
-                        <table class="ms-summary-table">
-                            <tbody>
-                                <tr>
-                                    <td>Obtained Percentage</td>
-                                    <td style="text-align: center;">{{ certificate.percentage|default:"0" }}%</td>
-                                </tr>
-                                <tr>
-                                    <td>Obtained Grade</td>
-                                    <td style="text-align: center;">{{ certificate.grade|default:"A" }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <table class="ms-summary-table">
+                        <tbody>
+                            <tr>
+                                <td style="width: 70%;">Obtained Percentage</td>
+                                <td style="width: 30%; text-align: center;">  {{ certificate.percentage|default:"0" }}%</td>
+                            </tr>
+                            <tr>
+                                <td>Obtained Grade</td>
+                                <td style="text-align: center;">{{ certificate.grade|default:"A" }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-
-            <!-- Authorized Signatory inside the gray decorative area on the right -->
-            <div class="ms-signatory">
-                Authorized Signatory
-            </div>
-
-            <!-- Verification URL at bottom above address -->
-            <div class="ms-verify-line">
-                This Marksheet can be verified on {{ certificate_verify_url }}
             </div>
         </div>
     </div>
