@@ -943,8 +943,16 @@
             .citi-cert-qr {
                 position: absolute !important;
                 top: 8.3% !important;
-                right: 10.5% !important;
+                left: 10.5% !important;
+                right: auto !important;
                 z-index: 3 !important;
+            }
+            .citi-cert-photo {
+                position: absolute !important;
+                top: 8.3% !important;
+                right: 10.5% !important;
+                left: auto !important;
+                z-index: 2 !important;
             }
             .citi-cert-serial {
                 position: absolute !important;
@@ -1007,7 +1015,7 @@
         .citi-cert-photo {
             position: absolute;
             top: 8.3%;
-            left: 10.5%;
+            right: 10.5%;
             width: 12.7%;
             height: 11.8%;
             z-index: 2;
@@ -1026,7 +1034,7 @@
         .citi-cert-qr {
             position: absolute;
             top: 8.3%;
-            right: 10.5%;
+            left: 10.5%;
             z-index: 3;
             text-align: center;
         }
@@ -1261,8 +1269,8 @@
             <!-- 8. Issue Date: x 23.45%, y 70.8% -->
             <div class="ras-field ras-issue-date" style="left: 23.45%; top: 70.8%;">{{ certificate.issue_date|date:"d.m.Y" }}</div>
 
-            <!-- 9. Dynamic Scannable QR Code Overlay in Top-Right Corner (x: 88.5%, y: 12%) -->
-            <div class="ras-field ras-qr-box" style="left: 88.5%; top: 12%; text-align: center;">
+            <!-- 9. Dynamic Scannable QR Code Overlay in Top-Left Corner (x: 11.5%, y: 12%) -->
+            <div class="ras-field ras-qr-box" style="left: 11.5%; top: 12%; text-align: center;">
                 {% if qr_data_uri %}
                 <div style="background: #ffffff; padding: 3px 3px 2px 3px; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: inline-block;">
                     <img src="{{ qr_data_uri }}" alt="Scan to Verify" style="width: 4.8cqw; height: 4.8cqw; min-width: 58px; min-height: 58px; max-width: 78px; max-height: 78px; object-fit: contain; display: block; margin: 0 auto;">
@@ -1304,8 +1312,8 @@
             <!-- 8. Verification Line: x 50%, y 78% -->
             <div class="ras-field cert-verify-line ras-verify-line">This Certificate can be verified on {{ certificate_verify_url }}</div>
 
-            <!-- 9. Dynamic Scannable QR Code Overlay in Top-Right Corner (x: 88.5%, y: 12%) -->
-            <div class="ras-field ras-qr-box" style="left: 88.5%; top: 12%; text-align: center;">
+            <!-- 9. Dynamic Scannable QR Code Overlay in Top-Left (x: 38.5%, y: 12%) -->
+            <div class="ras-field ras-qr-box" style="left: 38.5%; top: 12%; text-align: center;">
                 {% if qr_data_uri %}
                 <div style="background: #ffffff; padding: 3px 3px 2px 3px; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: inline-block;">
                     <img src="{{ qr_data_uri }}" alt="Scan to Verify" style="width: 4.8cqw; height: 4.8cqw; min-width: 58px; min-height: 58px; max-width: 78px; max-height: 78px; object-fit: contain; display: block; margin: 0 auto;">
@@ -1322,14 +1330,14 @@
             <!-- Background Template -->
             <img src="{% static 'certificates/citi_ccc_template.jpg' %}" alt="CITI CCC Certificate Background Template" class="citi-bg-template">
 
-            <!-- 1. Top-Left Box: Student Photo -->
+            <!-- 1. Top-Right Box: Student Photo (if present) -->
             <div class="citi-cert-photo">
                 {% if certificate.student_photo %}
                     <img src="{{ certificate.student_photo.url }}" alt="Student Photo" class="citi-cert-photo-img">
                 {% endif %}
             </div>
 
-            <!-- Dynamic Scannable QR Code (Top-Right Corner, x: 89.5%, y: 8.3%) -->
+            <!-- Dynamic Scannable QR Code (Top-Left Corner, x: 10.5%, y: 8.3%) -->
             <div class="citi-cert-qr">
                 {% if qr_data_uri %}
                 <div style="background: #ffffff; padding: 3px; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: inline-block;">
@@ -1370,7 +1378,7 @@
             <div class="citi-cert-line citi-cert-exam">Exam was conducted at</div>
 
             <!-- j. Examination Center Address -->
-            <div class="citi-cert-line citi-cert-addr">F-5, 2nd Floor, Surbhi Complex, Sector - 22, Gandhinagar - 382022.</div>
+            <div class="citi-cert-line citi-cert-addr">F-5, 2nd Floor, Surbhi Complex, Sector - 22, Gandhinagar - 382421.</div>
 
             <!-- Verification Line -->
             <div class="citi-cert-line citi-cert-verify">This Certificate can be verified on {{ certificate_verify_url }}</div>

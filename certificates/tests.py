@@ -1679,7 +1679,7 @@ class CitiQrPositionAndSixDigitSuffixTests(TransactionTestCase):
         self.assertIn('citi-cert-qr', html)
         self.assertIn('Scan to Verify', html)
         self.assertIn('top: 8.3%', html)
-        self.assertIn('right: 10.5%', html)
+        self.assertIn('left: 10.5%', html)
         self.assertIn('top: 18.8%', html)
         self.assertNotIn('5005', html)
 

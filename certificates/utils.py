@@ -741,7 +741,7 @@ def generate_ras_certificate_pdf(cert, request=None):
     c.setFont('Helvetica', font_size)
     c.drawCentredString(page_w * 0.50, page_h * (1 - 0.782), verify_line)
 
-    # 9. Dynamic Scannable QR Code Overlay in Top-Right Corner (x 88.5%, y 12%)
+    # 9. Dynamic Scannable QR Code Overlay in Top-Left (x 38.5%, y 12%)
     qr_verify_url = get_certificate_verify_url(cert, request=request)
     try:
         from PIL import Image
@@ -752,7 +752,7 @@ def generate_ras_certificate_pdf(cert, request=None):
         qr_buf.seek(0)
 
         qr_size = 62
-        qr_x = page_w * 0.885 - (qr_size / 2)
+        qr_x = page_w * 0.385 - (qr_size / 2)
         qr_y = page_h * (1 - 0.12) - (qr_size / 2)
 
         c.setFillColor(colors.white)
@@ -865,7 +865,7 @@ def generate_ras_spoken_english_certificate_pdf(cert, request=None):
         c.setFont('Helvetica', 11)
         c.drawCentredString(page_w * 0.2345, page_h * (1 - 0.713), date_str)
 
-    # 9. Dynamic Scannable QR Code Overlay in Top-Right Corner (x 88.5%, y 12%)
+    # 9. Dynamic Scannable QR Code Overlay in Top-Left Corner (x 11.5%, y 12%)
     qr_verify_url = get_certificate_verify_url(cert, request=request)
     try:
         from PIL import Image
@@ -876,7 +876,7 @@ def generate_ras_spoken_english_certificate_pdf(cert, request=None):
         qr_buf.seek(0)
 
         qr_size = 62
-        qr_x = page_w * 0.885 - (qr_size / 2)
+        qr_x = page_w * 0.115 - (qr_size / 2)
         qr_y = page_h * (1 - 0.12) - (qr_size / 2)
 
         c.setFillColor(colors.white)
@@ -1085,10 +1085,10 @@ def generate_citi_ccc_certificate_pdf(cert, request=None):
     if template_path:
         c.drawImage(template_path, 0, 0, width=width, height=height)
 
-    # 2. Student Photo (left 10.5%, top 8.3%, width 12.7%, height 11.8%)
-    photo_x = width * 0.105
+    # 2. Student Photo (Top-Right Corner if uploaded, symmetrical to QR Code: top 8.3%, right 10.5%)
     photo_w = width * 0.127
     photo_h = height * 0.118
+    photo_x = width * (1 - 0.105) - photo_w
     photo_y = height * (1 - 0.083 - 0.118)
 
     if cert.student_photo:
@@ -1115,18 +1115,18 @@ def generate_citi_ccc_certificate_pdf(cert, request=None):
             img_cropped.save(img_buf, format='JPEG', quality=90)
             img_buf.seek(0)
             c.drawImage(ImageReader(img_buf), photo_x, photo_y, width=photo_w, height=photo_h)
+
+            # Thin black border around student photo
+            c.setStrokeColor(colors.black)
+            c.setLineWidth(0.8)
+            c.rect(photo_x, photo_y, photo_w, photo_h, fill=False, stroke=True)
         except Exception:
             pass
 
-    # Thin black border around student photo
-    c.setStrokeColor(colors.black)
-    c.setLineWidth(0.8)
-    c.rect(photo_x, photo_y, photo_w, photo_h, fill=False, stroke=True)
-
-    # 3. Dynamic Scannable QR Code (Top-Right Corner, symmetrical to Student Photo: top 8.3%, right 10.5%)
+    # 3. Dynamic Scannable QR Code (Top-Left Corner: top 8.3%, left 10.5%)
     qr_verify_url = get_certificate_verify_url(cert, request=request)
     qr_size = 52
-    qr_x = width * (1 - 0.105) - qr_size
+    qr_x = width * 0.105
     qr_y = height * (1 - 0.083) - qr_size
     try:
         from PIL import Image
@@ -1235,10 +1235,10 @@ def generate_citi_ccc_certificate_pdf(cert, request=None):
     c.setFillColor(colors.black)
     c.drawCentredString(center_x, height * (1 - 0.745) - (13.5 * 0.35), "Exam was conducted at")
 
-    # j. "F-5, 2nd Floor, Surbhi Complex, Sector - 22, Gandhinagar - 382022." (y 77.4%, regular, ~13.5 pt)
+    # j. "F-5, 2nd Floor, Surbhi Complex, Sector - 22, Gandhinagar - 382421." (y 77.4%, regular, ~13.5 pt)
     c.setFont('Helvetica', 13.5)
     c.setFillColor(colors.black)
-    c.drawCentredString(center_x, height * (1 - 0.774) - (13.5 * 0.35), "F-5, 2nd Floor, Surbhi Complex, Sector - 22, Gandhinagar - 382022.")
+    c.drawCentredString(center_x, height * (1 - 0.774) - (13.5 * 0.35), "F-5, 2nd Floor, Surbhi Complex, Sector - 22, Gandhinagar - 382421.")
 
     # verify line (y 43.0%, ~8.5-9 pt, dark gray)
     verify_url = get_certificate_verify_url()
