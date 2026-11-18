@@ -1331,11 +1331,11 @@
             <img src="{% static 'certificates/citi_ccc_template.jpg' %}" alt="CITI CCC Certificate Background Template" class="citi-bg-template">
 
             <!-- 1. Top-Right Box: Student Photo (if present) -->
+            {% if certificate.student_photo %}
             <div class="citi-cert-photo">
-                {% if certificate.student_photo %}
-                    <img src="{{ certificate.student_photo.url }}" alt="Student Photo" class="citi-cert-photo-img">
-                {% endif %}
+                <img src="{{ certificate.student_photo.url }}" alt="Student Photo" class="citi-cert-photo-img">
             </div>
+            {% endif %}
 
             <!-- Dynamic Scannable QR Code (Top-Left Corner, x: 10.5%, y: 8.3%) -->
             <div class="citi-cert-qr">
