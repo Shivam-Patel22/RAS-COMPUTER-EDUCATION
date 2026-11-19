@@ -77,7 +77,7 @@
                 </div>
 
                 <div class="form-group" style="margin-bottom: 0;">
-                    <label for="{{ form.middle_name.id_for_label }}">Middle Name *</label>
+                    <label for="{{ form.middle_name.id_for_label }}">Middle Name</label>
                     {{ form.middle_name }}
                     {% if form.middle_name.errors %}<div class="form-error">{{ form.middle_name.errors.0 }}</div>{% endif %}
                 </div>
@@ -255,24 +255,28 @@ function getSelectedPrefix() {
 
 function getStudentInitials() {
     var fnInput = document.getElementById('id_first_name');
+    var mnInput = document.getElementById('id_middle_name');
     var lnInput = document.getElementById('id_last_name');
     var fn = (fnInput && fnInput.value) ? fnInput.value.trim() : '';
+    var mn = (mnInput && mnInput.value) ? mnInput.value.trim() : '';
     var ln = (lnInput && lnInput.value) ? lnInput.value.trim() : '';
 
     if (fn && ln) {
         return (fn.charAt(0) + ln.charAt(0)).toUpperCase();
+    } else if (fn && mn) {
+        return (fn.charAt(0) + mn.charAt(0)).toUpperCase();
     } else if (fn) {
         var words = fn.split(/\s+/).filter(Boolean);
         if (words.length >= 2) {
             return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
         }
-        return fn.charAt(0).toUpperCase();
+        return (fn.charAt(0) + (fn.length > 1 ? fn.charAt(1) : 'X')).toUpperCase();
     } else if (ln) {
         var words = ln.split(/\s+/).filter(Boolean);
         if (words.length >= 2) {
             return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
         }
-        return ln.charAt(0).toUpperCase();
+        return (ln.charAt(0) + (ln.length > 1 ? ln.charAt(1) : 'X')).toUpperCase();
     }
     return 'FL';
 }
@@ -317,12 +321,15 @@ function updateCertId() {
         certInput.value = computeCertId(prefix, initials, seq, randomCode);
 
         var fnInput = document.getElementById('id_first_name');
+        var mnInput = document.getElementById('id_middle_name');
         var lnInput = document.getElementById('id_last_name');
         var fn = (fnInput && fnInput.value) ? fnInput.value.trim() : '';
+        var mn = (mnInput && mnInput.value) ? mnInput.value.trim() : '';
         var ln = (lnInput && lnInput.value) ? lnInput.value.trim() : '';
 
         var apiUrl = nextIdApiUrl + '?prefix=' + encodeURIComponent(prefix) +
                      '&first_name=' + encodeURIComponent(fn) +
+                     '&middle_name=' + encodeURIComponent(mn) +
                      '&last_name=' + encodeURIComponent(ln) +
                      '&random_code=' + encodeURIComponent(randomCode);
 
@@ -528,7 +535,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    var mnInput = document.getElementById('id_middle_name');
     if (fnInput) fnInput.addEventListener('input', onNameChange);
+    if (mnInput) mnInput.addEventListener('input', onNameChange);
     if (lnInput) lnInput.addEventListener('input', onNameChange);
 
     var certInput = document.getElementById('id_certificate_id');

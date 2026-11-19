@@ -28,40 +28,50 @@ class RandomCodeExhaustedError(Exception):
     pass
 
 
-def extract_recipient_initials(first_name="", last_name="", student_name=""):
+def extract_recipient_initials(first_name="", last_name="", student_name="", middle_name=""):
     """
-    Extracts two-letter uppercase recipient initials (first letter of first name + first letter of last name).
-    Trims leading and trailing whitespace.
-    If either first_name or last_name is missing, raises ValueError.
-    Divyaraj Vihol -> DV | Rahul Patel -> RP | Aisha Shah -> AS
+    Extracts two-letter uppercase recipient initials.
+    - If first_name and last_name are present: first letter of first_name + first letter of last_name.
+    - If last_name is omitted but middle_name is present: first letter of first_name + first letter of middle_name.
+    - If student_name is provided: derived from available words.
+    - Raises ValueError if first_name is missing or if neither last_name, middle_name, nor multi-word student_name is present.
+    Divyaraj Vihol -> DV | Rahul Sharma -> RS | Rahul Kumar (no last) -> RK
     """
     fn = (str(first_name) if first_name else "").strip()
+    mn = (str(middle_name) if middle_name else "").strip()
     ln = (str(last_name) if last_name else "").strip()
 
-    if (not fn or not ln) and student_name:
+    if (not fn or (not ln and not mn)) and student_name:
         parts = str(student_name).strip().split()
         if len(parts) >= 2:
             if not fn:
                 fn = parts[0]
-            if not ln:
+            if not ln and not mn:
                 ln = parts[-1]
+        elif len(parts) == 1 and not fn:
+            fn = parts[0]
 
     if not fn:
         raise ValueError("First name is required to generate recipient initials.")
-    if not ln:
+    if not ln and not mn:
         raise ValueError("Last name is required to generate recipient initials.")
 
     import unicodedata
     norm_fn = unicodedata.normalize('NFKD', fn).encode('ascii', 'ignore').decode('ascii').strip()
-    norm_ln = unicodedata.normalize('NFKD', ln).encode('ascii', 'ignore').decode('ascii').strip()
+    norm_mn = unicodedata.normalize('NFKD', mn).encode('ascii', 'ignore').decode('ascii').strip() if mn else ""
+    norm_ln = unicodedata.normalize('NFKD', ln).encode('ascii', 'ignore').decode('ascii').strip() if ln else ""
 
-    if norm_fn and norm_ln and norm_fn[0].isalpha() and norm_ln[0].isalpha():
+    if norm_fn and norm_fn[0].isalpha():
         f_char = norm_fn[0].upper()
-        l_char = norm_ln[0].upper()
     else:
-        # Fallback for non-ASCII scripts (e.g. Gujarati, Hindi, Devanagari) to guarantee standard ASCII Certificate ID
         f_char = 'S'
-        l_char = 'T'
+
+    if norm_ln and norm_ln[0].isalpha():
+        l_char = norm_ln[0].upper()
+    elif norm_mn and norm_mn[0].isalpha():
+        l_char = norm_mn[0].upper()
+    else:
+        l_char = 'X'
 
     return f"{f_char}{l_char}"
 
@@ -118,25 +128,28 @@ def format_certificate_id(prefix, year, month, initials, random_code=100000, seq
     return formatted_id
 
 
-def get_student_initials(first_name="", last_name="", student_name=""):
+def get_student_initials(first_name="", last_name="", student_name="", middle_name=""):
     """
-    Derives student initials from first_name, last_name, or student_name.
+    Derives student initials from first_name, last_name, middle_name, or student_name.
     Requirements:
     - Uppercase.
     - Ignore leading and trailing spaces.
     - If first_name and last_name are present: first letter of first_name + first letter of last_name.
+    - If last_name is omitted but middle_name is present: first letter of first_name + first letter of middle_name.
+    - If only first_name is present: first letter of first_name.
     - If multiple words in student_name (when first/last not explicitly provided):
       first letter of first name + first letter of last name.
-    - If last name is missing (or single-word name):
-      only the first initial.
     - Fallback: 'FL' if completely blank (e.g. for placeholder display).
     """
     fn = (str(first_name) if first_name else "").strip()
+    mn = (str(middle_name) if middle_name else "").strip()
     ln = (str(last_name) if last_name else "").strip()
     sn = (str(student_name) if student_name else "").strip()
 
     if fn and ln:
         return f"{fn[0].upper()}{ln[0].upper()}"
+    elif fn and mn:
+        return f"{fn[0].upper()}{mn[0].upper()}"
     elif fn:
         return fn[0].upper()
     elif ln:
@@ -286,6 +299,7 @@ def generate_certificate_id(
     first_name="",
     last_name="",
     student_name="",
+    middle_name="",
     initials=None,
     reserve=True,
     sequence=None,
@@ -333,9 +347,9 @@ def generate_certificate_id(
     # Determine initials
     if not initials:
         try:
-            initials = extract_recipient_initials(first_name=first_name, last_name=last_name, student_name=student_name)
+            initials = extract_recipient_initials(first_name=first_name, last_name=last_name, student_name=student_name, middle_name=middle_name)
         except ValueError:
-            initials = get_student_initials(first_name=first_name, last_name=last_name, student_name=student_name)
+            initials = get_student_initials(first_name=first_name, last_name=last_name, student_name=student_name, middle_name=middle_name)
             if len(initials) == 1:
                 initials = f"{initials}X"
             elif not initials or len(initials) != 2:
@@ -410,7 +424,7 @@ def generate_certificate_id(
         )
 
 
-def preview_certificate_id(prefix="RAS", year=None, month=None, first_name="", last_name="", student_name="", initials=None, random_code=None):
+def preview_certificate_id(prefix="RAS", year=None, month=None, first_name="", last_name="", student_name="", middle_name="", initials=None, random_code=None):
     """
     Generates an ID preview for the frontend without consuming any sequence or random code.
     """
@@ -419,6 +433,7 @@ def preview_certificate_id(prefix="RAS", year=None, month=None, first_name="", l
         year=year,
         month=month,
         first_name=first_name,
+        middle_name=middle_name,
         last_name=last_name,
         student_name=student_name,
         initials=initials,

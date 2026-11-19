@@ -79,11 +79,9 @@ class Certificate(models.Model):
         mn = self.middle_name.strip() if self.middle_name else ""
         ln = self.last_name.strip() if self.last_name else ""
         
-        if fn or ln:
-            if mn:
-                self.student_name = f"{fn} {mn} {ln}"
-            else:
-                self.student_name = f"{fn} {ln}"
+        name_parts = [p for p in [fn, mn, ln] if p]
+        if name_parts:
+            self.student_name = " ".join(name_parts)
 
         if self.prefix == 'CITI':
             if self.serial_number and not self.registration_number:

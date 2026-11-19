@@ -229,8 +229,8 @@ class AdminCertificateForm(forms.ModelForm):
     )
     middle_name = forms.CharField(
         max_length=100,
-        required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Middle Name *', 'required': 'required'})
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Middle Name'})
     )
     last_name = forms.CharField(
         max_length=100,
@@ -283,6 +283,7 @@ class AdminCertificateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['certificate_id'].required = False
         if self.instance and self.instance.pk:
             if self.instance.certificate_id:
                 cert_id_upper = self.instance.certificate_id.strip().upper()
@@ -367,6 +368,7 @@ class AdminCertificateForm(forms.ModelForm):
 
         prefix = cleaned_data.get('prefix', 'RAS')
         fn = cleaned_data.get('first_name', '').strip()
+        mn = cleaned_data.get('middle_name', '').strip()
         ln = cleaned_data.get('last_name', '').strip()
         cert_id = cleaned_data.get('certificate_id', '').strip().upper()
         id_gen_mode = self.data.get('id_gen_mode', 'auto')
@@ -377,15 +379,17 @@ class AdminCertificateForm(forms.ModelForm):
 
         if not fn:
             self.add_error('first_name', "First Name is required.")
-        if not ln:
-            self.add_error('last_name', "Last Name is required.")
 
         initials = None
-        if fn and ln:
+        if fn:
             try:
-                initials = extract_recipient_initials(first_name=fn, last_name=ln)
-            except ValueError as e:
-                self.add_error('first_name', str(e))
+                initials = extract_recipient_initials(first_name=fn, middle_name=mn, last_name=ln)
+            except ValueError:
+                initials = get_student_initials(first_name=fn, middle_name=mn, last_name=ln)
+                if len(initials) == 1:
+                    initials = f"{initials}X"
+                elif not initials or len(initials) != 2:
+                    initials = "XX"
 
         if id_gen_mode == 'manual':
             # Manual Mode: strictly validate prefix, format, student initials, and uniqueness
@@ -537,12 +541,22 @@ class AdminCertificateForm(forms.ModelForm):
         instance.first_name = fn
         instance.middle_name = mn
         instance.last_name = ln
-        if mn:
-            instance.student_name = f"{fn} {mn} {ln}"
-        else:
-            instance.student_name = f"{fn} {ln}"
+        name_parts = [p for p in [fn, mn, ln] if p]
+        if name_parts:
+            instance.student_name = " ".join(name_parts)
 
         prefix = self.cleaned_data.get('prefix', 'RAS')
+        if not instance.certificate_id:
+            from certificates.utils import generate_certificate_id
+            instance.certificate_id = generate_certificate_id(
+                prefix=prefix,
+                first_name=fn,
+                middle_name=mn,
+                last_name=ln,
+                student_name=instance.student_name,
+                reserve=True
+            )
+
         if prefix == 'CITI':
             instance.course_duration = self.cleaned_data.get('course_duration', '3 Months')
             instance.serial_number = self.cleaned_data.get('serial_number', '')

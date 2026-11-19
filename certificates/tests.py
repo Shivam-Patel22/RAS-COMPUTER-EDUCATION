@@ -71,22 +71,88 @@ class CertificatesTestCase(TestCase):
         self.assertEqual(str(cert.course_start_date), '2026-01-10')
         self.assertEqual(str(cert.course_end_date), '2026-07-10')
 
-    def test_middle_name_compulsory_validation(self):
+    def test_optional_middle_and_last_names_validation(self):
+        """Verifies that only First Name is mandatory, while Middle Name and Last Name are optional."""
         from dashboard.forms import AdminCertificateForm
-        form = AdminCertificateForm(data={
+
+        # 1. First Name only -> Valid
+        f1 = AdminCertificateForm(data={
             'prefix': 'RAS',
-            'id_gen_mode': 'manual',
-            'certificate_id': 'RAS-2026-HC1002',
-            'first_name': 'Harshal',
-            'middle_name': '',  # Empty compulsory middle name
-            'last_name': 'Chauhan',
+            'id_gen_mode': 'auto',
+            'first_name': 'Rahul',
+            'middle_name': '',
+            'last_name': '',
             'course': self.course.id,
             'course_start_date': '2026-01-10',
             'course_end_date': '2026-07-10',
             'issue_date': '2026-08-02',
         })
-        self.assertFalse(form.is_valid())
-        self.assertIn('middle_name', form.errors)
+        self.assertTrue(f1.is_valid(), f"Expected valid for first-name-only, got errors: {f1.errors}")
+        c1 = f1.save()
+        self.assertEqual(c1.student_name, 'Rahul')
+
+        # 2. First + Middle -> Valid
+        f2 = AdminCertificateForm(data={
+            'prefix': 'RAS',
+            'id_gen_mode': 'auto',
+            'first_name': 'Rahul',
+            'middle_name': 'Kumar',
+            'last_name': '',
+            'course': self.course.id,
+            'course_start_date': '2026-01-10',
+            'course_end_date': '2026-07-10',
+            'issue_date': '2026-08-02',
+        })
+        self.assertTrue(f2.is_valid(), f"Expected valid for first+middle, got errors: {f2.errors}")
+        c2 = f2.save()
+        self.assertEqual(c2.student_name, 'Rahul Kumar')
+
+        # 3. First + Last -> Valid
+        f3 = AdminCertificateForm(data={
+            'prefix': 'RAS',
+            'id_gen_mode': 'auto',
+            'first_name': 'Rahul',
+            'middle_name': '',
+            'last_name': 'Sharma',
+            'course': self.course.id,
+            'course_start_date': '2026-01-10',
+            'course_end_date': '2026-07-10',
+            'issue_date': '2026-08-02',
+        })
+        self.assertTrue(f3.is_valid(), f"Expected valid for first+last, got errors: {f3.errors}")
+        c3 = f3.save()
+        self.assertEqual(c3.student_name, 'Rahul Sharma')
+
+        # 4. First + Middle + Last -> Valid
+        f4 = AdminCertificateForm(data={
+            'prefix': 'RAS',
+            'id_gen_mode': 'auto',
+            'first_name': 'Rahul',
+            'middle_name': 'Kumar',
+            'last_name': 'Sharma',
+            'course': self.course.id,
+            'course_start_date': '2026-01-10',
+            'course_end_date': '2026-07-10',
+            'issue_date': '2026-08-02',
+        })
+        self.assertTrue(f4.is_valid(), f"Expected valid for all three names, got errors: {f4.errors}")
+        c4 = f4.save()
+        self.assertEqual(c4.student_name, 'Rahul Kumar Sharma')
+
+        # 5. Empty First Name -> Invalid
+        f5 = AdminCertificateForm(data={
+            'prefix': 'RAS',
+            'id_gen_mode': 'auto',
+            'first_name': '',
+            'middle_name': 'Kumar',
+            'last_name': 'Sharma',
+            'course': self.course.id,
+            'course_start_date': '2026-01-10',
+            'course_end_date': '2026-07-10',
+            'issue_date': '2026-08-02',
+        })
+        self.assertFalse(f5.is_valid())
+        self.assertIn('first_name', f5.errors)
 
     def test_course_dates_validation(self):
         from dashboard.forms import AdminCertificateForm
@@ -751,21 +817,21 @@ class CertificatePrefixAndSequenceTestCase(TestCase):
         self.assertIn('certificate_id', form_mismatch_initials.errors)
         self.assertIn("do not match student initials", form_mismatch_initials.errors['certificate_id'][0])
 
-        # 4e. Missing last name rejected in form (both first and last name required for initials)
-        form_single_name = AdminCertificateForm(data={
+        # 4e. Missing first name rejected in form, optional last name accepted
+        form_missing_fn = AdminCertificateForm(data={
             'prefix': 'RAS',
             'id_gen_mode': 'manual',
             'certificate_id': f'RAS-{current_year}-P1055',
-            'first_name': 'Priya',
+            'first_name': '',
             'middle_name': 'Devi',
-            'last_name': '',
+            'last_name': 'Patel',
             'course': self.course.id,
             'course_start_date': f'{current_year}-01-01',
             'course_end_date': f'{current_year}-06-01',
             'issue_date': f'{current_year}-06-15',
         })
-        self.assertFalse(form_single_name.is_valid())
-        self.assertIn('last_name', form_single_name.errors)
+        self.assertFalse(form_missing_fn.is_valid())
+        self.assertIn('first_name', form_missing_fn.errors)
 
         # 4f. Duplicate ID rejected
         Certificate.objects.create(

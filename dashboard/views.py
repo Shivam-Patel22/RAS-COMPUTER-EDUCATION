@@ -779,9 +779,10 @@ def add_certificate(request):
                 cert = form.save(commit=False)
                 prefix = form.cleaned_data.get('prefix', 'RAS')
                 fn = form.cleaned_data.get('first_name', '')
+                mn = form.cleaned_data.get('middle_name', '')
                 ln = form.cleaned_data.get('last_name', '')
                 if request.POST.get('id_gen_mode') != 'manual' and not cert.certificate_id:
-                    cert.certificate_id = generate_certificate_id(prefix=prefix, first_name=fn, last_name=ln, reserve=True)
+                    cert.certificate_id = generate_certificate_id(prefix=prefix, first_name=fn, middle_name=mn, last_name=ln, student_name=cert.student_name, reserve=True)
 
                 # Concurrency-safe save with retry
                 max_retries = 10
@@ -804,7 +805,7 @@ def add_certificate(request):
                                 'next_citi_seq': peek_next_certificate_sequence('CITI'),
                                 'current_year': current_year,
                             })
-                        cert.certificate_id = generate_certificate_id(prefix=prefix, first_name=fn, last_name=ln, reserve=True)
+                        cert.certificate_id = generate_certificate_id(prefix=prefix, first_name=fn, middle_name=mn, last_name=ln, student_name=cert.student_name, reserve=True)
 
                 if saved:
                     # Update registry status to active for this certificate
@@ -866,6 +867,7 @@ def get_next_certificate_id_api(request):
     if prefix not in ('RAS', 'CITI'):
         prefix = 'RAS'
     first_name = request.GET.get('first_name', '')
+    middle_name = request.GET.get('middle_name', '')
     last_name = request.GET.get('last_name', '')
     random_code = request.GET.get('random_code')
     if random_code:
@@ -885,13 +887,14 @@ def get_next_certificate_id_api(request):
         year=current_year,
         month=current_month,
         first_name=first_name,
+        middle_name=middle_name,
         last_name=last_name,
         random_code=random_code
     )
     try:
-        initials = extract_recipient_initials(first_name=first_name, last_name=last_name)
+        initials = extract_recipient_initials(first_name=first_name, middle_name=middle_name, last_name=last_name)
     except ValueError:
-        initials = get_student_initials(first_name=first_name, last_name=last_name)
+        initials = get_student_initials(first_name=first_name, middle_name=middle_name, last_name=last_name)
 
     parts = cert_id.split('-')
     rc_used = parts[4] if len(parts) >= 5 else None
