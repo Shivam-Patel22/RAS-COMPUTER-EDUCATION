@@ -970,7 +970,7 @@
             .citi-cert-grade-line { font-size: 13.5pt !important; }
             .citi-cert-reg { font-size: 13.5pt !important; }
             .citi-cert-exam { font-size: 13.5pt !important; }
-            .citi-cert-addr { font-size: 13.5pt !important; }
+            .citi-cert-addr { font-size: 11.5pt !important; }
             .citi-cert-verify { font-size: 8.5pt !important; }
             .citi-cert-date { font-size: 14pt !important; }
             .citi-cert-place { font-size: 14pt !important; }
@@ -1133,7 +1133,7 @@
         .citi-cert-addr {
             top: 77.4%;
             font-weight: normal;
-            font-size: 2.27cqw;
+            font-size: 1.93cqw;
         }
 
         .citi-cert-verify {
@@ -1312,8 +1312,8 @@
             <!-- 8. Verification Line: x 50%, y 78% -->
             <div class="ras-field cert-verify-line ras-verify-line">This Certificate can be verified on {{ certificate_verify_url }}</div>
 
-            <!-- 9. Dynamic Scannable QR Code Overlay in Top-Left (x: 38.5%, y: 12%) -->
-            <div class="ras-field ras-qr-box" style="left: 38.5%; top: 12%; text-align: center;">
+            <!-- 9. Dynamic Scannable QR Code Overlay in Top-Left (x: 11.5%, y: 12%) -->
+            <div class="ras-field ras-qr-box" style="left: 11.5%; top: 12%; text-align: center;">
                 {% if qr_data_uri %}
                 <div style="background: #ffffff; padding: 3px 3px 2px 3px; border: 1px solid #cbd5e1; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: inline-block;">
                     <img src="{{ qr_data_uri }}" alt="Scan to Verify" style="width: 4.8cqw; height: 4.8cqw; min-width: 58px; min-height: 58px; max-width: 78px; max-height: 78px; object-fit: contain; display: block; margin: 0 auto;">
@@ -1378,7 +1378,7 @@
             <div class="citi-cert-line citi-cert-exam">Exam was conducted at</div>
 
             <!-- j. Examination Center Address -->
-            <div class="citi-cert-line citi-cert-addr">F-5, 2nd Floor, Surbhi Complex, Sector - 22, Gandhinagar - 382421.</div>
+            <div class="citi-cert-line citi-cert-addr">{{ official_address|default:"F-5, 2nd Floor, Surbhi Complex, Sector - 22, Nr. Gh-5 Circle, Gandhinagar, Gujarat - 382021" }}</div>
 
             <!-- Verification Line -->
             <div class="citi-cert-line citi-cert-verify">This Certificate can be verified on {{ certificate_verify_url }}</div>

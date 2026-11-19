@@ -43,6 +43,8 @@ from certificates.utils import (
     get_certificate_verify_url,
     build_safe_certificate_filename,
     FilenameDeduplicator,
+    OFFICIAL_INSTITUTE_ADDRESS,
+    OFFICIAL_INSTITUTE_PIN,
     parse_date_input,
     SequenceExhaustedError,
     RandomCodeExhaustedError,
@@ -1050,6 +1052,8 @@ def print_certificate(request, pk):
         'verification_url': verification_url,
         'certificate_verify_url': get_certificate_verify_url(),
         'qr_data_uri': qr_data_uri,
+        'official_address': OFFICIAL_INSTITUTE_ADDRESS,
+        'official_pin': OFFICIAL_INSTITUTE_PIN,
     }
     return render(request, 'dashboard/print_certificate.html', context)
 
@@ -1095,6 +1099,8 @@ def print_citi_marksheet(request, pk):
     context = {
         'certificate': cert,
         'certificate_verify_url': get_certificate_verify_url(),
+        'official_address': OFFICIAL_INSTITUTE_ADDRESS,
+        'official_pin': OFFICIAL_INSTITUTE_PIN,
     }
     return render(request, 'dashboard/print_citi_marksheet.html', context)
 

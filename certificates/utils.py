@@ -9,6 +9,9 @@ _cert_gen_lock = threading.Lock()
 CERTIFICATE_ID_REGEX = re.compile(r'^(RAS|CITI)-\d{4}-(0[1-9]|1[0-2])-[A-Z]{2}-[1-9]\d{5}$')
 LEGACY_CERTIFICATE_ID_REGEX = re.compile(r'^(RAS|CITI)-\d{4}-(0[1-9]|1[0-2])-[A-Z]{2}-[1-9]\d{5}-(\d{6}|\d{4})$')
 
+OFFICIAL_INSTITUTE_ADDRESS = "F-5, 2nd Floor, Surbhi Complex, Sector - 22, Nr. Gh-5 Circle, Gandhinagar, Gujarat - 382021"
+OFFICIAL_INSTITUTE_PIN = "382021"
+
 
 def generate_six_digit_suffix():
     """
@@ -767,7 +770,7 @@ def generate_ras_certificate_pdf(cert, request=None):
         qr_buf.seek(0)
 
         qr_size = 62
-        qr_x = page_w * 0.385 - (qr_size / 2)
+        qr_x = page_w * 0.115 - (qr_size / 2)
         qr_y = page_h * (1 - 0.12) - (qr_size / 2)
 
         c.setFillColor(colors.white)
@@ -1250,10 +1253,10 @@ def generate_citi_ccc_certificate_pdf(cert, request=None):
     c.setFillColor(colors.black)
     c.drawCentredString(center_x, height * (1 - 0.745) - (13.5 * 0.35), "Exam was conducted at")
 
-    # j. "F-5, 2nd Floor, Surbhi Complex, Sector - 22, Gandhinagar - 382421." (y 77.4%, regular, ~13.5 pt)
-    c.setFont('Helvetica', 13.5)
+    # j. Official Address (y 77.4%, regular, 11.5 pt to fit full address cleanly)
+    c.setFont('Helvetica', 11.5)
     c.setFillColor(colors.black)
-    c.drawCentredString(center_x, height * (1 - 0.774) - (13.5 * 0.35), "F-5, 2nd Floor, Surbhi Complex, Sector - 22, Gandhinagar - 382421.")
+    c.drawCentredString(center_x, height * (1 - 0.774) - (11.5 * 0.35), OFFICIAL_INSTITUTE_ADDRESS)
 
     # verify line (y 43.0%, ~8.5-9 pt, dark gray)
     verify_url = get_certificate_verify_url()
