@@ -109,6 +109,29 @@ class Course(models.Model):
                 candidate = f"{base_slug}-{idx}"
                 idx += 1
             self.slug = candidate
+
+        # Automatically convert uploaded course image to WebP format safely
+        if self.image and hasattr(self.image, 'file'):
+            name = getattr(self.image, 'name', '') or ''
+            if name and not name.lower().endswith('.webp'):
+                try:
+                    from PIL import Image
+                    import io
+                    import os
+                    from django.core.files.base import ContentFile
+                    
+                    self.image.seek(0) if hasattr(self.image, 'seek') else None
+                    pil_img = Image.open(self.image)
+                    out_io = io.BytesIO()
+                    pil_img.save(out_io, format='WEBP', quality=85)
+                    out_io.seek(0)
+                    
+                    base_name = os.path.splitext(os.path.basename(name))[0]
+                    new_name = f"{base_name}.webp"
+                    self.image.save(new_name, ContentFile(out_io.getvalue()), save=False)
+                except Exception:
+                    pass
+
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
@@ -136,10 +159,31 @@ class Course(models.Model):
         return "Uncategorized"
 
     @property
+    def image_webp_url(self):
+        """
+        Returns the WebP image URL if available, falling back to original image URL.
+        """
+        if not self.image:
+            return ''
+        try:
+            url = self.image.url
+            if url.lower().endswith('.webp'):
+                return url
+            import os
+            # If WebP sibling exists alongside original, return it
+            webp_path = os.path.splitext(self.image.path)[0] + '.webp'
+            if os.path.exists(webp_path):
+                return os.path.splitext(url)[0] + '.webp'
+            return url
+        except Exception:
+            return ''
+
+    @property
     def image_url_or_default(self):
         if self.image:
             try:
-                return self.image.url
+                # Prefer WebP format if available
+                return self.image_webp_url or self.image.url
             except Exception:
                 return ''
         return ''

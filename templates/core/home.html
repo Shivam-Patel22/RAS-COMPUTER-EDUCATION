@@ -7,7 +7,10 @@
 <!-- Hero Section -->
 <section class="hero-banner-section" aria-label="Hero Banner">
     <div class="hero-banner-container animate__animated animate__fadeIn">
-        <img src="{% static 'images/hero_banner.png' %}" alt="RAS Computer Education &amp; Spoken English - Authorized Training Center" class="hero-banner-img">
+        <picture>
+            <source srcset="{% static 'images/hero_banner.webp' %}" type="image/webp">
+            <img src="{% static 'images/hero_banner.png' %}" alt="RAS Computer Education &amp; Spoken English - Authorized Training Center" class="hero-banner-img" width="1920" height="1080" fetchpriority="high" decoding="async">
+        </picture>
     </div>
 </section>
 
@@ -26,7 +29,10 @@
         {% for course in featured_courses %}
         <div class="card card-hover course-card animate__animated animate__fadeInUp anim-delay-{{ forloop.counter }}" data-course-name="{{ course.name }}" style="display: flex; flex-direction: column; height: 100%;">
             {% if course.image %}
-                <img src="{{ course.image.url }}" alt="{{ course.name }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" style="width: 100%; height: 200px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+                <picture>
+                    <source srcset="{{ course.image_webp_url }}" type="image/webp">
+                    <img src="{{ course.image.url }}" alt="{{ course.name }}" loading="lazy" decoding="async" width="400" height="200" onerror="this.closest('picture').style.display='none'; this.closest('picture').nextElementSibling.style.display='flex';" style="width: 100%; height: 200px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+                </picture>
                 <div style="display: none; width: 100%; height: 200px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: var(--radius-md); margin-bottom: 1.25rem; align-items: center; justify-content: center; color: white; font-size: 3.5rem;">
                     💻
                 </div>
