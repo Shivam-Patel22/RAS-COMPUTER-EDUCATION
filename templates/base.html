@@ -203,16 +203,30 @@
     </div>
     <script>
         (function() {
-            var fh = document.getElementById('site-header-fixed');
-            var h = 0;
-            if (fh) {
-                h = fh.getBoundingClientRect().height;
-            } else {
-                var nb = document.querySelector('.navbar-header');
-                var tk = document.querySelector('.offers-ticker-container');
-                h = (nb ? nb.getBoundingClientRect().height : 0) + (tk && tk.offsetParent !== null ? tk.getBoundingClientRect().height : 0);
+            function updateHeaderHeight() {
+                var fh = document.getElementById('site-header-fixed');
+                var h = 0;
+                if (fh) {
+                    h = fh.getBoundingClientRect().height;
+                } else {
+                    var nb = document.querySelector('.navbar-header');
+                    var tk = document.querySelector('.offers-ticker-container');
+                    h = (nb ? nb.getBoundingClientRect().height : 0) + (tk && tk.offsetParent !== null ? tk.getBoundingClientRect().height : 0);
+                }
+                if (h > 0) document.documentElement.style.setProperty('--header-height', Math.round(h) + 'px');
             }
-            if (h > 0) document.documentElement.style.setProperty('--header-height', Math.round(h) + 'px');
+            updateHeaderHeight();
+            if (window.ResizeObserver) {
+                var headerEl = document.getElementById('site-header-fixed');
+                if (headerEl) {
+                    new ResizeObserver(updateHeaderHeight).observe(headerEl);
+                }
+            }
+            window.addEventListener('resize', updateHeaderHeight, { passive: true });
+            window.addEventListener('load', updateHeaderHeight, { passive: true });
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(updateHeaderHeight);
+            }
         })();
     </script>
 
